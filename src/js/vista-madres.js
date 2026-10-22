@@ -22,7 +22,8 @@
 
   // ----- Leitura e cálculo -----
   function num(nome) {
-    var v = parseFloat(String(form.elements[nome].value).replace(",", "."));
+    var txt = String(form.elements[nome].value).trim().replace(/\s/g, "").replace(",", ".");
+    var v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(txt) ? parseFloat(txt) : NaN;
     return isFinite(v) ? v : NaN;
   }
 
@@ -46,10 +47,15 @@
     function pos(v, nome) { if (!(v > 0)) erros.push(nome + " tem de ser um número positivo."); }
     pos(d.largura, "O vão do pórtico"); pos(d.comprimento, "O comprimento"); pos(d.beirado, "A altura do beirado");
     pos(d.L, "O espaçamento entre pórticos"); pos(d.s, "O espaçamento entre madres");
+    function entre(v, min, max, nome, un) { if (v > 0 && !(v >= min && v <= max)) erros.push(nome + " tem de estar entre " + fmt(min, min % 1 ? 1 : 0) + " e " + fmt(max, 0) + " " + un + "."); }
+    entre(d.largura, 3, 100, "O vão do pórtico", "m"); entre(d.comprimento, 3, 500, "O comprimento", "m");
+    entre(d.beirado, 2, 40, "A altura do beirado", "m"); entre(d.L, 1, 20, "O espaçamento entre pórticos", "m");
+    entre(d.s, 0.3, 6, "O espaçamento entre madres", "m");
+    if (d.L > 0 && d.comprimento > 0 && d.L > d.comprimento) erros.push("O espaçamento entre pórticos é maior do que o comprimento do pavilhão.");
     if (!(d.alfa >= 0 && d.alfa <= 30)) erros.push("A inclinação tem de estar entre 0° e 30°.");
     if (!(d.gRev >= 0) || !(d.gInst >= 0) || !(d.qk >= 0)) erros.push("As cargas têm de ser números iguais ou superiores a zero.");
     if (!(d.altitude >= 0 && d.altitude <= 1500)) erros.push("A altitude tem de estar entre 0 e 1500 m (limite da NP EN 1991-1-3).");
-    if (d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
+    if (d.largura > 0 && d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
     if (!(d.cpiMax >= d.cpiMin) || !(Math.abs(d.cpiMax) <= 1) || !(Math.abs(d.cpiMin) <= 1)) erros.push("Os coeficientes de pressão interior têm de estar entre −1 e +1, com o máximo maior ou igual ao mínimo.");
     return erros;
   }
@@ -117,7 +123,8 @@
     var vao = d.posicao === "bordadura" ? 0 : Math.min(Math.floor(nPorticos / 2), nPorticos - 1);
     var x0 = xs[vao], x1 = xs[vao + 1];
     var meia = d.s * Math.cos(a) / 2;
-    g += '<rect class="esq-faixa" x="' + x0 + '" y="' + (yMadre - meia) + '" width="' + (x1 - x0) + '" height="' + (2 * meia) + '"/>';
+    var yf0 = Math.max(0, yMadre - meia), yf1 = Math.min(W / 2, yMadre + meia);
+    g += '<rect class="esq-faixa" x="' + x0 + '" y="' + yf0 + '" width="' + (x1 - x0) + '" height="' + (yf1 - yf0) + '"/>';
     // Madres nas duas águas
     madres.forEach(function (m) {
       [m * Math.cos(a), W - m * Math.cos(a)].forEach(function (y) {
@@ -177,9 +184,11 @@
     var xh = W + pad * 0.45;
     g += '<path class="esq-cota" d="M' + (W / 2 + pad * 0.1) + " " + Y(hc) + "H" + (xh + pad * 0.1) + "M" + (W + pad * 0.1) + " " + Y(0) + "H" + (xh + pad * 0.1) + "M" + xh + " " + Y(0) + "V" + Y(hc) + '"/>';
     g += texto(xh + fs * 1.0, Y(hc / 2), fs, fmt(hc, 2) + " m", ' text-anchor="middle" transform="rotate(-90 ' + (xh + fs * 1.0) + " " + Y(hc / 2) + ')"');
-    g += texto(W * 0.8, Y(hb + (W * 0.2) * Math.tan(a)) + fs * 1.6, fs * 0.85, "α = " + fmt(d.alfa, 1) + "°", ' text-anchor="middle"');
+    g += texto(W / 2, Y(hc) + fs * 2.4, fs * 0.85, "α = " + fmt(d.alfa, 1) + "°", ' text-anchor="middle"');
     var topo = comp + 2 * lado + fs * 1.6;
-    var vb = [-pad, -topo, W + pad * 2.1, hc + topo + pad];
+    // A etiqueta "G, Q, S" fica à esquerda da madre: alarga-se a margem quando a madre está junto ao beirado.
+    var esquerda = Math.min(-pad, mx - fs * 4.8);
+    var vb = [esquerda, -topo, W + pad * 1.1 - esquerda, hc + topo + pad];
     return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Corte transversal do pavilhão com as cargas na madre">' + g + "</svg>";
   }
 
@@ -329,12 +338,15 @@
   }
 
   function cartaoComparacao(r, v) {
-    var itens = r.dim.lista.slice(0, 10).map(function (x) {
+    // Janela de 10 secções à volta da que está a ser mostrada (a escolhida ou a mais leve que verifica).
+    var lista = r.dim.lista, i = Math.max(0, lista.indexOf(v));
+    var inicio = Math.max(0, Math.min(i - 4, lista.length - 10));
+    var itens = lista.slice(inicio, inicio + 10).map(function (x) {
       var cond = Object.keys(x.verificacoes).reduce(function (a, b) { return x.verificacoes[a].u >= x.verificacoes[b].u ? a : b; });
       return '<li><button type="button" class="candidato candidato-madre" data-nome="' + x.perfil.nome + '" aria-current="' + (x === v) + '">' +
         '<span class="candidato-nome">' + x.perfil.nome + "</span>" +
         '<span class="candidato-dims">' + fmt(x.props.G, 2) + " kg/m · " + (x.ok ? (x.omega ? "pré-seleção" : "verifica") : "não verifica") + " · " + ((x.omega && NOMES_OMEGA[cond]) ? NOMES_OMEGA[cond] : NOMES_VERIF[cond]).nome.toLowerCase() + "</span>" +
-        '<span class="candidato-u">' + fmt(x.uMax * 100, 0) + " %</span>" + barra(x.uMax) + "</button></li>";
+        '<span class="candidato-u">' + (x.uMax > 9.99 ? "> 999" : fmt(x.uMax * 100, 0)) + " %</span>" + barra(x.uMax) + "</button></li>";
     }).join("");
     var titulo = r.d.tipo === "IPE" ? "Perfis IPE comparados" : "Secções " + r.d.tipo + " comparadas";
     return '<section class="cartao"><h2>' + titulo + '</h2><ul class="candidatos">' + itens + "</ul></section>";
@@ -362,6 +374,7 @@
 
   function render() {
     var d = ler();
+    $("m-campo-aco").hidden = d.tipo !== "IPE";
     var erros = validar(d);
     var zona = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
     $("m-zona-vento").innerHTML = "Zona de vento <b>" + zona + "</b> (v<sub>b,0</sub> = " + Acoes.VENTO_VB0[zona] + " m/s). A zona B aplica-se a menos de 5 km da costa ou acima de 600 m de altitude.";
@@ -369,7 +382,6 @@
       saida.innerHTML = '<section class="cartao"><h2>Dados por corrigir</h2><ul class="hipoteses">' + erros.map(function (e) { return "<li>" + e + "</li>"; }).join("") + "</ul></section>";
       return;
     }
-    $("m-campo-aco").hidden = d.tipo !== "IPE";
     var r = calcular(d);
     var v = estado.escolhido && r.dim.lista.filter(function (x) { return x.perfil.nome === estado.escolhido; })[0] || r.dim.escolhido;
     saida.innerHTML = cartaoResultado(r, v) + cartaoEsquicos(r) + cartaoAcoes(r) + cartaoCombinacoes(r, v) + cartaoComparacao(r, v) + cartaoHipoteses(r);
@@ -407,6 +419,9 @@
       if (!b) return;
       estado.escolhido = b.getAttribute("data-nome");
       render();
+      var mesmo = saida.querySelector('.candidato-madre[data-nome="' + estado.escolhido + '"]');
+      if (mesmo) mesmo.focus();
+      saida.querySelector(".cartao").scrollIntoView({ block: "start" });
     });
     render();
   }

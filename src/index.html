@@ -50,13 +50,13 @@
 
       <div class="campos">
         <label class="campo" for="in-h"><span>Altura <i>h</i></span>
-          <span class="entrada"><input id="in-h" name="h" type="number" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
+          <span class="entrada"><input id="in-h" name="h" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
         <label class="campo" for="in-b"><span>Largura <i>b</i></span>
-          <span class="entrada"><input id="in-b" name="b" type="number" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
+          <span class="entrada"><input id="in-b" name="b" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
         <label class="campo" for="in-tw"><span>Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
-          <span class="entrada"><input id="in-tw" name="tw" type="number" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+          <span class="entrada"><input id="in-tw" name="tw" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
         <label class="campo" for="in-tf"><span>Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
-          <span class="entrada"><input id="in-tf" name="tf" type="number" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+          <span class="entrada"><input id="in-tf" name="tf" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
       </div>
 
       <fieldset class="grupo">
@@ -82,13 +82,13 @@
         <legend>Pavilhão</legend>
         <div class="campos">
           <label class="campo" for="m-largura"><span>Vão do pórtico</span>
-            <span class="entrada"><input id="m-largura" name="largura" type="number" inputmode="decimal" min="1" step="0.1" value="20"><em>m</em></span></label>
+            <span class="entrada"><input id="m-largura" name="largura" type="text" inputmode="decimal" min="1" step="0.1" value="20"><em>m</em></span></label>
           <label class="campo" for="m-comprimento"><span>Comprimento</span>
-            <span class="entrada"><input id="m-comprimento" name="comprimento" type="number" inputmode="decimal" min="1" step="0.1" value="48"><em>m</em></span></label>
+            <span class="entrada"><input id="m-comprimento" name="comprimento" type="text" inputmode="decimal" min="1" step="0.1" value="48"><em>m</em></span></label>
           <label class="campo" for="m-beirado"><span>Altura do beirado</span>
-            <span class="entrada"><input id="m-beirado" name="beirado" type="number" inputmode="decimal" min="1" step="0.1" value="7"><em>m</em></span></label>
+            <span class="entrada"><input id="m-beirado" name="beirado" type="text" inputmode="decimal" min="1" step="0.1" value="7"><em>m</em></span></label>
           <label class="campo" for="m-alfa"><span>Inclinação</span>
-            <span class="entrada"><input id="m-alfa" name="alfa" type="number" inputmode="decimal" min="0" max="30" step="0.5" value="8"><em>°</em></span></label>
+            <span class="entrada"><input id="m-alfa" name="alfa" type="text" inputmode="decimal" min="0" max="30" step="0.5" value="8"><em>°</em></span></label>
         </div>
       </fieldset>
 
@@ -102,9 +102,9 @@
           </select></label>
         <div class="campos">
           <label class="campo" for="m-vao"><span>Entre pórticos</span>
-            <span class="entrada"><input id="m-vao" name="vao" type="number" inputmode="decimal" min="1" step="0.1" value="6"><em>m</em></span></label>
+            <span class="entrada"><input id="m-vao" name="vao" type="text" inputmode="decimal" min="1" step="0.1" value="6"><em>m</em></span></label>
           <label class="campo" for="m-espacamento"><span>Entre madres</span>
-            <span class="entrada"><input id="m-espacamento" name="espacamento" type="number" inputmode="decimal" min="0.3" step="0.05" value="1.5"><em>m</em></span></label>
+            <span class="entrada"><input id="m-espacamento" name="espacamento" type="text" inputmode="decimal" min="0.3" step="0.05" value="1.5"><em>m</em></span></label>
         </div>
         <label class="campo" for="m-esquema"><span>Esquema estático</span>
           <select id="m-esquema" name="esquema"></select></label>
@@ -124,11 +124,11 @@
           <select id="m-revestimento" name="revestimento"></select></label>
         <div class="campos">
           <label class="campo" for="m-grev"><span>Peso do revestimento</span>
-            <span class="entrada"><input id="m-grev" name="grev" type="number" inputmode="decimal" min="0" step="0.01"><em>kN/m²</em></span></label>
-          <label class="campo" for="m-ginst"><span>Instalações suspensas</span>
-            <span class="entrada"><input id="m-ginst" name="ginst" type="number" inputmode="decimal" min="0" step="0.01" value="0.10"><em>kN/m²</em></span></label>
+            <span class="entrada"><input id="m-grev" name="grev" type="text" inputmode="decimal" min="0" step="0.01"><em>kN/m²</em></span></label>
+          <label class="campo" for="m-ginst"><span>Instalações</span>
+            <span class="entrada"><input id="m-ginst" name="ginst" type="text" inputmode="decimal" min="0" step="0.01" value="0.10"><em>kN/m²</em></span></label>
           <label class="campo" for="m-qk"><span>Sobrecarga (cat. H)</span>
-            <span class="entrada"><input id="m-qk" name="qk" type="number" inputmode="decimal" min="0" step="0.05" value="0.4"><em>kN/m²</em></span></label>
+            <span class="entrada"><input id="m-qk" name="qk" type="text" inputmode="decimal" min="0" step="0.05" value="0.4"><em>kN/m²</em></span></label>
         </div>
       </fieldset>
 
@@ -136,7 +136,7 @@
         <legend>Local</legend>
         <div class="campos">
           <label class="campo" for="m-altitude"><span>Altitude</span>
-            <span class="entrada"><input id="m-altitude" name="altitude" type="number" inputmode="decimal" min="0" max="1500" step="10" value="150"><em>m</em></span></label>
+            <span class="entrada"><input id="m-altitude" name="altitude" type="text" inputmode="decimal" min="0" max="1500" step="10" value="150"><em>m</em></span></label>
           <label class="campo" for="m-zona-neve"><span>Zona de neve</span>
             <select id="m-zona-neve" name="zonaNeve">
               <option value="Z1">Z1</option>
@@ -152,16 +152,16 @@
           </select></label>
         <label class="campo" for="m-terreno"><span>Categoria de terreno</span>
           <select id="m-terreno" name="terreno">
-            <option value="I">I · Zona costeira exposta aos ventos do mar</option>
-            <option value="II">II · Vegetação rasteira, obstáculos isolados</option>
-            <option value="III" selected>III · Zonas industriais, suburbanas, florestas</option>
-            <option value="IV">IV · Zonas urbanas, edifícios com mais de 15 m</option>
+            <option value="I">I · Costa exposta ao mar</option>
+            <option value="II">II · Campo aberto, obstáculos isolados</option>
+            <option value="III" selected>III · Industrial, suburbano, floresta</option>
+            <option value="IV">IV · Urbano, edifícios acima de 15 m</option>
           </select></label>
         <div class="campos">
           <label class="campo" for="m-cpi-max"><span>c<sub>pi</sub> máximo</span>
-            <span class="entrada"><input id="m-cpi-max" name="cpiMax" type="number" inputmode="decimal" min="-1" max="1" step="0.05" value="0.2"></span></label>
+            <span class="entrada"><input id="m-cpi-max" name="cpiMax" type="text" inputmode="decimal" min="-1" max="1" step="0.05" value="0.2"></span></label>
           <label class="campo" for="m-cpi-min"><span>c<sub>pi</sub> mínimo</span>
-            <span class="entrada"><input id="m-cpi-min" name="cpiMin" type="number" inputmode="decimal" min="-1" max="1" step="0.05" value="-0.3"></span></label>
+            <span class="entrada"><input id="m-cpi-min" name="cpiMin" type="text" inputmode="decimal" min="-1" max="1" step="0.05" value="-0.3"></span></label>
         </div>
         <p class="nota">+0,2 / −0,3 sem face dominante. Com portões grandes que possam ficar abertos, ver NP EN 1991-1-4, 7.2.9(5).</p>
         <label class="verificar" for="m-costa"><input id="m-costa" name="costa" type="checkbox"> A menos de 5 km da costa</label>

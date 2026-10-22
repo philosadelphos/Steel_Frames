@@ -33,7 +33,8 @@
   // ----- Procura -----
   function lerMedidas() {
     function num(nome) {
-      var v = parseFloat(String(form.elements[nome].value).replace(",", "."));
+      var txt = String(form.elements[nome].value).trim().replace(/\s/g, "").replace(",", ".");
+      var v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(txt) ? parseFloat(txt) : NaN;
       return isFinite(v) && v > 0 ? v : null;
     }
     return { h: num("h"), b: num("b"), tw: num("tw"), tf: num("tf") };
@@ -310,6 +311,8 @@
       if (!b) return;
       estado.escolhido = b.getAttribute("data-nome");
       render();
+      var mesmo = resultado.querySelector('.candidato[data-nome="' + estado.escolhido + '"]');
+      if (mesmo) mesmo.focus();
     });
 
     $("fichas-catalogo").addEventListener("change", function (e) {

@@ -35,6 +35,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -76,7 +77,7 @@ button, input, select { font: inherit; color: inherit; }
   clip-path: polygon(0 0, 100% 0, 100% 22%, 58% 22%, 58% 78%, 100% 78%, 100% 100%, 0 100%, 0 78%, 42% 78%, 42% 22%, 0 22%);
 }
 .marca-sub { font-size: 0.78rem; color: var(--tinta-suave); letter-spacing: 0.04em; }
-.separadores { display: flex; gap: 4px; }
+.separadores { display: flex; flex-wrap: wrap; gap: 4px; }
 .separador {
   border: 1px solid transparent; background: none; cursor: pointer;
   padding: 6px 12px; border-radius: var(--raio);
@@ -119,7 +120,7 @@ button, input, select { font: inherit; color: inherit; }
 .esquema-txt { fill: var(--tinta); font: italic 600 11px var(--f-texto); text-anchor: middle; }
 .esquema-txt-s { font-size: 10px; text-anchor: start; }
 
-.campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
 .campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 0.86rem; font-weight: 500; }
 .campo small { font-weight: 400; color: var(--tinta-suave); }
 .campo i { font-family: var(--f-texto); }
@@ -249,7 +250,7 @@ select {
   position: sticky; top: 0; z-index: 1; background: var(--superficie-2);
   font-weight: 600; border-bottom: 1px solid var(--linha);
 }
-.tabela thead th:first-child { z-index: 2; }
+.tabela thead th:first-child { z-index: 2; background: var(--superficie-2); }
 .tabela thead .un { display: block; font-weight: 400; color: var(--tinta-suave); font-size: 0.75rem; }
 .tabela tbody tr { background: var(--superficie); cursor: pointer; }
 .tabela tbody tr:nth-child(even) { background: var(--superficie-2); }
@@ -292,7 +293,7 @@ select {
 .util-aviso span { background: var(--aviso); }
 .util-mau span { background: var(--mau); }
 .candidato-madre { grid-template-columns: 6.5em minmax(0, 1fr) 3.2em 70px; }
-.candidato-u { text-align: right; }
+.candidato-u { text-align: right; white-space: nowrap; }
 @media (max-width: 480px) { .candidato-madre { grid-template-columns: 5.5em minmax(0, 1fr) 3em; } .candidato-madre .util { display: none; } }
 
 .esquicos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
@@ -334,3 +335,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
 .tabela tbody tr.linha-omega { cursor: default; }
 .tabela tbody tr.linha-omega:hover td { color: inherit; }
 .tabela tbody tr.linha-omega td:first-child { font-family: var(--f-dados); font-weight: 500; font-size: 0.86rem; }
+@media (max-width: 400px) {
+  .separador { padding: 6px 8px; font-size: 0.95rem; }
+}
+.resultado .cartao { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 110px); }
