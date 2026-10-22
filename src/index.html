@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steel Frames</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Identificação e propriedades de perfis metálicos laminados segundo a EN 10365 e o Eurocódigo 3.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topo">
+  <div class="topo-interior">
+    <div class="marca">
+      <span class="marca-nome">Steel Frames</span>
+      <span class="marca-sub">Perfis metálicos · EN 10365 · NP EN 1993-1-1</span>
+    </div>
+    <nav class="separadores" aria-label="Secções">
+      <button type="button" class="separador" id="tab-identificar" data-vista="identificar" aria-selected="true">Identificar perfil</button>
+      <button type="button" class="separador" id="tab-catalogo" data-vista="catalogo" aria-selected="false">Catálogo</button>
+    </nav>
+  </div>
+</header>
+
+<main class="conteudo">
+  <section class="vista" id="vista-identificar" aria-labelledby="tab-identificar">
+    <form class="painel-medidas" id="form-medidas" autocomplete="off">
+      <h1 class="titulo-painel">Medidas do perfil</h1>
+      <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas.</p>
+
+      <figure class="esquema" aria-hidden="true">
+        <svg viewBox="0 0 160 150" role="img">
+          <path class="esquema-perfil" d="M40 20h80v12H84v86h36v12H40v-12h36V32H40z"/>
+          <g class="esquema-cota">
+            <line x1="40" y1="10" x2="120" y2="10"/><line x1="40" y1="6" x2="40" y2="14"/><line x1="120" y1="6" x2="120" y2="14"/>
+            <line x1="26" y1="20" x2="26" y2="130"/><line x1="22" y1="20" x2="30" y2="20"/><line x1="22" y1="130" x2="30" y2="130"/>
+          </g>
+          <text x="80" y="7" class="esquema-txt">b</text>
+          <text x="16" y="79" class="esquema-txt">h</text>
+          <text x="96" y="80" class="esquema-txt esquema-txt-s">tw</text>
+          <text x="134" y="30" class="esquema-txt esquema-txt-s">tf</text>
+          <line class="esquema-guia" x1="121" y1="26" x2="130" y2="26"/>
+          <line class="esquema-guia" x1="85" y1="76" x2="92" y2="76"/>
+        </svg>
+      </figure>
+
+      <div class="campos">
+        <label class="campo" for="in-h"><span>Altura <i>h</i></span>
+          <span class="entrada"><input id="in-h" name="h" type="number" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
+        <label class="campo" for="in-b"><span>Largura <i>b</i></span>
+          <span class="entrada"><input id="in-b" name="b" type="number" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
+        <label class="campo" for="in-tw"><span>Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
+          <span class="entrada"><input id="in-tw" name="tw" type="number" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+        <label class="campo" for="in-tf"><span>Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
+          <span class="entrada"><input id="in-tf" name="tf" type="number" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+      </div>
+
+      <fieldset class="grupo">
+        <legend>Séries a considerar</legend>
+        <div class="fichas" id="fichas-familias"></div>
+      </fieldset>
+
+      <label class="campo" for="in-aco"><span>Classe do aço</span>
+        <select id="in-aco" name="aco"></select></label>
+
+      <p class="nota nota-exemplo" id="nota-exemplo">Exemplo carregado: secção medida com 300 × 150 mm.</p>
+    </form>
+
+    <div class="resultado" id="resultado" aria-live="polite"></div>
+  </section>
+
+  <section class="vista" id="vista-catalogo" aria-labelledby="tab-catalogo" hidden>
+    <div class="catalogo-topo">
+      <h1 class="titulo-painel">Catálogo de perfis</h1>
+      <div class="fichas" id="fichas-catalogo" role="radiogroup" aria-label="Série"></div>
+    </div>
+    <p class="nota" id="catalogo-desc"></p>
+    <div class="tabela-rolo">
+      <table class="tabela" id="tabela-catalogo"></table>
+    </div>
+    <p class="nota">Toque numa linha para abrir o perfil com todas as propriedades.</p>
+  </section>
+</main>
+
+<footer class="rodape">
+  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação e resistência de secções, γ<sub>M0</sub> = 1,0) · EN 10025-2/-3 (classes de aço).</p>
+  <p>Propriedades calculadas a partir das dimensões nominais, incluindo as concordâncias. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
+</footer>
+
+<script src="js/perfis.js"></script>
+<script src="js/seccao.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

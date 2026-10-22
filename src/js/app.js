@@ -297,7 +297,7 @@
     });
 
     Array.prototype.forEach.call(document.querySelectorAll(".separador"), function (b) {
-      b.addEventListener("click", function () { mostrar(b.getAttribute("data-vista")); });
+      b.addEventListener("click", function () { mostrar(b.getAttribute("data-vista")); window.scrollTo(0, 0); });
     });
 
     renderCatalogo();

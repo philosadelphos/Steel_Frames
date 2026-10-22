@@ -2,8 +2,8 @@
  * Compara as propriedades calculadas com os valores publicados nos catálogos
  * de perfis (ArcelorMittal, Sections and Merchant Bars). Correr com: node testes/verificar.js
  */
-global.PERFIS = require("../js/perfis.js");
-var Seccao = require("../js/seccao.js");
+global.PERFIS = require("../src/js/perfis.js");
+var Seccao = require("../src/js/seccao.js");
 
 var REFERENCIAS = {
   "IPE 200": { A: 28.48, G: 22.4, Iy: 1943, Wply: 220.6, Iz: 142.4, Wplz: 44.61, It: 6.98, Iw: 12.99e3, Avz: 14.00 },

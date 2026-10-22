@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Ficheiro gerado por ferramentas/construir.js a partir de src/. Não editar: altere src/ e volte a gerar. -->
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
@@ -9,7 +10,275 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<style>
+/* Layout: faixa de topo + duas colunas (medidas | resultado) que empilham abaixo de 880px.
+   Cor: cinza-aço frio com o vermelho do primário anticorrosivo como único acento. */
+:root {
+  --fundo: #eceff1;
+  --superficie: #ffffff;
+  --superficie-2: #f5f7f8;
+  --tinta: #1a2228;
+  --tinta-suave: #56636c;
+  --linha: #cdd4d9;
+  --aco: #3e5465;
+  --aco-claro: #dbe3e9;
+  --primario: #a9402a;
+  --primario-tinta: #ffffff;
+  --ok: #2f6f4f;
+  --aviso: #8a5a00;
+  --mau: #a12a2a;
+  --f-titulo: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-texto: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-dados: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --raio: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fundo: #11161a; --superficie: #192026; --superficie-2: #1f272e; --tinta: #e2e7ea;
+    --tinta-suave: #97a4ad; --linha: #2e3941; --aco: #9ab1c2; --aco-claro: #26323b;
+    --primario: #e2795c; --primario-tinta: #1a0d08; --ok: #6cc196; --aviso: #e0b357; --mau: #ef8a8a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --fundo: #11161a; --superficie: #192026; --superficie-2: #1f272e; --tinta: #e2e7ea;
+  --tinta-suave: #97a4ad; --linha: #2e3941; --aco: #9ab1c2; --aco-claro: #26323b;
+  --primario: #e2795c; --primario-tinta: #1a0d08; --ok: #6cc196; --aviso: #e0b357; --mau: #ef8a8a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--tinta);
+  font: 15px/1.5 var(--f-texto);
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--superficie);
+}
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--primario); outline-offset: 2px; }
+
+/* Topo */
+.topo {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--superficie);
+  border-bottom: 1px solid var(--linha);
+}
+.topo-interior, .conteudo, .rodape {
+  max-width: 1180px; margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topo-interior {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 24px; padding-block: 10px;
+}
+.marca { display: flex; flex-direction: column; line-height: 1.15; }
+.marca-nome {
+  font-family: var(--f-titulo); font-weight: 700; font-size: 1.6rem;
+  letter-spacing: 0.02em; text-transform: uppercase;
+}
+.marca-nome::before {
+  content: ""; display: inline-block; width: 0.9em; height: 0.62em; margin-right: 0.35em;
+  background: var(--primario);
+  clip-path: polygon(0 0, 100% 0, 100% 22%, 58% 22%, 58% 78%, 100% 78%, 100% 100%, 0 100%, 0 78%, 42% 78%, 42% 22%, 0 22%);
+}
+.marca-sub { font-size: 0.78rem; color: var(--tinta-suave); letter-spacing: 0.04em; }
+.separadores { display: flex; gap: 4px; }
+.separador {
+  border: 1px solid transparent; background: none; cursor: pointer;
+  padding: 6px 12px; border-radius: var(--raio);
+  font-family: var(--f-titulo); font-weight: 600; font-size: 1.05rem; letter-spacing: 0.03em;
+  text-transform: uppercase; color: var(--tinta-suave);
+}
+.separador:hover { color: var(--tinta); background: var(--superficie-2); }
+.separador[aria-selected="true"] { color: var(--tinta); border-color: var(--linha); background: var(--superficie-2); }
+
+/* Conteúdo */
+.conteudo { padding-block: 24px 8px; }
+.vista#vista-identificar {
+  display: grid; gap: 24px;
+  grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+  align-items: start;
+}
+.vista[hidden] { display: none !important; }
+@media (max-width: 880px) {
+  .vista#vista-identificar { grid-template-columns: minmax(0, 1fr); }
+}
+
+.titulo-painel {
+  font-family: var(--f-titulo); font-weight: 600; font-size: 1.35rem;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.nota { color: var(--tinta-suave); font-size: 0.86rem; margin: 0; max-width: 65ch; }
+.nota-exemplo { border-left: 3px solid var(--linha); padding-left: 10px; }
+
+/* Painel de medidas */
+.painel-medidas {
+  display: flex; flex-direction: column; gap: 16px;
+  background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 18px;
+}
+@media (min-width: 881px) { .painel-medidas { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); } }
+.esquema { margin: 0; padding: 8px; background: var(--superficie-2); border-radius: var(--raio); }
+.esquema svg { display: block; width: 100%; max-width: 220px; height: auto; margin-inline: auto; }
+.esquema-perfil { fill: var(--aco-claro); stroke: var(--aco); stroke-width: 1.5; }
+.esquema-cota line, .esquema-guia { stroke: var(--tinta-suave); stroke-width: 1; }
+.esquema-txt { fill: var(--tinta); font: italic 600 11px var(--f-texto); text-anchor: middle; }
+.esquema-txt-s { font-size: 10px; text-anchor: start; }
+
+.campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 0.86rem; font-weight: 500; }
+.campo small { font-weight: 400; color: var(--tinta-suave); }
+.campo i { font-family: var(--f-texto); }
+.entrada {
+  display: flex; align-items: center;
+  background: var(--superficie-2); border: 1px solid var(--linha); border-radius: var(--raio);
+}
+.entrada:focus-within { border-color: var(--primario); }
+.entrada input {
+  flex: 1; min-width: 0; width: 100%; border: 0; background: none; padding: 8px 10px;
+  font-family: var(--f-dados); font-size: 1rem; font-variant-numeric: tabular-nums;
+}
+.entrada input:focus { outline: none; }
+.entrada em { font-style: normal; color: var(--tinta-suave); padding-right: 10px; font-size: 0.8rem; }
+select {
+  padding: 8px 10px; border: 1px solid var(--linha); border-radius: var(--raio);
+  background: var(--superficie-2);
+}
+.grupo { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.grupo legend { font-size: 0.86rem; font-weight: 500; padding: 0; margin-bottom: 6px; }
+.fichas { display: flex; flex-wrap: wrap; gap: 6px; }
+.ficha {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 4px 10px; border: 1px solid var(--linha); border-radius: 999px;
+  font-family: var(--f-dados); font-size: 0.85rem; background: var(--superficie);
+  user-select: none;
+}
+.ficha input { position: absolute; opacity: 0; pointer-events: none; }
+.ficha:has(input:checked) { background: var(--aco); border-color: var(--aco); color: var(--superficie); }
+.ficha:has(input:focus-visible) { outline: 2px solid var(--primario); outline-offset: 2px; }
+
+/* Resultado */
+.resultado { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cartao {
+  background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 18px; min-width: 0;
+}
+.cabeca-resultado { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.cartao .nome-perfil {
+  margin: 0; color: var(--tinta); text-transform: none;
+  font-family: var(--f-titulo); font-weight: 700; font-size: clamp(2.4rem, 6vw, 3.4rem);
+  line-height: 1; letter-spacing: 0.01em;
+}
+.familia-perfil { color: var(--tinta-suave); }
+.selo {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600; border: 1px solid currentColor;
+}
+.selo::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.selo-ok { color: var(--ok); }
+.selo-aviso { color: var(--aviso); }
+.selo-mau { color: var(--mau); }
+.desvios {
+  display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 10px;
+  font-family: var(--f-dados); font-size: 0.85rem; color: var(--tinta-suave);
+}
+.desvios b { color: var(--tinta); font-weight: 500; }
+.alerta {
+  margin-top: 12px; padding: 8px 12px; border-radius: var(--raio);
+  background: var(--superficie-2); border-left: 3px solid var(--aviso); font-size: 0.88rem;
+}
+
+.corpo-resultado {
+  display: grid; gap: 20px; margin-top: 18px;
+  grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+}
+@media (max-width: 640px) { .corpo-resultado { grid-template-columns: minmax(0, 1fr); } }
+.desenho { margin: 0; align-self: start; }
+.desenho svg { display: block; width: 100%; height: auto; max-height: 360px; }
+.desenho figcaption { font-size: 0.78rem; color: var(--tinta-suave); text-align: center; margin-top: 4px; }
+.sec-forma { fill: var(--aco-claro); stroke: var(--aco); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.sec-eixo { stroke: var(--primario); stroke-width: 1; stroke-dasharray: 8 3 2 3; vector-effect: non-scaling-stroke; fill: none; }
+.sec-cota { stroke: var(--tinta-suave); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; }
+.sec-txt { fill: var(--tinta); font-family: var(--f-dados); }
+.sec-txt-eixo { fill: var(--primario); font-family: var(--f-texto); font-style: italic; font-weight: 600; }
+
+.grupos-props { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px 24px; }
+.grupo-props h3, .ec3-item h3, .cartao h2 {
+  font-family: var(--f-titulo); font-weight: 600; font-size: 1rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--tinta-suave); margin-bottom: 6px;
+}
+.cartao h2 { font-size: 1.1rem; color: var(--tinta); margin-bottom: 12px; }
+.lista-props { margin: 0; display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; align-items: baseline; }
+.lista-props dt { font-style: italic; }
+.lista-props dd { margin: 0; text-align: right; font-family: var(--f-dados); font-variant-numeric: tabular-nums; }
+.lista-props .un { color: var(--tinta-suave); font-size: 0.8rem; text-align: left; font-family: var(--f-texto); }
+
+.ec3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px 24px; }
+.valor-grande {
+  font-family: var(--f-dados); font-size: 1.35rem; font-variant-numeric: tabular-nums;
+}
+.valor-grande small { font-size: 0.8rem; color: var(--tinta-suave); font-family: var(--f-texto); }
+.ec3-item .sym { text-transform: none; letter-spacing: 0; font-family: var(--f-texto); font-style: italic; }
+.ec3-item p { margin: 2px 0 0; font-size: 0.82rem; color: var(--tinta-suave); }
+.classe {
+  display: inline-grid; place-items: center; width: 1.7em; height: 1.7em; border-radius: 4px;
+  font-family: var(--f-titulo); font-weight: 700; background: var(--aco); color: var(--superficie);
+}
+.classe-4 { background: var(--mau); }
+
+.candidatos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.candidatos li + li { border-top: 1px solid var(--linha); }
+.candidato {
+  width: 100%; display: grid; grid-template-columns: 7.5em 1fr auto; gap: 12px; align-items: center;
+  padding: 8px 6px; border: 0; background: none; cursor: pointer; text-align: left;
+  font-family: var(--f-dados); font-size: 0.88rem; font-variant-numeric: tabular-nums;
+}
+.candidato:hover { background: var(--superficie-2); }
+.candidato[aria-current="true"] { background: var(--superficie-2); box-shadow: inset 3px 0 0 var(--primario); }
+.candidato-nome { font-family: var(--f-titulo); font-weight: 600; font-size: 1.1rem; }
+.candidato-dims { color: var(--tinta-suave); min-width: 0; }
+.barra { width: 70px; height: 6px; background: var(--superficie-2); border-radius: 3px; overflow: hidden; }
+.barra span { display: block; height: 100%; background: var(--aco); }
+
+/* Catálogo */
+#vista-catalogo { display: flex; flex-direction: column; gap: 12px; }
+.catalogo-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.ficha-radio { font-family: var(--f-dados); }
+.tabela-rolo {
+  overflow-x: auto; background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio);
+  max-height: 70vh;
+}
+.tabela { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.86rem; }
+.tabela th, .tabela td { padding: 6px 10px; text-align: right; white-space: nowrap; }
+.tabela th:first-child, .tabela td:first-child { text-align: left; position: sticky; left: 0; background: inherit; }
+.tabela thead th {
+  position: sticky; top: 0; z-index: 1; background: var(--superficie-2);
+  font-weight: 600; border-bottom: 1px solid var(--linha);
+}
+.tabela thead th:first-child { z-index: 2; }
+.tabela thead .un { display: block; font-weight: 400; color: var(--tinta-suave); font-size: 0.75rem; }
+.tabela tbody tr { background: var(--superficie); cursor: pointer; }
+.tabela tbody tr:nth-child(even) { background: var(--superficie-2); }
+.tabela tbody tr:hover td { color: var(--primario); }
+.tabela td { font-family: var(--f-dados); }
+.tabela td:first-child { font-family: var(--f-titulo); font-weight: 600; font-size: 1rem; }
+
+/* Rodapé */
+.rodape { padding-block: 24px 32px; color: var(--tinta-suave); font-size: 0.8rem; }
+.rodape p { margin: 0 0 6px; max-width: 90ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cartao { animation: surgir 0.18s ease-out; }
+  @keyframes surgir { from { transform: translateY(3px); } to { transform: none; } }
+}
+</style>
 </head>
 <body>
 <header class="topo">
@@ -90,8 +359,581 @@
   <p>Propriedades calculadas a partir das dimensões nominais, incluindo as concordâncias. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
 </footer>
 
-<script src="js/perfis.js"></script>
-<script src="js/seccao.js"></script>
-<script src="js/app.js"></script>
+<script>
+/*
+ * Dimensões nominais de perfis laminados a quente — EN 10365:2017.
+ * Cada linha: [designação, h, b, tw, tf, r] em mm.
+ * As propriedades estáticas são calculadas a partir destas dimensões em seccao.js.
+ */
+var PERFIS = {
+  IPE: {
+    descricao: "Vigas I de abas paralelas",
+    linhas: [
+      ["IPE 80", 80, 46, 3.8, 5.2, 5],
+      ["IPE 100", 100, 55, 4.1, 5.7, 7],
+      ["IPE 120", 120, 64, 4.4, 6.3, 7],
+      ["IPE 140", 140, 73, 4.7, 6.9, 7],
+      ["IPE 160", 160, 82, 5.0, 7.4, 9],
+      ["IPE 180", 180, 91, 5.3, 8.0, 9],
+      ["IPE 200", 200, 100, 5.6, 8.5, 12],
+      ["IPE 220", 220, 110, 5.9, 9.2, 12],
+      ["IPE 240", 240, 120, 6.2, 9.8, 15],
+      ["IPE 270", 270, 135, 6.6, 10.2, 15],
+      ["IPE 300", 300, 150, 7.1, 10.7, 15],
+      ["IPE 330", 330, 160, 7.5, 11.5, 18],
+      ["IPE 360", 360, 170, 8.0, 12.7, 18],
+      ["IPE 400", 400, 180, 8.6, 13.5, 21],
+      ["IPE 450", 450, 190, 9.4, 14.6, 21],
+      ["IPE 500", 500, 200, 10.2, 16.0, 21],
+      ["IPE 550", 550, 210, 11.1, 17.2, 24],
+      ["IPE 600", 600, 220, 12.0, 19.0, 24]
+    ]
+  },
+  HEA: {
+    descricao: "Perfis H de abas largas, série leve",
+    linhas: [
+      ["HEA 100", 96, 100, 5.0, 8.0, 12],
+      ["HEA 120", 114, 120, 5.0, 8.0, 12],
+      ["HEA 140", 133, 140, 5.5, 8.5, 12],
+      ["HEA 160", 152, 160, 6.0, 9.0, 15],
+      ["HEA 180", 171, 180, 6.0, 9.5, 15],
+      ["HEA 200", 190, 200, 6.5, 10.0, 18],
+      ["HEA 220", 210, 220, 7.0, 11.0, 18],
+      ["HEA 240", 230, 240, 7.5, 12.0, 21],
+      ["HEA 260", 250, 260, 7.5, 12.5, 24],
+      ["HEA 280", 270, 280, 8.0, 13.0, 24],
+      ["HEA 300", 290, 300, 8.5, 14.0, 27],
+      ["HEA 320", 310, 300, 9.0, 15.5, 27],
+      ["HEA 340", 330, 300, 9.5, 16.5, 27],
+      ["HEA 360", 350, 300, 10.0, 17.5, 27],
+      ["HEA 400", 390, 300, 11.0, 19.0, 27],
+      ["HEA 450", 440, 300, 11.5, 21.0, 27],
+      ["HEA 500", 490, 300, 12.0, 23.0, 27],
+      ["HEA 550", 540, 300, 12.5, 24.0, 27],
+      ["HEA 600", 590, 300, 13.0, 25.0, 27],
+      ["HEA 650", 640, 300, 13.5, 26.0, 27],
+      ["HEA 700", 690, 300, 14.5, 27.0, 27],
+      ["HEA 800", 790, 300, 15.0, 28.0, 30],
+      ["HEA 900", 890, 300, 16.0, 30.0, 30],
+      ["HEA 1000", 990, 300, 16.5, 31.0, 30]
+    ]
+  },
+  HEB: {
+    descricao: "Perfis H de abas largas, série normal",
+    linhas: [
+      ["HEB 100", 100, 100, 6.0, 10.0, 12],
+      ["HEB 120", 120, 120, 6.5, 11.0, 12],
+      ["HEB 140", 140, 140, 7.0, 12.0, 12],
+      ["HEB 160", 160, 160, 8.0, 13.0, 15],
+      ["HEB 180", 180, 180, 8.5, 14.0, 15],
+      ["HEB 200", 200, 200, 9.0, 15.0, 18],
+      ["HEB 220", 220, 220, 9.5, 16.0, 18],
+      ["HEB 240", 240, 240, 10.0, 17.0, 21],
+      ["HEB 260", 260, 260, 10.0, 17.5, 24],
+      ["HEB 280", 280, 280, 10.5, 18.0, 24],
+      ["HEB 300", 300, 300, 11.0, 19.0, 27],
+      ["HEB 320", 320, 300, 11.5, 20.5, 27],
+      ["HEB 340", 340, 300, 12.0, 21.5, 27],
+      ["HEB 360", 360, 300, 12.5, 22.5, 27],
+      ["HEB 400", 400, 300, 13.5, 24.0, 27],
+      ["HEB 450", 450, 300, 14.0, 26.0, 27],
+      ["HEB 500", 500, 300, 14.5, 28.0, 27],
+      ["HEB 550", 550, 300, 15.0, 29.0, 27],
+      ["HEB 600", 600, 300, 15.5, 30.0, 27],
+      ["HEB 650", 650, 300, 16.0, 31.0, 27],
+      ["HEB 700", 700, 300, 17.0, 32.0, 27],
+      ["HEB 800", 800, 300, 17.5, 33.0, 30],
+      ["HEB 900", 900, 300, 18.5, 35.0, 30],
+      ["HEB 1000", 1000, 300, 19.0, 36.0, 30]
+    ]
+  },
+  HEM: {
+    descricao: "Perfis H de abas largas, série pesada",
+    linhas: [
+      ["HEM 100", 120, 106, 12.0, 20.0, 12],
+      ["HEM 120", 140, 126, 12.5, 21.0, 12],
+      ["HEM 140", 160, 146, 13.0, 22.0, 12],
+      ["HEM 160", 180, 166, 14.0, 23.0, 15],
+      ["HEM 180", 200, 186, 14.5, 24.0, 15],
+      ["HEM 200", 220, 206, 15.0, 25.0, 18],
+      ["HEM 220", 240, 226, 15.5, 26.0, 18],
+      ["HEM 240", 270, 248, 18.0, 32.0, 21],
+      ["HEM 260", 290, 268, 18.0, 32.5, 24],
+      ["HEM 280", 310, 288, 18.5, 33.0, 24],
+      ["HEM 300", 340, 310, 21.0, 39.0, 27],
+      ["HEM 320", 359, 309, 21.0, 40.0, 27],
+      ["HEM 340", 377, 309, 21.0, 40.0, 27],
+      ["HEM 360", 395, 308, 21.0, 40.0, 27],
+      ["HEM 400", 432, 307, 21.0, 40.0, 27],
+      ["HEM 450", 478, 307, 21.0, 40.0, 27],
+      ["HEM 500", 524, 306, 21.0, 40.0, 27],
+      ["HEM 550", 572, 306, 21.0, 40.0, 27],
+      ["HEM 600", 620, 305, 21.0, 40.0, 27],
+      ["HEM 650", 668, 305, 21.0, 40.0, 27],
+      ["HEM 700", 716, 304, 21.0, 40.0, 27],
+      ["HEM 800", 814, 303, 21.0, 40.0, 30],
+      ["HEM 900", 910, 302, 21.0, 40.0, 30],
+      ["HEM 1000", 1008, 302, 21.0, 40.0, 30]
+    ]
+  }
+};
+
+if (typeof module !== "undefined") module.exports = PERFIS;
+</script>
+<script>
+/*
+ * Propriedades de secções I/H laminadas e verificações base do Eurocódigo 3.
+ * Unidades internas: mm, N. Os resultados são devolvidos nas unidades dos catálogos
+ * (cm², cm⁴, cm³, kg/m, kN, kN·m).
+ */
+var Seccao = (function () {
+  // Coeficientes parciais — NP EN 1993-1-1, Anexo Nacional (valores recomendados).
+  var GAMMA_M0 = 1.0;
+  var GAMMA_M1 = 1.0;
+  var DENSIDADE = 7850; // kg/m³
+
+  // NP EN 1993-1-1, Quadro 3.1 — fy e fu (MPa) para t ≤ 40 mm e 40 < t ≤ 80 mm.
+  var ACOS = {
+    S235: { norma: "EN 10025-2", ate40: [235, 360], ate80: [215, 360] },
+    S275: { norma: "EN 10025-2", ate40: [275, 430], ate80: [255, 410] },
+    S355: { norma: "EN 10025-2", ate40: [355, 510], ate80: [335, 470] },
+    S460: { norma: "EN 10025-3", ate40: [460, 540], ate80: [430, 540] }
+  };
+
+  // Concordância (área, centróide e inércia própria) de cada um dos 4 cantos arredondados.
+  var K_AREA = 1 - Math.PI / 4;
+  var K_CENTROIDE = (10 - 3 * Math.PI) / (12 - 3 * Math.PI);
+
+  // Inércia própria do canto (quadrado r×r menos quarto de círculo) em torno do seu centróide.
+  function inerciaCanto(r) {
+    var aq = Math.PI * r * r / 4;
+    var dq = r - 4 * r / (3 * Math.PI);              // centróide do quarto de círculo à face
+    var iq = Math.PI * Math.pow(r, 4) / 16 - aq * Math.pow(4 * r / (3 * Math.PI), 2) + aq * dq * dq;
+    var iFace = Math.pow(r, 4) / 3 - iq;             // em torno da face da alma/banzo
+    var a = K_AREA * r * r;
+    return iFace - a * Math.pow(K_CENTROIDE * r, 2);
+  }
+
+  function aPartirDeLinha(familia, linha) {
+    return {
+      familia: familia, nome: linha[0],
+      h: linha[1], b: linha[2], tw: linha[3], tf: linha[4], r: linha[5]
+    };
+  }
+
+  function propriedades(p) {
+    var h = p.h, b = p.b, tw = p.tw, tf = p.tf, r = p.r;
+    var hw = h - 2 * tf;
+    var aCanto = K_AREA * r * r;
+    var iCanto = inerciaCanto(r);
+    var zCanto = h / 2 - tf - K_CENTROIDE * r;       // distância do canto ao eixo y-y
+    var yCanto = tw / 2 + K_CENTROIDE * r;           // distância do canto ao eixo z-z
+
+    var A = 2 * b * tf + hw * tw + 4 * aCanto;
+
+    var Iy = (b * Math.pow(h, 3) - (b - tw) * Math.pow(hw, 3)) / 12
+      + 4 * (iCanto + aCanto * zCanto * zCanto);
+    var Iz = 2 * tf * Math.pow(b, 3) / 12 + hw * Math.pow(tw, 3) / 12
+      + 4 * (iCanto + aCanto * yCanto * yCanto);
+
+    var Wply = 2 * (b * tf * (h - tf) / 2 + tw * Math.pow(hw / 2, 2) / 2 + 2 * aCanto * zCanto);
+    var Wplz = tf * b * b / 2 + hw * tw * tw / 4 + 4 * aCanto * yCanto;
+
+    // Área de corte (EC3 6.2.6(3)a), com η = 1,0 do lado da segurança.
+    var Avz = Math.max(A - 2 * b * tf + (tw + 2 * r) * tf, hw * tw);
+
+    // Constante de torsão de St. Venant com contribuição das concordâncias (fórmula SCI P363).
+    var alfa = (tw / tf) * (0.145 + 0.1 * r / tf);
+    var D = (Math.pow(r + tw / 2, 2) + Math.pow(r + tf, 2) - r * r) / (2 * r + tf);
+    var It = 2 / 3 * (b - 0.63 * tf) * Math.pow(tf, 3) + 1 / 3 * hw * Math.pow(tw, 3)
+      + 2 * alfa * Math.pow(D, 4);
+
+    var Iw = Iz * Math.pow(h - tf, 2) / 4;
+
+    // Superfície exterior por metro (pintura, proteção ao fogo).
+    var perimetro = 4 * b + 2 * h - 2 * tw - 8 * r + 2 * Math.PI * r;
+
+    return {
+      A: A / 1e2,
+      G: A * 1e-6 * DENSIDADE,
+      Iy: Iy / 1e4, Wely: Iy / (h / 2) / 1e3, Wply: Wply / 1e3, iy: Math.sqrt(Iy / A) / 10,
+      Avz: Avz / 1e2,
+      Iz: Iz / 1e4, Welz: Iz / (b / 2) / 1e3, Wplz: Wplz / 1e3, iz: Math.sqrt(Iz / A) / 10,
+      It: It / 1e4, Iw: Iw / 1e6,
+      AL: perimetro / 1e3
+    };
+  }
+
+  function tensoes(classeAco, t) {
+    var a = ACOS[classeAco];
+    var v = t <= 40 ? a.ate40 : a.ate80;
+    return { fy: v[0], fu: v[1] };
+  }
+
+  // EC3 Quadro 5.2 — classe para flexão pura (y-y) e compressão pura.
+  function classificar(p, fy) {
+    var eps = Math.sqrt(235 / fy);
+    var cBanzo = (p.b - p.tw - 2 * p.r) / 2;
+    var cAlma = p.h - 2 * p.tf - 2 * p.r;
+    var rBanzo = cBanzo / p.tf / eps;
+    var rAlma = cAlma / p.tw / eps;
+
+    function classe(rel, limites) {
+      for (var i = 0; i < limites.length; i++) if (rel <= limites[i]) return i + 1;
+      return 4;
+    }
+    var banzo = classe(rBanzo, [9, 10, 14]);
+    var almaFlexao = classe(rAlma, [72, 83, 124]);
+    var almaCompressao = classe(rAlma, [33, 38, 42]);
+
+    return {
+      eps: eps,
+      banzo: { c_t: cBanzo / p.tf, classe: banzo },
+      alma: { c_t: cAlma / p.tw, flexao: almaFlexao, compressao: almaCompressao },
+      flexao: Math.max(banzo, almaFlexao),
+      compressao: Math.max(banzo, almaCompressao)
+    };
+  }
+
+  // Resistências de cálculo da secção (EC3 6.2). Devolve null quando a classe 4 o impede.
+  function resistencias(p, props, fy) {
+    var cl = classificar(p, fy);
+    var W = cl.flexao <= 2 ? props.Wply : props.Wely;
+    return {
+      classe: cl,
+      NplRd: cl.compressao <= 3 ? props.A * 1e2 * fy / GAMMA_M0 / 1e3 : null,
+      McyRd: cl.flexao <= 3 ? W * 1e3 * fy / GAMMA_M0 / 1e6 : null,
+      VplzRd: props.Avz * 1e2 * (fy / Math.sqrt(3)) / GAMMA_M0 / 1e3
+    };
+  }
+
+  function todos() {
+    var lista = [];
+    Object.keys(PERFIS).forEach(function (fam) {
+      PERFIS[fam].linhas.forEach(function (l) { lista.push(aPartirDeLinha(fam, l)); });
+    });
+    return lista;
+  }
+
+  return {
+    ACOS: ACOS, GAMMA_M0: GAMMA_M0, GAMMA_M1: GAMMA_M1,
+    todos: todos, propriedades: propriedades, tensoes: tensoes,
+    classificar: classificar, resistencias: resistencias
+  };
+})();
+
+if (typeof module !== "undefined") module.exports = Seccao;
+</script>
+<script>
+/* Interface: identificação de perfis por medidas e catálogo. Depende de perfis.js e seccao.js. */
+(function () {
+  var FAMILIAS = Object.keys(PERFIS);
+  var TODOS = Seccao.todos();
+  var EXEMPLO = { h: 300, b: 150 };
+
+  var estado = {
+    familias: FAMILIAS.slice(),
+    aco: "S355",
+    escolhido: null,        // perfil escolhido à mão na lista de candidatos
+    familiaCatalogo: "IPE"
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("form-medidas");
+  var resultado = $("resultado");
+
+  // Formatação numérica à portuguesa
+  var formatadores = {};
+  function fmt(v, casas) {
+    if (v === null || v === undefined || isNaN(v)) return "—";
+    if (casas === undefined) casas = v >= 1000 ? 0 : v >= 100 ? 1 : v >= 1 ? 2 : 3;
+    if (!formatadores[casas]) {
+      formatadores[casas] = new Intl.NumberFormat("pt-PT", { minimumFractionDigits: casas, maximumFractionDigits: casas });
+    }
+    return formatadores[casas].format(v);
+  }
+  function fmtDelta(v) {
+    var s = fmt(Math.abs(v), Math.abs(v) < 10 ? 1 : 0);
+    return (v > 0.05 ? "+" : v < -0.05 ? "−" : "±") + s;
+  }
+
+  // ----- Procura -----
+  function lerMedidas() {
+    function num(nome) {
+      var v = parseFloat(String(form.elements[nome].value).replace(",", "."));
+      return isFinite(v) && v > 0 ? v : null;
+    }
+    return { h: num("h"), b: num("b"), tw: num("tw"), tf: num("tf") };
+  }
+
+  // Desvio relativo médio quadrático; as espessuras pesam metade (medição menos fiável).
+  function procurar(m) {
+    return TODOS
+      .filter(function (p) { return estado.familias.indexOf(p.familia) !== -1; })
+      .map(function (p) {
+        var soma = Math.pow((m.h - p.h) / p.h, 2) + Math.pow((m.b - p.b) / p.b, 2), peso = 2;
+        if (m.tw) { soma += 0.5 * Math.pow((m.tw - p.tw) / p.tw, 2); peso += 0.5; }
+        if (m.tf) { soma += 0.5 * Math.pow((m.tf - p.tf) / p.tf, 2); peso += 0.5; }
+        return { perfil: p, desvio: Math.sqrt(soma / peso) };
+      })
+      .sort(function (a, b) { return a.desvio - b.desvio; });
+  }
+
+  function avaliar(desvio) {
+    if (desvio <= 0.01) return { txt: "Corresponde", cls: "selo-ok" };
+    if (desvio <= 0.03) return { txt: "Muito próximo", cls: "selo-ok" };
+    if (desvio <= 0.08) return { txt: "Próximo, confirme as espessuras", cls: "selo-aviso" };
+    return { txt: "Sem correspondência clara", cls: "selo-mau" };
+  }
+
+  // ----- Desenho da secção (unidades do SVG = mm) -----
+  function desenho(p) {
+    var B = p.b, H = p.h, tw = p.tw, tf = p.tf, r = p.r;
+    var M = Math.max(B, H), fs = M * 0.05, t = fs * 0.35;
+    var y1 = -H / 2 + tf, y2 = H / 2 - tf, xw = tw / 2;
+    var forma = [
+      "M", -B / 2, -H / 2, "L", B / 2, -H / 2, "L", B / 2, y1, "L", xw + r, y1,
+      "A", r, r, 0, 0, 0, xw, y1 + r, "L", xw, y2 - r,
+      "A", r, r, 0, 0, 0, xw + r, y2, "L", B / 2, y2, "L", B / 2, H / 2, "L", -B / 2, H / 2,
+      "L", -B / 2, y2, "L", -xw - r, y2, "A", r, r, 0, 0, 0, -xw, y2 - r, "L", -xw, y1 + r,
+      "A", r, r, 0, 0, 0, -xw - r, y1, "L", -B / 2, y1, "Z"
+    ].join(" ");
+
+    var cb = -H / 2 - M * 0.16;   // linha de cota de b
+    var ch = -B / 2 - M * 0.16;   // linha de cota de h
+    function traco(x, y) { return "M" + (x - t) + " " + (y + t) + "L" + (x + t) + " " + (y - t); }
+    var cotas = [
+      "M", -B / 2, -H / 2 - M * 0.03, "V", cb - M * 0.03, "M", B / 2, -H / 2 - M * 0.03, "V", cb - M * 0.03,
+      "M", -B / 2, cb, "H", B / 2,
+      "M", -B / 2 - M * 0.03, -H / 2, "H", ch - M * 0.03, "M", -B / 2 - M * 0.03, H / 2, "H", ch - M * 0.03,
+      "M", ch, -H / 2, "V", H / 2,
+      "M", B / 2 + M * 0.01, y1 - tf / 2, "h", M * 0.05,
+      "M", xw, H / 4, "h", M * 0.05
+    ].join(" ") + traco(-B / 2, cb) + traco(B / 2, cb) + traco(ch, -H / 2) + traco(ch, H / 2);
+    var eixos = "M" + (-B / 2 - M * 0.08) + " 0H" + (B / 2 + M * 0.08) + "M0 " + (-H / 2 - M * 0.08) + "V" + (H / 2 + M * 0.08);
+
+    var vb = [-B / 2 - M * 0.27, -H / 2 - M * 0.27, B + M * 0.27 + M * 0.36, H + M * 0.27 + M * 0.2];
+    return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Secção ' + p.nome + ' à escala">' +
+      '<path class="sec-forma" d="' + forma + '"/>' +
+      '<path class="sec-eixo" d="' + eixos + '"/>' +
+      '<path class="sec-cota" d="' + cotas + '"/>' +
+      '<text class="sec-txt" x="0" y="' + (cb - fs * 0.45) + '" font-size="' + fs + '" text-anchor="middle">' + fmt(B, B % 1 ? 1 : 0) + '</text>' +
+      '<text class="sec-txt" font-size="' + fs + '" text-anchor="middle" transform="translate(' + (ch - fs * 0.45) + ' 0) rotate(-90)">' + fmt(H, H % 1 ? 1 : 0) + '</text>' +
+      '<text class="sec-txt" x="' + (B / 2 + M * 0.07) + '" y="' + (y1 - tf / 2 + fs * 0.35) + '" font-size="' + fs * 0.9 + '">t<tspan font-size="' + fs * 0.65 + '" dy="' + fs * 0.2 + '">f</tspan><tspan dy="' + (-fs * 0.2) + '"> ' + fmt(tf, 1) + '</tspan></text>' +
+      '<text class="sec-txt" x="' + (xw + M * 0.065) + '" y="' + (H / 4 + fs * 0.35) + '" font-size="' + fs * 0.9 + '">t<tspan font-size="' + fs * 0.65 + '" dy="' + fs * 0.2 + '">w</tspan><tspan dy="' + (-fs * 0.2) + '"> ' + fmt(tw, 1) + '</tspan></text>' +
+      '<text class="sec-txt-eixo" x="' + (B / 2 + M * 0.1) + '" y="' + fs * 0.35 + '" font-size="' + fs + '">y</text>' +
+      '<text class="sec-txt-eixo" x="0" y="' + (H / 2 + M * 0.1 + fs * 0.7) + '" font-size="' + fs + '" text-anchor="middle">z</text>' +
+      '</svg>';
+  }
+
+  // ----- Resultado -----
+  function linhaProp(simbolo, valor, unidade, casas) {
+    return "<dt>" + simbolo + "</dt><dd>" + fmt(valor, casas) + '</dd><dd class="un">' + unidade + "</dd>";
+  }
+
+  function blocoPropriedades(p, pr) {
+    return '<div class="grupos-props">' +
+      '<div class="grupo-props"><h3>Geometria</h3><dl class="lista-props">' +
+        linhaProp("h", p.h, "mm", 1) + linhaProp("b", p.b, "mm", 1) +
+        linhaProp("t<sub>w</sub>", p.tw, "mm", 1) + linhaProp("t<sub>f</sub>", p.tf, "mm", 1) +
+        linhaProp("r", p.r, "mm", 0) + linhaProp("A", pr.A, "cm²") + linhaProp("G", pr.G, "kg/m", 1) +
+        linhaProp("A<sub>L</sub>", pr.AL, "m²/m", 3) + "</dl></div>" +
+      '<div class="grupo-props"><h3>Eixo forte y-y</h3><dl class="lista-props">' +
+        linhaProp("I<sub>y</sub>", pr.Iy, "cm⁴") + linhaProp("W<sub>el,y</sub>", pr.Wely, "cm³") +
+        linhaProp("W<sub>pl,y</sub>", pr.Wply, "cm³") + linhaProp("i<sub>y</sub>", pr.iy, "cm") +
+        linhaProp("A<sub>v,z</sub>", pr.Avz, "cm²") + "</dl></div>" +
+      '<div class="grupo-props"><h3>Eixo fraco z-z</h3><dl class="lista-props">' +
+        linhaProp("I<sub>z</sub>", pr.Iz, "cm⁴") + linhaProp("W<sub>el,z</sub>", pr.Welz, "cm³") +
+        linhaProp("W<sub>pl,z</sub>", pr.Wplz, "cm³") + linhaProp("i<sub>z</sub>", pr.iz, "cm") + "</dl></div>" +
+      '<div class="grupo-props"><h3>Torção</h3><dl class="lista-props">' +
+        linhaProp("I<sub>t</sub>", pr.It, "cm⁴") + linhaProp("I<sub>w</sub>", pr.Iw / 1e3, "×10³ cm⁶") + "</dl></div>" +
+      "</div>";
+  }
+
+  function blocoEC3(p, pr) {
+    var tens = Seccao.tensoes(estado.aco, p.tf);
+    var res = Seccao.resistencias(p, pr, tens.fy);
+    var cl = res.classe;
+    function classe(c) { return '<span class="classe' + (c === 4 ? " classe-4" : "") + '">' + c + "</span>"; }
+    function kN(v, un, nota) {
+      return v === null
+        ? '<div class="valor-grande">—</div><p>Secção de classe 4: a resistência exige propriedades efetivas (EN 1993-1-5), ainda não calculadas.</p>'
+        : '<div class="valor-grande">' + fmt(v, 0) + " <small>" + un + "</small></div><p>" + nota + "</p>";
+    }
+    return '<section class="cartao"><h2>Verificação da secção · ' + estado.aco + "</h2>" +
+      '<div class="ec3">' +
+        '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>y</sub> = ' + tens.fy + " <small>MPa</small></div>" +
+          "<p>f<sub>u</sub> = " + tens.fu + " MPa · t<sub>f</sub> " + (p.tf <= 40 ? "≤ 40" : "> 40") + " mm · ε = " + fmt(cl.eps, 3) + "</p></div>" +
+        '<div class="ec3-item"><h3>Classe à flexão</h3><div class="valor-grande">' + classe(cl.flexao) + "</div>" +
+          "<p>Banzo c/t = " + fmt(cl.banzo.c_t, 1) + " · Alma c/t = " + fmt(cl.alma.c_t, 1) + "</p></div>" +
+        '<div class="ec3-item"><h3>Classe à compressão</h3><div class="valor-grande">' + classe(cl.compressao) + "</div>" +
+          "<p>Alma comprimida: limites 33ε / 38ε / 42ε</p></div>" +
+        '<div class="ec3-item"><h3>Flexão <span class="sym">M<sub>c,y,Rd</sub></span></h3>' + kN(res.McyRd, "kN·m", (cl.flexao <= 2 ? "W<sub>pl,y</sub>" : "W<sub>el,y</sub>") + " · f<sub>y</sub> / γ<sub>M0</sub> (6.2.5)") + "</div>" +
+        '<div class="ec3-item"><h3>Compressão <span class="sym">N<sub>pl,Rd</sub></span></h3>' + kN(res.NplRd, "kN", "A · f<sub>y</sub> / γ<sub>M0</sub>, sem encurvadura (6.2.4)") + "</div>" +
+        '<div class="ec3-item"><h3>Corte <span class="sym">V<sub>pl,z,Rd</sub></span></h3>' + kN(res.VplzRd, "kN", "A<sub>v,z</sub> · f<sub>y</sub> / (√3 · γ<sub>M0</sub>) (6.2.6)") + "</div>" +
+      "</div></section>";
+  }
+
+  function render() {
+    var m = lerMedidas();
+    if (!m.h || !m.b) {
+      resultado.innerHTML = '<section class="cartao"><p class="nota">Introduza a altura e a largura do perfil para ver as séries que correspondem.</p></section>';
+      return;
+    }
+    if (!estado.familias.length) {
+      resultado.innerHTML = '<section class="cartao"><p class="nota">Selecione pelo menos uma série de perfis.</p></section>';
+      return;
+    }
+    var lista = procurar(m);
+    var melhor = lista[0];
+    var atual = estado.escolhido && lista.filter(function (c) { return c.perfil.nome === estado.escolhido; })[0] || melhor;
+    var p = atual.perfil, pr = Seccao.propriedades(p), av = avaliar(atual.desvio);
+
+    var desvios = '<div class="desvios">' +
+      "<span>h <b>" + fmt(p.h, 0) + "</b> (" + fmtDelta(m.h - p.h) + " mm)</span>" +
+      "<span>b <b>" + fmt(p.b, 0) + "</b> (" + fmtDelta(m.b - p.b) + " mm)</span>" +
+      (m.tw ? "<span>t<sub>w</sub> <b>" + fmt(p.tw, 1) + "</b> (" + fmtDelta(m.tw - p.tw) + " mm)</span>" : "") +
+      (m.tf ? "<span>t<sub>f</sub> <b>" + fmt(p.tf, 1) + "</b> (" + fmtDelta(m.tf - p.tf) + " mm)</span>" : "") +
+      "</div>";
+
+    var alerta = "";
+    var segundo = lista[1];
+    if (atual === melhor && segundo && !m.tf && segundo.desvio - melhor.desvio < 0.02) {
+      alerta = '<p class="alerta">' + p.nome + " e " + segundo.perfil.nome +
+        " têm dimensões exteriores parecidas. Meça a espessura do banzo (t<sub>f</sub> " + fmt(p.tf, 1) +
+        " vs " + fmt(segundo.perfil.tf, 1) + " mm) para confirmar.</p>";
+    }
+
+    var candidatos = lista.slice(0, 6).map(function (c) {
+      var q = c.perfil, prox = Math.max(0, 1 - c.desvio / 0.15);
+      return '<li><button type="button" class="candidato" data-nome="' + q.nome + '" aria-current="' + (q === p) + '">' +
+        '<span class="candidato-nome">' + q.nome + "</span>" +
+        '<span class="candidato-dims">' + fmt(q.h, 0) + " × " + fmt(q.b, 0) + " · t<sub>w</sub> " + fmt(q.tw, 1) + " · t<sub>f</sub> " + fmt(q.tf, 1) + "</span>" +
+        '<span class="barra" title="Desvio médio ' + fmt(c.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span>' +
+        "</button></li>";
+    }).join("");
+
+    resultado.innerHTML =
+      '<section class="cartao">' +
+        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + p.nome + "</h2>" +
+          '<span class="familia-perfil">' + PERFIS[p.familia].descricao + "</span>" +
+          '<span class="selo ' + av.cls + '">' + av.txt + "</span></div>" +
+        desvios + alerta +
+        '<div class="corpo-resultado">' +
+          '<figure class="desenho">' + desenho(p) + "<figcaption>Secção à escala, dimensões nominais em mm</figcaption></figure>" +
+          blocoPropriedades(p, pr) +
+        "</div>" +
+      "</section>" +
+      blocoEC3(p, pr) +
+      '<section class="cartao"><h2>Perfis mais próximos</h2><ul class="candidatos">' + candidatos + "</ul></section>";
+  }
+
+  // ----- Catálogo -----
+  function renderCatalogo() {
+    var fam = estado.familiaCatalogo;
+    $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
+    var colunas = [
+      ["Perfil", ""], ["h", "mm"], ["b", "mm"], ["t<sub>w</sub>", "mm"], ["t<sub>f</sub>", "mm"], ["r", "mm"],
+      ["A", "cm²"], ["G", "kg/m"], ["I<sub>y</sub>", "cm⁴"], ["W<sub>pl,y</sub>", "cm³"], ["i<sub>y</sub>", "cm"],
+      ["I<sub>z</sub>", "cm⁴"], ["W<sub>pl,z</sub>", "cm³"], ["i<sub>z</sub>", "cm"], ["I<sub>t</sub>", "cm⁴"],
+      ["I<sub>w</sub>", "×10³ cm⁶"], ["A<sub>L</sub>", "m²/m"]
+    ];
+    var cab = "<thead><tr>" + colunas.map(function (c) {
+      return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>";
+    }).join("") + "</tr></thead>";
+    var corpo = TODOS.filter(function (p) { return p.familia === fam; }).map(function (p) {
+      var pr = Seccao.propriedades(p);
+      var v = [fmt(p.h, 0), fmt(p.b, 0), fmt(p.tw, 1), fmt(p.tf, 1), fmt(p.r, 0), fmt(pr.A), fmt(pr.G, 1),
+        fmt(pr.Iy), fmt(pr.Wply), fmt(pr.iy), fmt(pr.Iz), fmt(pr.Wplz), fmt(pr.iz), fmt(pr.It), fmt(pr.Iw / 1e3), fmt(pr.AL, 3)];
+      return '<tr data-nome="' + p.nome + '" tabindex="0"><td>' + p.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
+    }).join("");
+    $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+  }
+
+  function abrirNoIdentificador(nome) {
+    var p = TODOS.filter(function (q) { return q.nome === nome; })[0];
+    if (!p) return;
+    form.elements.h.value = p.h; form.elements.b.value = p.b;
+    form.elements.tw.value = p.tw; form.elements.tf.value = p.tf;
+    if (estado.familias.indexOf(p.familia) === -1) {
+      estado.familias.push(p.familia);
+      document.querySelector('#fichas-familias input[value="' + p.familia + '"]').checked = true;
+    }
+    estado.escolhido = null;
+    $("nota-exemplo").hidden = true;
+    mostrar("identificar");
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  // ----- Vistas -----
+  function mostrar(vista) {
+    ["identificar", "catalogo"].forEach(function (v) {
+      $("vista-" + v).hidden = v !== vista;
+      $("tab-" + v).setAttribute("aria-selected", String(v === vista));
+    });
+    try { history.replaceState(null, "", "#" + vista); } catch (e) { /* sem histórico disponível */ }
+  }
+
+  // ----- Arranque -----
+  function iniciar() {
+    $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
+      return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
+    }).join("");
+    $("fichas-catalogo").innerHTML = FAMILIAS.map(function (f) {
+      return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
+    }).join("");
+    $("in-aco").innerHTML = Object.keys(Seccao.ACOS).map(function (a) {
+      return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + " · " + Seccao.ACOS[a].norma + "</option>";
+    }).join("");
+
+    form.elements.h.value = EXEMPLO.h;
+    form.elements.b.value = EXEMPLO.b;
+
+    form.addEventListener("submit", function (e) { e.preventDefault(); });
+    form.addEventListener("input", function (e) {
+      if (e.target.name === "aco") estado.aco = e.target.value;
+      else if (e.target.type === "checkbox") {
+        estado.familias = Array.prototype.filter.call(form.querySelectorAll("#fichas-familias input"), function (i) { return i.checked; })
+          .map(function (i) { return i.value; });
+      } else {
+        estado.escolhido = null;
+        $("nota-exemplo").hidden = true;
+      }
+      render();
+    });
+    resultado.addEventListener("click", function (e) {
+      var b = e.target.closest(".candidato");
+      if (!b) return;
+      estado.escolhido = b.getAttribute("data-nome");
+      render();
+    });
+
+    $("fichas-catalogo").addEventListener("change", function (e) {
+      estado.familiaCatalogo = e.target.value;
+      renderCatalogo();
+    });
+    var tabela = $("tabela-catalogo");
+    tabela.addEventListener("click", function (e) {
+      var tr = e.target.closest("tr[data-nome]");
+      if (tr) abrirNoIdentificador(tr.getAttribute("data-nome"));
+    });
+    tabela.addEventListener("keydown", function (e) {
+      var tr = e.target.closest("tr[data-nome]");
+      if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrirNoIdentificador(tr.getAttribute("data-nome")); }
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".separador"), function (b) {
+      b.addEventListener("click", function () { mostrar(b.getAttribute("data-vista")); window.scrollTo(0, 0); });
+    });
+
+    renderCatalogo();
+    render();
+    if (location.hash === "#catalogo") mostrar("catalogo");
+  }
+
+  iniciar();
+})();
+</script>
 </body>
 </html>
