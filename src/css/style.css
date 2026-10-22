@@ -292,9 +292,9 @@ select {
 .util-ok span { background: var(--ok); }
 .util-aviso span { background: var(--aviso); }
 .util-mau span { background: var(--mau); }
-.candidato-madre { grid-template-columns: 6.5em minmax(0, 1fr) 4.2em 70px; }
+.candidato-madre { grid-template-columns: 6.5em minmax(0, 1fr) 3.8em 70px; }
 .candidato-u { text-align: right; white-space: nowrap; }
-@media (max-width: 480px) { .candidato-madre { grid-template-columns: 5.5em minmax(0, 1fr) 4em; } .candidato-madre .util { display: none; } }
+@media (max-width: 480px) { .candidato-madre { grid-template-columns: 5.5em minmax(0, 1fr) 3.6em; } .candidato-madre .util { display: none; } }
 
 .esquicos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .esquico { margin: 0; min-width: 0; }
