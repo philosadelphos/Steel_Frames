@@ -85,11 +85,12 @@
             <span class="entrada"><input id="m-largura" name="largura" type="text" inputmode="decimal" min="1" step="0.1" value="20"><em>m</em></span></label>
           <label class="campo" for="m-comprimento"><span>Comprimento</span>
             <span class="entrada"><input id="m-comprimento" name="comprimento" type="text" inputmode="decimal" min="1" step="0.1" value="48"><em>m</em></span></label>
-          <label class="campo" for="m-beirado"><span>Altura do beirado</span>
-            <span class="entrada"><input id="m-beirado" name="beirado" type="text" inputmode="decimal" min="1" step="0.1" value="7"><em>m</em></span></label>
-          <label class="campo" for="m-alfa"><span>Inclinação</span>
-            <span class="entrada"><input id="m-alfa" name="alfa" type="text" inputmode="decimal" min="0" max="30" step="0.5" value="8"><em>°</em></span></label>
+          <label class="campo" for="m-beirado"><span>Altura no pilar</span>
+            <span class="entrada"><input id="m-beirado" name="beirado" type="text" inputmode="decimal" value="7"><em>m</em></span></label>
+          <label class="campo" for="m-meio"><span>Altura a meio vão</span>
+            <span class="entrada"><input id="m-meio" name="meio" type="text" inputmode="decimal" value="8.4"><em>m</em></span></label>
         </div>
+        <p class="nota" id="m-inclinacao"></p>
       </fieldset>
 
       <fieldset class="grupo">
@@ -172,7 +173,7 @@
       <label class="campo" for="m-aco" id="m-campo-aco"><span>Classe do aço (IPE)</span>
         <select id="m-aco" name="aco"></select></label>
 
-      <p class="nota nota-exemplo" id="m-nota-exemplo">Exemplo carregado: pavilhão de 20 × 48 m com painel sandwich.</p>
+      <p class="nota nota-exemplo" id="m-nota-exemplo">Exemplo carregado: pavilhão de 20 × 48 m, alturas de 7,0 m no pilar e 8,4 m a meio vão, com painel sandwich.</p>
     </form>
 
     <div class="resultado" id="resultado-madres" aria-live="polite"></div>

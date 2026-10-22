@@ -29,7 +29,7 @@
 
   function ler() {
     return {
-      largura: num("largura"), comprimento: num("comprimento"), beirado: num("beirado"), alfa: num("alfa"),
+      largura: num("largura"), comprimento: num("comprimento"), beirado: num("beirado"), meio: num("meio"),
       L: num("vao"), s: num("espacamento"),
       tipo: form.elements.tipo.value,
       esquema: form.elements.esquema.value, tirantes: parseInt(form.elements.tirantes.value, 10),
@@ -42,17 +42,27 @@
     };
   }
 
+  // Inclinação de cada água a partir das alturas no pilar e a meio vão (medidas do pavimento
+  // à face inferior da cobertura).
+  function inclinacao(d) {
+    if (!(d.largura > 0) || !(d.beirado > 0) || !(d.meio >= d.beirado)) return NaN;
+    return Math.atan((d.meio - d.beirado) / (d.largura / 2)) * 180 / Math.PI;
+  }
+
   function validar(d) {
     var erros = [];
     function pos(v, nome) { if (!(v > 0)) erros.push(nome + " tem de ser um número positivo."); }
-    pos(d.largura, "O vão do pórtico"); pos(d.comprimento, "O comprimento"); pos(d.beirado, "A altura do beirado");
+    pos(d.largura, "O vão do pórtico"); pos(d.comprimento, "O comprimento"); pos(d.beirado, "A altura no pilar");
+    pos(d.meio, "A altura a meio vão");
     pos(d.L, "O espaçamento entre pórticos"); pos(d.s, "O espaçamento entre madres");
     function entre(v, min, max, nome, un) { if (v > 0 && !(v >= min && v <= max)) erros.push(nome + " tem de estar entre " + fmt(min, min % 1 ? 1 : 0) + " e " + fmt(max, 0) + " " + un + "."); }
     entre(d.largura, 3, 100, "O vão do pórtico", "m"); entre(d.comprimento, 3, 500, "O comprimento", "m");
-    entre(d.beirado, 2, 40, "A altura do beirado", "m"); entre(d.L, 1, 20, "O espaçamento entre pórticos", "m");
+    entre(d.beirado, 2, 40, "A altura no pilar", "m"); entre(d.meio, 2, 60, "A altura a meio vão", "m");
+    entre(d.L, 1, 20, "O espaçamento entre pórticos", "m");
     entre(d.s, 0.3, 6, "O espaçamento entre madres", "m");
     if (d.L > 0 && d.comprimento > 0 && d.L > d.comprimento) erros.push("O espaçamento entre pórticos é maior do que o comprimento do pavilhão.");
-    if (!(d.alfa >= 0 && d.alfa <= 30)) erros.push("A inclinação tem de estar entre 0° e 30°.");
+    if (d.beirado > 0 && d.meio > 0 && d.meio < d.beirado) erros.push("A altura a meio vão não pode ser inferior à altura no pilar.");
+    if (d.alfa > 30) erros.push("A inclinação resultante (" + fmt(d.alfa, 1) + "°) é superior a 30°, o limite desta verificação.");
     if (!(d.gRev >= 0) || !(d.gInst >= 0) || !(d.qk >= 0)) erros.push("As cargas têm de ser números iguais ou superiores a zero.");
     if (!(d.altitude >= 0 && d.altitude <= 1500)) erros.push("A altitude tem de estar entre 0 e 1500 m (limite da NP EN 1991-1-3).");
     if (d.largura > 0 && d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
@@ -62,7 +72,7 @@
 
   function calcular(d) {
     var a = d.alfa * Math.PI / 180;
-    var hCumeeira = d.beirado + d.largura / 2 * Math.tan(a);
+    var hCumeeira = d.meio;
     var zonaVento = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
     var area = d.s * d.L;
     var vento = Acoes.vento(zonaVento, d.terreno, hCumeeira, d.alfa, d.posicao, area, [d.cpiMax, d.cpiMin]);
@@ -164,14 +174,15 @@
     madres.forEach(function (m, i) {
       [[m * Math.cos(a), hb + m * Math.sin(a)], [W - m * Math.cos(a), hb + m * Math.sin(a)]].forEach(function (pt, lado2) {
         var ativa = lado2 === 0 && i === iMadre;
-        g += '<rect class="' + (ativa ? "esq-madre-sec-ativa" : "esq-madre-sec") + '" x="' + (pt[0] - lado) + '" y="' + (Y(pt[1]) - 2 * lado) + '" width="' + 2 * lado + '" height="' + 2 * lado + '"/>';
+        // A linha da cobertura é a face inferior do revestimento: as madres ficam por baixo dela.
+        g += '<rect class="' + (ativa ? "esq-madre-sec-ativa" : "esq-madre-sec") + '" x="' + (pt[0] - lado) + '" y="' + Y(pt[1]) + '" width="' + 2 * lado + '" height="' + 2 * lado + '"/>';
       });
     });
     // Cargas na madre analisada: gravidade para baixo, sucção para cima.
     var mx = madres[iMadre] * Math.cos(a), my = hb + madres[iMadre] * Math.sin(a);
     var comp = Math.max(hc * 0.22, fs * 2.5), cab = fs * 0.5;
-    g += seta(mx - fs * 0.6, Y(my) - comp - 2 * lado, mx - fs * 0.6, Y(my) - 2.4 * lado, cab, "esq-seta-g");
-    g += seta(mx + fs * 0.6, Y(my) - 2.4 * lado, mx + fs * 0.6, Y(my) - comp - 2 * lado, cab, "esq-seta-w");
+    g += seta(mx - fs * 0.6, Y(my) - comp - 2 * lado, mx - fs * 0.6, Y(my) - 0.4 * lado, cab, "esq-seta-g");
+    g += seta(mx + fs * 0.6, Y(my) - 0.4 * lado, mx + fs * 0.6, Y(my) - comp - 2 * lado, cab, "esq-seta-w");
     g += texto(mx - fs * 1.0, Y(my) - comp - 2 * lado - fs * 0.3, fs * 0.85, "G, Q, S", ' text-anchor="end"');
     g += texto(mx + fs * 1.0, Y(my) - comp - 2 * lado - fs * 0.3, fs * 0.85, "W sucção", "");
     // Cotas
@@ -271,7 +282,7 @@
   function cartaoEsquicos(r) {
     return '<section class="cartao"><h2>Esquiços</h2><div class="esquicos">' +
       '<figure class="esquico">' + esquicoPlanta(r) + "<figcaption>Planta da cobertura: a faixa a cor é a área que descarrega na madre analisada (L × s).</figcaption></figure>" +
-      '<figure class="esquico">' + esquicoCorte(r) + "<figcaption>Corte transversal: a gravidade comprime o banzo superior, travado pelo revestimento" +
+      '<figure class="esquico">' + esquicoCorte(r) + "<figcaption>Corte transversal, com as alturas no pilar e a meio vão medidas do pavimento. A gravidade comprime o banzo superior, travado pelo revestimento" +
         (r.d.esquema === "simples" ? "" : ", e também o banzo inferior sobre os apoios, por a madre ser contínua") +
         "; a sucção do vento comprime o banzo inferior, livre entre tirantes.</figcaption></figure>" +
       "</div></section>";
@@ -366,6 +377,7 @@
       (d.tipo !== "IPE" && d.esquema !== "simples" ? "<li>Sobreposição sobre os apoios de pelo menos " + (d.esquema === "continua2" ? "0,10 L" : "0,05 L") + " para cada lado. Com sobreposições menores, a secção simples no fim da sobreposição tem de ser verificada à parte.</li>" : "") +
       "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
         ", interpolados para A = s × L. c<sub>pi</sub> = " + fmt(d.cpiMax, 2) + " e " + fmt(d.cpiMin, 2) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1, c<sub>0</sub> = 1.</li>" +
+      "<li>Alturas medidas do pavimento à face inferior da cobertura. z<sub>e</sub> = altura a meio vão; a diferença para o topo da cobertura (espessura do revestimento) altera q<sub>p</sub> em menos de 0,5 %.</li>" +
       "<li>Neve sem acumulações junto a platibandas, desníveis ou edifícios contíguos.</li>" +
       (r.hCumeeira > 15 ? "<li><b>A altura do pavilhão (" + fmt(r.hCumeeira, 1) + " m) é superior a 15 m:</b> o valor c<sub>s</sub>c<sub>d</sub> = 1 deixa de estar garantido pela NP EN 1991-1-4, 6.2(1)a e tem de ser justificado.</li>" : "") +
       "<li>Os coeficientes de pressão exterior foram conferidos com os Quadros 7.2, 7.4a e 7.4b da NP EN 1991-1-4. Os restantes valores dos Anexos Nacionais foram confirmados em fontes secundárias.</li>" +
@@ -374,6 +386,10 @@
 
   function render() {
     var d = ler();
+    d.alfa = inclinacao(d);
+    $("m-inclinacao").innerHTML = (isFinite(d.alfa)
+      ? "Inclinação calculada: <b>α = " + fmt(d.alfa, 1) + "°</b> (" + fmt(Math.tan(d.alfa * Math.PI / 180) * 100, 1) + " %). "
+      : "") + "Alturas medidas do pavimento à face inferior da cobertura.";
     $("m-campo-aco").hidden = d.tipo !== "IPE";
     var erros = validar(d);
     var zona = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
