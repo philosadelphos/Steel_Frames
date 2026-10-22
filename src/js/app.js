@@ -33,7 +33,7 @@
   // ----- Procura -----
   function lerMedidas() {
     function num(nome) {
-      var txt = String(form.elements[nome].value).trim().replace(/\s/g, "").replace(",", ".");
+      var txt = String(form.elements[nome].value).trim().replace(",", ".");
       var v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(txt) ? parseFloat(txt) : NaN;
       return isFinite(v) && v > 0 ? v : null;
     }
@@ -257,8 +257,9 @@
   function abrirNoIdentificador(nome) {
     var p = TODOS.filter(function (q) { return q.nome === nome; })[0];
     if (!p) return;
-    form.elements.h.value = p.h; form.elements.b.value = p.b;
-    form.elements.tw.value = p.tw; form.elements.tf.value = p.tf;
+    function v(x) { return String(x).replace(".", ","); }
+    form.elements.h.value = v(p.h); form.elements.b.value = v(p.b);
+    form.elements.tw.value = v(p.tw); form.elements.tf.value = v(p.tf);
     if (estado.familias.indexOf(p.familia) === -1) {
       estado.familias.push(p.familia);
       document.querySelector('#fichas-familias input[value="' + p.familia + '"]').checked = true;

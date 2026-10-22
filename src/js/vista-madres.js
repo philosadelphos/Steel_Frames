@@ -22,7 +22,7 @@
 
   // ----- Leitura e cálculo -----
   function num(nome) {
-    var txt = String(form.elements[nome].value).trim().replace(/\s/g, "").replace(",", ".");
+    var txt = String(form.elements[nome].value).trim().replace(",", ".").replace("−", "-");
     var v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(txt) ? parseFloat(txt) : NaN;
     return isFinite(v) ? v : NaN;
   }
@@ -35,7 +35,7 @@
       esquema: form.elements.esquema.value, tirantes: parseInt(form.elements.tirantes.value, 10),
       posicao: form.elements.posicao.value,
       gRev: num("grev"), gInst: num("ginst"), qk: num("qk"),
-      altitude: num("altitude"), zonaNeve: form.elements.zonaNeve.value, exposicao: form.elements.exposicao.value,
+      altitude: num("altitude"), altitudeAmbigua: /^\d{1,3}[.,]\d{3}$/.test(String(form.elements.altitude.value).trim()), zonaNeve: form.elements.zonaNeve.value, exposicao: form.elements.exposicao.value,
       terreno: form.elements.terreno.value, costa: form.elements.costa.checked, orografia: form.elements.orografia.checked,
       cpiMax: num("cpiMax"), cpiMin: num("cpiMin"),
       aco: form.elements.aco.value
@@ -66,7 +66,10 @@
     if (!(d.gRev >= 0) || !(d.gInst >= 0) || !(d.qk >= 0)) erros.push("As cargas têm de ser números iguais ou superiores a zero.");
     if (!(d.altitude >= 0 && d.altitude <= 1500)) erros.push("A altitude tem de estar entre 0 e 1500 m (limite da NP EN 1991-1-3).");
     if (d.largura > 0 && d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
-    if (!(d.cpiMax >= d.cpiMin) || !(Math.abs(d.cpiMax) <= 1) || !(Math.abs(d.cpiMin) <= 1)) erros.push("Os coeficientes de pressão interior têm de estar entre −1 e +1, com o máximo maior ou igual ao mínimo.");
+    if (!(d.cpiMax >= d.cpiMin) || !(d.cpiMax >= -1.5 && d.cpiMax <= 1) || !(d.cpiMin >= -1.5 && d.cpiMin <= 1)) erros.push("Os coeficientes de pressão interior têm de estar entre −1,5 e +1,0, com o máximo maior ou igual ao mínimo.");
+    if (d.esquema === "continua2" && d.comprimento < 2 * d.L) erros.push("Uma madre contínua de 2 vãos precisa de pelo menos 2 vãos entre pórticos (comprimento ≥ 2 L).");
+    if (d.esquema === "continua3" && d.comprimento < 3 * d.L) erros.push("Uma madre contínua de 3 ou mais vãos precisa de pelo menos 3 vãos entre pórticos (comprimento ≥ 3 L).");
+    if (d.altitudeAmbigua) erros.push("Escreva a altitude sem separador de milhares (por exemplo, 1200).");
     return erros;
   }
 
@@ -150,12 +153,12 @@
     // Cotas
     var yc = W + pad * 0.45;
     g += '<path class="esq-cota" d="M' + x0 + " " + (W + pad * 0.15) + "V" + (yc + pad * 0.1) + "M" + x1 + " " + (W + pad * 0.15) + "V" + (yc + pad * 0.1) + "M" + x0 + " " + yc + "H" + x1 + '"/>';
-    g += texto((x0 + x1) / 2, yc + fs * 1.15, fs, "L = " + fmt(d.L, 2) + " m", ' text-anchor="middle"');
+    g += texto(Math.max((x0 + x1) / 2, -pad + fs * 3.4), yc + fs * 1.15, fs, "L = " + fmt(d.L, 2) + " m", ' text-anchor="middle"');
     var xs = C + pad * 0.35;
     g += '<path class="esq-cota" d="M' + C + " " + (yMadre - meia) + "H" + (xs + pad * 0.1) + "M" + C + " " + (yMadre + meia) + "H" + (xs + pad * 0.1) + "M" + xs + " " + (yMadre - meia) + "V" + (yMadre + meia) + '"/>';
     g += texto(xs + fs * 0.4, yMadre + fs * 0.35, fs, "s", "");
     g += texto(C / 2, W / 2 - fs * 0.4, fs * 0.85, "cumeeira", ' text-anchor="middle" fill-opacity="0.75"');
-    g += texto(-pad * 0.2, W / 2, fs * 0.85, "empena", ' text-anchor="middle" transform="rotate(-90 ' + (-pad * 0.2) + " " + W / 2 + ')"');
+    if (W > fs * 4) g += texto(-pad * 0.2, W / 2, fs * 0.85, "empena", ' text-anchor="middle" transform="rotate(-90 ' + (-pad * 0.2) + " " + W / 2 + ')"');
     var vb = [-pad, -pad * 0.4, C + 2 * pad, W + pad * 1.6];
     return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Planta da cobertura com a faixa de influência da madre">' + g + "</svg>";
   }
@@ -199,7 +202,8 @@
     var topo = comp + 2 * lado + fs * 1.6;
     // A etiqueta "G, Q, S" fica à esquerda da madre: alarga-se a margem quando a madre está junto ao beirado.
     var esquerda = Math.min(-pad, mx - fs * 4.8);
-    var vb = [esquerda, -topo, W + pad * 1.1 - esquerda, hc + topo + pad];
+    var direita = Math.max(W + pad * 1.1, mx + fs * 6);
+    var vb = [esquerda, -topo, direita - esquerda, hc + topo + pad];
     return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Corte transversal do pavilhão com as cargas na madre">' + g + "</svg>";
   }
 
@@ -217,6 +221,9 @@
       return "σ = " + fmt(v.sigma, 0) + " MPa " + (v.noApoio ? "sobre o apoio (secção sobreposta)" : "no vão") + " · limite f<sub>yb</sub>/γ<sub>M0</sub>";
     } }
   };
+
+  // Coeficiente com sinal explícito e sinal de menos tipográfico (+0,20, −0,30).
+  function coef(v) { return (v > 0 ? "+" : "") + fmt(v, 2).replace("-", "−"); }
 
   function nomeComb(r, id) {
     var c = r.comb.elu.filter(function (x) { return x.id === id; })[0];
@@ -269,7 +276,9 @@
     return '<section class="cartao">' +
       '<div class="cabeca-resultado"><h2 class="nome-perfil">' + v.perfil.nome + "</h2>" +
         '<span class="familia-perfil">' + sub + "</span>" + selo + "</div>" +
-      (manual ? '<p class="alerta">Secção escolhida à mão. A mais leve ' + (omega ? "pré-selecionada" : "que verifica") + " é a " + (r.dim.escolhido ? r.dim.escolhido.perfil.nome : "—") + ".</p>" : "") +
+      (manual ? '<p class="alerta">Secção escolhida à mão. ' + (r.dim.escolhido
+        ? "A mais leve " + (omega ? "pré-selecionada" : "que verifica") + " é a " + r.dim.escolhido.perfil.nome + "."
+        : "Nenhuma secção da série verifica estas condições.") + "</p>" : "") +
       '<div class="numeros">' +
         '<div><span class="valor-grande">' + fmt(v.props.G, 2) + " <small>kg/m</small></span><p>peso da madre</p></div>" +
         '<div><span class="valor-grande">' + fmt(kgm2, 1) + " <small>kg/m²</small></span><p>de cobertura, só em madres</p></div>" +
@@ -307,9 +316,9 @@
         " · z<sub>e</sub> = " + fmt(r.hCumeeira, 2) + " m" + (p.z > r.hCumeeira ? " (inferior a z<sub>min</sub>: usa-se z = " + fmt(p.z, 0) + " m)" : "") +
         "<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
         " · q<sub>p</sub> = <b>" + fmt(p.qp, 3) + " kN/m²</b><br>Área carregada A = s × L = " + fmt(r.area, 1) + " m²<br>" +
-        "Sucção: c<sub>pe</sub> = " + fmt(w.succao.cpe, 2) + " (zona " + w.succao.zona + ", θ = " + w.succao.direcao + "), c<sub>pi</sub> = +" + fmt(w.succao.cpi, 1) +
+        "Sucção: c<sub>pe</sub> = " + fmt(w.succao.cpe, 2) + " (zona " + w.succao.zona + ", θ = " + w.succao.direcao + "), c<sub>pi</sub> = " + coef(w.succao.cpi) +
         " → <b>" + fmt(w.succao.w, 3) + " kN/m²</b><br>" +
-        "Pressão: c<sub>pe</sub> = " + fmt(w.pressao.cpe, 2) + " (zona " + w.pressao.zona + "), c<sub>pi</sub> = " + fmt(w.pressao.cpi, 1) +
+        "Pressão: c<sub>pe</sub> = " + fmt(w.pressao.cpe, 2) + " (zona " + w.pressao.zona + "), c<sub>pi</sub> = " + coef(w.pressao.cpi) +
         " → <b>" + fmt(w.pressao.w, 3) + " kN/m²</b></p></div>" +
       "</div>" +
       (d.zonaNeve === "Z1" ? '<p class="alerta">Em alguns concelhos da zona Z1 (Aguiar da Beira, Fornos de Algodres, Mangualde, Nelas, Penalva do Castelo, Sátão e Viseu), o Anexo Nacional exige também a situação acidental de queda excecional de neve. Essa situação não está incluída aqui.</p>' : "") +
@@ -350,14 +359,15 @@
 
   function cartaoComparacao(r, v) {
     // Janela de 10 secções à volta da que está a ser mostrada (a escolhida ou a mais leve que verifica).
-    var lista = r.dim.lista, i = Math.max(0, lista.indexOf(v));
+    var lista = r.dim.lista, i = lista.indexOf(v);
+    if (i < 0) i = lista.reduce(function (m, x, k) { return x.uMax < lista[m].uMax ? k : m; }, 0);
     var inicio = Math.max(0, Math.min(i - 4, lista.length - 10));
     var itens = lista.slice(inicio, inicio + 10).map(function (x) {
       var cond = Object.keys(x.verificacoes).reduce(function (a, b) { return x.verificacoes[a].u >= x.verificacoes[b].u ? a : b; });
       return '<li><button type="button" class="candidato candidato-madre" data-nome="' + x.perfil.nome + '" aria-current="' + (x === v) + '">' +
         '<span class="candidato-nome">' + x.perfil.nome + "</span>" +
         '<span class="candidato-dims">' + fmt(x.props.G, 2) + " kg/m · " + (x.ok ? (x.omega ? "pré-seleção" : "verifica") : "não verifica") + " · " + ((x.omega && NOMES_OMEGA[cond]) ? NOMES_OMEGA[cond] : NOMES_VERIF[cond]).nome.toLowerCase() + "</span>" +
-        '<span class="candidato-u">' + (x.uMax > 9.99 ? "> 999" : fmt(x.uMax * 100, 0)) + " %</span>" + barra(x.uMax) + "</button></li>";
+        '<span class="candidato-u">' + (x.uMax > 9.99 ? ">999" : fmt(x.uMax * 100, 0)) + " %</span>" + barra(x.uMax) + "</button></li>";
     }).join("");
     var titulo = r.d.tipo === "IPE" ? "Perfis IPE comparados" : "Secções " + r.d.tipo + " comparadas";
     return '<section class="cartao"><h2>' + titulo + '</h2><ul class="candidatos">' + itens + "</ul></section>";
@@ -376,7 +386,7 @@
       "<li>Na combinação com o vento em sucção só o revestimento e a madre contam como carga permanente favorável; as instalações suspensas não.</li>" +
       (d.tipo !== "IPE" && d.esquema !== "simples" ? "<li>Sobreposição sobre os apoios de pelo menos " + (d.esquema === "continua2" ? "0,10 L" : "0,05 L") + " para cada lado. Com sobreposições menores, a secção simples no fim da sobreposição tem de ser verificada à parte.</li>" : "") +
       "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
-        ", interpolados para A = s × L. c<sub>pi</sub> = " + fmt(d.cpiMax, 2) + " e " + fmt(d.cpiMin, 2) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1, c<sub>0</sub> = 1.</li>" +
+        ", interpolados para A = s × L. c<sub>pi</sub> = " + coef(d.cpiMax) + " e " + coef(d.cpiMin) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1, c<sub>0</sub> = 1.</li>" +
       "<li>Alturas medidas do pavimento à face inferior da cobertura. z<sub>e</sub> = altura a meio vão; a diferença para o topo da cobertura (espessura do revestimento) altera q<sub>p</sub> em menos de 0,5 %.</li>" +
       "<li>Neve sem acumulações junto a platibandas, desníveis ou edifícios contíguos.</li>" +
       (r.hCumeeira > 15 ? "<li><b>A altura do pavilhão (" + fmt(r.hCumeeira, 1) + " m) é superior a 15 m:</b> o valor c<sub>s</sub>c<sub>d</sub> = 1 deixa de estar garantido pela NP EN 1991-1-4, 6.2(1)a e tem de ser justificado.</li>" : "") +
@@ -416,13 +426,13 @@
     $("m-aco").innerHTML = ["S235", "S275", "S355"].map(function (a) {
       return '<option value="' + a + '"' + (a === "S275" ? " selected" : "") + ">" + a + "</option>";
     }).join("");
-    form.elements.grev.value = REVESTIMENTOS[0].g;
+    form.elements.grev.value = String(REVESTIMENTOS[0].g).replace(".", ",");
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
       if (e.target.name === "revestimento") {
         var rev = REVESTIMENTOS.filter(function (x) { return x.id === e.target.value; })[0];
-        if (rev.g !== null) form.elements.grev.value = rev.g;
+        if (rev.g !== null) form.elements.grev.value = String(rev.g).replace(".", ",");
         else form.elements.grev.focus();
       }
       if (e.target.name === "grev") form.elements.revestimento.value = "outro";
@@ -435,9 +445,13 @@
       if (!b) return;
       estado.escolhido = b.getAttribute("data-nome");
       render();
-      var mesmo = saida.querySelector('.candidato-madre[data-nome="' + estado.escolhido + '"]');
-      if (mesmo) mesmo.focus();
-      saida.querySelector(".cartao").scrollIntoView({ block: "start" });
+      var titulo = saida.querySelector(".nome-perfil");
+      var topo = document.querySelector(".topo");
+      if (titulo) {
+        titulo.setAttribute("tabindex", "-1");
+        titulo.focus({ preventScroll: true });
+        window.scrollTo(0, saida.getBoundingClientRect().top + window.scrollY - (topo ? topo.offsetHeight : 0) - 12);
+      }
     });
     render();
   }

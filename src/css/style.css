@@ -292,9 +292,9 @@ select {
 .util-ok span { background: var(--ok); }
 .util-aviso span { background: var(--aviso); }
 .util-mau span { background: var(--mau); }
-.candidato-madre { grid-template-columns: 6.5em minmax(0, 1fr) 3.2em 70px; }
+.candidato-madre { grid-template-columns: 6.5em minmax(0, 1fr) 4.2em 70px; }
 .candidato-u { text-align: right; white-space: nowrap; }
-@media (max-width: 480px) { .candidato-madre { grid-template-columns: 5.5em minmax(0, 1fr) 3em; } .candidato-madre .util { display: none; } }
+@media (max-width: 480px) { .candidato-madre { grid-template-columns: 5.5em minmax(0, 1fr) 4em; } .candidato-madre .util { display: none; } }
 
 .esquicos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .esquico { margin: 0; min-width: 0; }
@@ -339,3 +339,4 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
   .separador { padding: 6px 8px; font-size: 0.95rem; }
 }
 .resultado .cartao { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 110px); }
+.nome-perfil:focus { outline: none; }
