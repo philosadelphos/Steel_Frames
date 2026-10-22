@@ -2,7 +2,12 @@
 
 Aplicação web para identificar perfis metálicos laminados e apoiar o pré-dimensionamento de elementos em aço segundo a regulamentação europeia.
 
-Funciona inteiramente no navegador (HTML, CSS e JavaScript, sem servidor nem instalação). Para usar localmente basta abrir `index.html`.
+Funciona inteiramente no navegador, sem servidor nem instalação.
+
+## Como usar
+
+- **Num computador ou telemóvel:** descarregue o ficheiro [`index.html`](index.html) (botão *Download raw file* no GitHub) e abra-o no navegador. É um ficheiro único, com tudo incluído, e funciona sem internet. Sem ligação, só os tipos de letra passam a ser os do sistema.
+- **Online:** com o GitHub Pages ativo (*Settings → Pages → Deploy from a branch → `main` / root*), a app fica em `https://philosadelphos.github.io/Steel_Frames/`.
 
 ## O que faz hoje
 
@@ -38,16 +43,27 @@ node testes/verificar.js
 4. **Medição sobre fotografia**: carregar uma foto do perfil, calibrar a escala com um objeto de dimensão conhecida e marcar os pontos para obter `h`, `b`, `tw` e `tf`.
 5. Mais séries: UPN, IPN, tubos SHS/RHS/CHS (EN 10210 / EN 10219).
 
-## Estrutura
+## Estrutura e desenvolvimento
 
 ```
-index.html        interface
-css/style.css     estilos (tema claro e escuro)
-js/perfis.js      dimensões nominais dos perfis (EN 10365)
-js/seccao.js      propriedades e verificações do Eurocódigo 3
-js/app.js         lógica da interface
-testes/           verificação contra valores de catálogo
+index.html               app num ficheiro único (gerado, não editar)
+src/index.html           interface
+src/css/style.css        estilos (tema claro e escuro)
+src/js/perfis.js         dimensões nominais dos perfis (EN 10365)
+src/js/seccao.js         propriedades e verificações do Eurocódigo 3
+src/js/app.js            lógica da interface
+ferramentas/construir.js gera index.html a partir de src/
+testes/verificar.js      verificação contra valores de catálogo
 ```
+
+O código edita-se em `src/`. Durante o desenvolvimento pode abrir-se `src/index.html` diretamente. Depois de cada alteração, gera-se o ficheiro único e correm-se as verificações:
+
+```
+node ferramentas/construir.js
+node testes/verificar.js
+```
+
+O GitHub Actions corre as mesmas verificações em cada Pull Request e falha se `index.html` não tiver sido gerado de novo.
 
 ## Aviso
 
