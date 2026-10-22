@@ -216,13 +216,15 @@
     var cab = "<thead><tr>" + colunas.map(function (c) {
       return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>";
     }).join("") + "</tr></thead>";
-    function valor(v, casas) { return v === null || v === undefined ? "—" : fmt(v, casas); }
+    // Como no catálogo: uma ou duas casas decimais, sem acrescentar zeros.
+    var f12 = new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+    function valor(v) { return v === null || v === undefined ? "—" : f12.format(v); }
     var corpo = f.seccoes.map(function (sec) {
       return ["simples", "sobreposta", "dupla"].filter(function (k) { return sec[k]; }).map(function (k, i) {
         var x = sec[k];
         return '<tr class="linha-omega"><td>' + (i === 0 ? sec.nome : "") + "</td><td>" + NOMES[k] + "</td><td>" +
-          [valor(x.H, 1), valor(x.b1, 1), valor(x.b2, 1), valor(x.b3, 1), valor(x.t, 1), valor(x.G, 2), valor(x.A / 100, 2),
-            valor(x.Iy, 2), valor(x.Wy, 2), valor(x.iy, 2), valor(x.Iz, 2), valor(x.Wz, 2), valor(x.iz, 2)].join("</td><td>") + "</td></tr>";
+          [valor(x.H), valor(x.b1), valor(x.b2), valor(x.b3), valor(x.t), valor(x.G), valor(x.A / 100),
+            valor(x.Iy), valor(x.Wy), valor(x.iy), valor(x.Iz), valor(x.Wz), valor(x.iz)].join("</td><td>") + "</td></tr>";
       }).join("");
     }).join("");
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";

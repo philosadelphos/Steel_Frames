@@ -57,7 +57,7 @@ var porId = {};
 cb.elu.forEach(function (x) { porId[x.id] = x; });
 perto("ELU 1,35 G + 1,5 Q", porId.Q.qn, 1.35 * 0.4 + 1.5 * 0.8);
 perto("ELU 1,35 G + 1,5 S + 0,9 Wp", porId.S.qn, 1.35 * 0.4 + 1.5 * 0.4 + 1.5 * 0.6 * 0.6);
-perto("ELU 1,0 G + 1,5 Ws", porId.Ws.qn, 0.4 - 1.5 * 1.6);
+perto("ELU 1,0 Grev + 1,5 Ws", porId.Ws.qn, 0.2 - 1.5 * 1.6);
 perto("ψ0 da neve acima de 1000 m", Acoes.combinacoes(k, 1200).psi0.S, 0.7);
 
 // Bambeamento: IPE 300, L = 6 m, momento uniforme (C1 = 1) → Mcr ≈ 90,5 kN·m; S275, caso geral, curva a.
@@ -77,7 +77,7 @@ var v = Madres.verificar(ipe120, pr120, {
   L: 5, esquema: "simples", tirantes: 0, fy: 275, cosAlfa: 1, senAlfa: 0,
   combELU: [{ id: "x", qn: 2, qt: 0 }], combELS: [{ id: "x", qn: 1.4, qnVar: 1 }]
 });
-perto("utilização da secção IPE 120 (M/Mc,Rd)²", v.verificacoes.seccao.u, Math.pow(6.25 / (60.73 * 0.275), 2), 0.01);
+perto("utilização da secção IPE 120 (sem Mz é M/Mc,Rd)", v.verificacoes.seccao.u, 6.25 / (60.73 * 0.275), 0.01);
 perto("esforço transverso IPE 120", v.verificacoes.corte.V, 5);
 perto("flecha IPE 120 (mm)", v.verificacoes.flecha.d, 5 / 384 * 1.4 * Math.pow(5000, 4) / (210000 * 317.8e4), 0.01);
 igual("sem banzo inferior comprimido, não há verificação de bambeamento", v.verificacoes.bambeamento.u, 0);
@@ -130,6 +130,33 @@ var voc = Madres.verificarOmega(om100, OMEGAS.Madremax, {
 igual("Ω100×1,5 contínua: usa a secção sobreposta nos apoios", voc.sobreposta, true);
 perto("Ω100×1,5 contínua: governa o vão (9/128 qL² / Wy simples)", voc.verificacoes.seccao.sigma, 9 / 128 * 25 * 1e3 / 11.3, 0.001);
 igual("ómegas: bambeamento marcado como não avaliado", voc.verificacoes.bambeamento.naoAvaliado, true);
+
+// Sobrecarga em alternância nas madres contínuas (só a parte qnQ).
+var e2 = Madres.ESQUEMAS.continua2, e3 = Madres.ESQUEMAS.continua3;
+perto("2 vãos, só sobrecarga: momento no vão 0,0957 qL²", Madres.esforcos(e2, 1, 1, 1).mVao, 0.0957, 1e-6);
+perto("2 vãos, só permanente: momento no vão 9/128 qL²", Madres.esforcos(e2, 1, 0, 1).mVao, 9 / 128, 1e-6);
+perto("3+ vãos, só sobrecarga: momento no apoio 0,1205 qL²", Madres.esforcos(e3, 1, 1, 1).mApoio, 0.1205, 1e-6);
+perto("simplesmente apoiada: alternância não muda nada", Madres.esforcos(Madres.ESQUEMAS.simples, 2, 1, 3).mVao, 2 * 9 / 8, 1e-9);
+var vq = Madres.verificar(ipe120, pr120, {
+  L: 5, esquema: "continua3", tirantes: 0, fy: 275, cosAlfa: 1, senAlfa: 0,
+  combELU: [{ id: "Q", qn: 2, qt: 0, qnQ: 2 }], combELS: [{ id: "Q", qn: 1, qnVar: 1, qnQ: 1 }]
+});
+perto("3+ vãos com sobrecarga: flecha com 0,0099 qL⁴/EI", vq.verificacoes.flecha.d, 0.0099 * Math.pow(5000, 4) / (210000 * 317.8e4), 0.01);
+
+// Utilização da flexão desviada proporcional à carga: (My/Mc)² + Mz/Mcz = 1 ⇔ u = 1.
+var vd = Madres.verificar(ipe120, pr120, {
+  L: 5, esquema: "simples", tirantes: 0, fy: 275, cosAlfa: 1, senAlfa: 0,
+  combELU: [{ id: "d", qn: 2, qt: 0.3 }], combELS: []
+});
+var rY = vd.verificacoes.seccao.My / vd.McyRd, rZ = vd.verificacoes.seccao.Mz / vd.MczRd, u = vd.verificacoes.seccao.u;
+perto("flexão desviada: (rY/u)² + rZ/u = 1", Math.pow(rY / u, 2) + rZ / u, 1, 1e-9);
+
+// Sucção: as instalações suspensas não contam como carga favorável.
+var kk = Acoes.cargasMadre({ espacamento: 2, alfa: 0, gRev: 0.1, gInst: 0.1, qH: 0.4, s: 0.2, wPressao: 0.3, wSuccao: -0.8 });
+var cws = Acoes.combinacoes(kk, 100).elu.filter(function (x) { return x.id === "Ws"; })[0];
+perto("ELU 1,0 Grev + 1,5 Ws (sem instalações)", cws.qn, 0.2 - 1.5 * 1.6);
+perto("cpi personalizado: sucção com cpi = +0,6", Acoes.vento("A", "II", 10, 15, "corrente", 20, [0.6, -0.3]).succao.w,
+  Acoes.pressaoPico("A", "II", 10).qp * (-0.6 - 0.6), 1e-9);
 
 console.log("\n" + (total - falhas) + "/" + total + " verificações");
 process.exit(falhas ? 1 : 0);

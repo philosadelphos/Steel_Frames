@@ -7,12 +7,34 @@ var Madres = (function () {
   var G = 81000;    // MPa (EC3 3.2.6)
 
   // Coeficientes de esforços e flecha para carga uniforme q em vãos iguais L.
-  // mVao, mApoio: q·L²; v: q·L; flecha: q·L⁴/(E·I).
+  // mVao, mApoio: q·L²; v: q·L; flecha: q·L⁴/(E·I). Os coeficientes "Q" são a envolvente com a
+  // sobrecarga de cobertura nos vãos mais desfavoráveis (ação livre, NP EN 1991-1-1 6.2.1(1)).
   var ESQUEMAS = {
-    simples: { nome: "Simplesmente apoiada", mVao: 1 / 8, mApoio: 0, v: 0.5, flecha: 5 / 384 },
-    continua2: { nome: "Contínua, 2 vãos", mVao: 9 / 128, mApoio: 1 / 8, v: 0.625, flecha: 1 / 185 },
-    continua3: { nome: "Contínua, 3 ou mais vãos", mVao: 0.080, mApoio: 0.107, v: 0.607, flecha: 0.0069 }
+    simples: { nome: "Simplesmente apoiada", mVao: 1 / 8, mApoio: 0, v: 0.5, flecha: 5 / 384,
+      mVaoQ: 1 / 8, mApoioQ: 0, vQ: 0.5, flechaQ: 5 / 384 },
+    continua2: { nome: "Contínua, 2 vãos", mVao: 9 / 128, mApoio: 1 / 8, v: 0.625, flecha: 1 / 185,
+      mVaoQ: 0.0957, mApoioQ: 1 / 8, vQ: 0.625, flechaQ: 0.00915 },
+    continua3: { nome: "Contínua, 3 ou mais vãos", mVao: 0.080, mApoio: 0.107, v: 0.607, flecha: 0.0069,
+      mVaoQ: 0.101, mApoioQ: 0.1205, vQ: 0.62, flechaQ: 0.0099 }
   };
+
+  // Esforços com a parte qnQ (sobrecarga) em alternância e o resto da carga em todos os vãos.
+  function esforcos(e, qn, qnQ, L) {
+    var qRest = qn - qnQ;
+    return {
+      mVao: (e.mVao * qRest + e.mVaoQ * qnQ) * L * L,
+      mApoio: (e.mApoio * qRest + e.mApoioQ * qnQ) * L * L,
+      V: Math.abs(e.v * qRest + e.vQ * qnQ) * L
+    };
+  }
+  function coefFlecha(e, q, qQ) { return e.flecha * Math.abs(q - qQ) + e.flechaQ * Math.abs(qQ); }
+
+  // Utilização proporcional à carga para (My/Mc)² + Mz/Mcz ≤ 1: o fator λ que leva ao limite
+  // resolve a λ² + b λ = 1, e 1/λ = (b + √(b² + 4a)) / 2. Coincide com o critério da norma em 1.
+  function utilizacaoDesviada(rY, rZ) {
+    var a = rY * rY, b = rZ;
+    return (b + Math.sqrt(b * b + 4 * a)) / 2;
+  }
 
   // Limites de flecha (L/x) para coberturas em geral.
   var LIMITES_FLECHA = { max: 200, variaveis: 250 };
@@ -69,14 +91,15 @@ var Madres = (function () {
 
     cfg.combELU.forEach(function (c) {
       var qn = c.qn + (c.gMadre || 0) * cfg.cosAlfa, qt = c.qt + (c.gMadre || 0) * cfg.senAlfa;
-      var mVao = e.mVao * qn * L * L;            // > 0: banzo superior comprimido no vão
-      var mApoio = e.mApoio * qn * L * L;        // > 0: banzo inferior comprimido sobre os apoios
+      var es = esforcos(e, qn, c.qnQ || 0, L);
+      var mVao = es.mVao;                        // > 0: banzo superior comprimido no vão
+      var mApoio = es.mApoio;                    // > 0: banzo inferior comprimido sobre os apoios
       var Mz = Math.abs(qt) * Lseg * Lseg / 8;
-      var V = e.v * Math.abs(qn) * L;
+      var V = es.V;
 
       // Resistência da secção à flexão desviada (6.2.9, α = 2 e β = 1 para classes 1 e 2).
       var My = Math.max(Math.abs(mVao), Math.abs(mApoio));
-      var uSec = classe <= 2 ? Math.pow(My / McyRd, 2) + Mz / MczRd : My / McyRd + Mz / MczRd;
+      var uSec = classe <= 2 ? utilizacaoDesviada(My / McyRd, Mz / MczRd) : My / McyRd + Mz / MczRd;
       registar("seccao", uSec, { comb: c.id, My: My, Mz: Mz });
 
       // Bambeamento sempre que o banzo inferior (livre) fica comprimido.
@@ -89,8 +112,8 @@ var Madres = (function () {
     var IyMm = props.Iy * 1e4;
     cfg.combELS.forEach(function (c) {
       var qn = c.qn + (c.gMadre || 0) * cfg.cosAlfa;
-      var d = e.flecha * Math.abs(qn) * Math.pow(L * 1000, 4) / (E * IyMm);         // q em kN/m = N/mm
-      var dVar = e.flecha * Math.abs(c.qnVar) * Math.pow(L * 1000, 4) / (E * IyMm);
+      var d = coefFlecha(e, qn, c.qnQ || 0) * Math.pow(L * 1000, 4) / (E * IyMm);    // q em kN/m = N/mm
+      var dVar = coefFlecha(e, c.qnVar, c.qnQ || 0) * Math.pow(L * 1000, 4) / (E * IyMm);
       registar("flecha", d / (L * 1000 / LIMITES_FLECHA.max), { comb: c.id, d: d, lim: L * 1000 / LIMITES_FLECHA.max });
       registar("flechaVar", dVar / (L * 1000 / LIMITES_FLECHA.variaveis), { comb: c.id, d: dVar, lim: L * 1000 / LIMITES_FLECHA.variaveis });
     });
@@ -139,7 +162,8 @@ var Madres = (function () {
     }
     cfg.combELU.forEach(function (c) {
       var qn = c.qn + gMadre * c.gamaG * cfg.cosAlfa, qt = c.qt + gMadre * c.gamaG * cfg.senAlfa;
-      var mVao = Math.abs(e.mVao * qn * L * L), mApoio = Math.abs(e.mApoio * qn * L * L);
+      var es = esforcos(e, qn, c.qnQ || 0, L);
+      var mVao = Math.abs(es.mVao), mApoio = Math.abs(es.mApoio);
       var Mz = Math.abs(qt) * Lseg * Lseg / 8;
       var sVao = mVao * 1e3 / sim.Wy + Mz * 1e3 / sim.Wz;   // MPa (kN·m e cm³)
       var sApoio = mApoio * 1e3 / sob.Wy;
@@ -149,8 +173,8 @@ var Madres = (function () {
     var Iy = sim.Iy * 1e4;
     cfg.combELS.forEach(function (c) {
       var qn = c.qn + gMadre * cfg.cosAlfa;
-      var d = e.flecha * Math.abs(qn) * Math.pow(L * 1000, 4) / (E * Iy);
-      var dVar = e.flecha * Math.abs(c.qnVar) * Math.pow(L * 1000, 4) / (E * Iy);
+      var d = coefFlecha(e, qn, c.qnQ || 0) * Math.pow(L * 1000, 4) / (E * Iy);
+      var dVar = coefFlecha(e, c.qnVar, c.qnQ || 0) * Math.pow(L * 1000, 4) / (E * Iy);
       registar("flecha", d / (L * 1000 / LIMITES_FLECHA.max), { comb: c.id, d: d, lim: L * 1000 / LIMITES_FLECHA.max });
       registar("flechaVar", dVar / (L * 1000 / LIMITES_FLECHA.variaveis), { comb: c.id, d: dVar, lim: L * 1000 / LIMITES_FLECHA.variaveis });
     });
@@ -168,7 +192,7 @@ var Madres = (function () {
   }
 
   return {
-    ESQUEMAS: ESQUEMAS, LIMITES_FLECHA: LIMITES_FLECHA, E: E, G: G,
+    ESQUEMAS: ESQUEMAS, LIMITES_FLECHA: LIMITES_FLECHA, E: E, G: G, esforcos: esforcos,
     momentoCritico: momentoCritico, chiLT: chiLT, verificar: verificar, dimensionar: dimensionar,
     verificarOmega: verificarOmega, dimensionarOmegas: dimensionarOmegas
   };

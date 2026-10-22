@@ -36,6 +36,7 @@
       gRev: num("grev"), gInst: num("ginst"), qk: num("qk"),
       altitude: num("altitude"), zonaNeve: form.elements.zonaNeve.value, exposicao: form.elements.exposicao.value,
       terreno: form.elements.terreno.value, costa: form.elements.costa.checked, orografia: form.elements.orografia.checked,
+      cpiMax: num("cpiMax"), cpiMin: num("cpiMin"),
       aco: form.elements.aco.value
     };
   }
@@ -49,6 +50,7 @@
     if (!(d.gRev >= 0) || !(d.gInst >= 0) || !(d.qk >= 0)) erros.push("As cargas têm de ser números iguais ou superiores a zero.");
     if (!(d.altitude >= 0 && d.altitude <= 1500)) erros.push("A altitude tem de estar entre 0 e 1500 m (limite da NP EN 1991-1-3).");
     if (d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
+    if (!(d.cpiMax >= d.cpiMin) || !(Math.abs(d.cpiMax) <= 1) || !(Math.abs(d.cpiMin) <= 1)) erros.push("Os coeficientes de pressão interior têm de estar entre −1 e +1, com o máximo maior ou igual ao mínimo.");
     return erros;
   }
 
@@ -57,7 +59,7 @@
     var hCumeeira = d.beirado + d.largura / 2 * Math.tan(a);
     var zonaVento = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
     var area = d.s * d.L;
-    var vento = Acoes.vento(zonaVento, d.terreno, hCumeeira, d.alfa, d.posicao, area);
+    var vento = Acoes.vento(zonaVento, d.terreno, hCumeeira, d.alfa, d.posicao, area, [d.cpiMax, d.cpiMin]);
     var neve = Acoes.neve(d.zonaNeve, d.altitude, d.exposicao, d.alfa);
     var cargas = Acoes.cargasMadre({
       espacamento: d.s, alfa: d.alfa, gRev: d.gRev, gInst: d.gInst, qH: d.qk, s: neve.s,
@@ -102,17 +104,20 @@
     var d = r.d, C = d.comprimento, W = d.largura, a = d.alfa * Math.PI / 180;
     var pendente = W / 2 / Math.cos(a);
     var M = Math.max(C, W), fs = M * 0.036, pad = M * 0.1;
-    var nPorticos = Math.max(1, Math.round(C / d.L));
-    var passo = C / nPorticos;
+    // Pórticos ao espaçamento L a partir da empena; o último vão fica com o que sobra.
+    var xs = [];
+    for (var xp = 0; xp < C - d.L * 0.05; xp += d.L) xs.push(xp);
+    xs.push(C);
+    var nPorticos = xs.length - 1;
     var madres = posicoesMadres(pendente, d.s);
     var g = "";
     // Faixa de influência da madre analisada
     var iMadre = d.posicao === "bordadura" ? 1 : Math.min(madres.length - 2, Math.max(1, Math.floor(madres.length / 2)));
     var yMadre = madres[iMadre] * Math.cos(a);
-    var vao = d.posicao === "bordadura" ? 0 : Math.floor(nPorticos / 2);
-    var x0 = vao * passo, x1 = x0 + passo;
+    var vao = d.posicao === "bordadura" ? 0 : Math.min(Math.floor(nPorticos / 2), nPorticos - 1);
+    var x0 = xs[vao], x1 = xs[vao + 1];
     var meia = d.s * Math.cos(a) / 2;
-    g += '<rect class="esq-faixa" x="' + x0 + '" y="' + (yMadre - meia) + '" width="' + passo + '" height="' + (2 * meia) + '"/>';
+    g += '<rect class="esq-faixa" x="' + x0 + '" y="' + (yMadre - meia) + '" width="' + (x1 - x0) + '" height="' + (2 * meia) + '"/>';
     // Madres nas duas águas
     madres.forEach(function (m) {
       [m * Math.cos(a), W - m * Math.cos(a)].forEach(function (y) {
@@ -120,15 +125,15 @@
       });
     });
     // Pórticos
-    for (var k = 0; k <= nPorticos; k++) {
-      g += '<line class="esq-portico" x1="' + k * passo + '" y1="0" x2="' + k * passo + '" y2="' + W + '"/>';
-    }
+    xs.forEach(function (x) {
+      g += '<line class="esq-portico" x1="' + x + '" y1="0" x2="' + x + '" y2="' + W + '"/>';
+    });
     g += '<line class="esq-cumeeira" x1="0" y1="' + W / 2 + '" x2="' + C + '" y2="' + W / 2 + '"/>';
     g += '<line class="esq-madre-ativa" x1="' + x0 + '" y1="' + yMadre + '" x2="' + x1 + '" y2="' + yMadre + '"/>';
     // Cotas
     var yc = W + pad * 0.45;
     g += '<path class="esq-cota" d="M' + x0 + " " + (W + pad * 0.15) + "V" + (yc + pad * 0.1) + "M" + x1 + " " + (W + pad * 0.15) + "V" + (yc + pad * 0.1) + "M" + x0 + " " + yc + "H" + x1 + '"/>';
-    g += texto((x0 + x1) / 2, yc + fs * 1.15, fs, "L = " + fmt(passo, 2) + " m", ' text-anchor="middle"');
+    g += texto((x0 + x1) / 2, yc + fs * 1.15, fs, "L = " + fmt(d.L, 2) + " m", ' text-anchor="middle"');
     var xs = C + pad * 0.35;
     g += '<path class="esq-cota" d="M' + C + " " + (yMadre - meia) + "H" + (xs + pad * 0.1) + "M" + C + " " + (yMadre + meia) + "H" + (xs + pad * 0.1) + "M" + xs + " " + (yMadre - meia) + "V" + (yMadre + meia) + '"/>';
     g += texto(xs + fs * 0.4, yMadre + fs * 0.35, fs, "s", "");
@@ -237,14 +242,14 @@
       ? OMEGAS[d.tipo].fabricante + " · " + OMEGAS[d.tipo].aco + " · " + Madres.ESQUEMAS[d.esquema].nome.toLowerCase() + (v.sobreposta ? ", sobreposta nos apoios" : "")
       : d.aco + " · " + Madres.ESQUEMAS[d.esquema].nome.toLowerCase();
     var notaFinal = omega
-      ? '<p class="alerta">Pré-seleção com as propriedades da <b>secção bruta</b> do catálogo ' + OMEGAS[d.tipo].fabricante + ". As secções em ómega de paredes finas são de classe 4: a resistência real é inferior à da secção bruta e depende da encurvadura local e distorcional, que o catálogo não considera. Confirme a madre com as tabelas de carga ou as propriedades efetivas do fabricante (setor técnico da " + OMEGAS[d.tipo].fabricante + ").</p>"
+      ? '<p class="alerta">Pré-seleção com as propriedades da <b>secção bruta</b> do catálogo ' + OMEGAS[d.tipo].fabricante + ". As secções em ómega de paredes finas são de classe 4: a resistência real é inferior à da secção bruta e depende da encurvadura local e distorcional, que o catálogo não considera. As flechas também foram calculadas com o I<sub>y</sub> bruto, pelo que as reais serão maiores. Confirme a madre com as tabelas de carga ou as propriedades efetivas do fabricante (setor técnico da " + OMEGAS[d.tipo].fabricante + ").</p>"
       : '<p class="nota">Bambeamento: L<sub>cr</sub> = ' + fmt(v.Lseg, 2) + " m entre travamentos, C<sub>1</sub> = " + fmt(v.C1, 3) +
         ", M<sub>cr</sub> = " + fmt(v.Mcr, 1) + " kN·m, λ̄<sub>LT</sub> = " + fmt(v.lt.lambda, 2) + ", curva " + v.lt.curva +
         ", χ<sub>LT</sub> = " + fmt(v.lt.chi, 3) + ", M<sub>b,Rd</sub> = " + fmt(v.MbRd, 1) + " kN·m.</p>";
     return '<section class="cartao">' +
       '<div class="cabeca-resultado"><h2 class="nome-perfil">' + v.perfil.nome + "</h2>" +
         '<span class="familia-perfil">' + sub + "</span>" + selo + "</div>" +
-      (manual ? '<p class="alerta">Secção escolhida à mão. A mais leve que verifica é a ' + (r.dim.escolhido ? r.dim.escolhido.perfil.nome : "—") + ".</p>" : "") +
+      (manual ? '<p class="alerta">Secção escolhida à mão. A mais leve ' + (omega ? "pré-selecionada" : "que verifica") + " é a " + (r.dim.escolhido ? r.dim.escolhido.perfil.nome : "—") + ".</p>" : "") +
       '<div class="numeros">' +
         '<div><span class="valor-grande">' + fmt(v.props.G, 2) + " <small>kg/m</small></span><p>peso da madre</p></div>" +
         '<div><span class="valor-grande">' + fmt(kgm2, 1) + " <small>kg/m²</small></span><p>de cobertura, só em madres</p></div>" +
@@ -257,7 +262,9 @@
   function cartaoEsquicos(r) {
     return '<section class="cartao"><h2>Esquiços</h2><div class="esquicos">' +
       '<figure class="esquico">' + esquicoPlanta(r) + "<figcaption>Planta da cobertura: a faixa a cor é a área que descarrega na madre analisada (L × s).</figcaption></figure>" +
-      '<figure class="esquico">' + esquicoCorte(r) + "<figcaption>Corte transversal: a gravidade comprime o banzo superior, travado pelo revestimento; a sucção do vento comprime o banzo inferior, livre entre tirantes.</figcaption></figure>" +
+      '<figure class="esquico">' + esquicoCorte(r) + "<figcaption>Corte transversal: a gravidade comprime o banzo superior, travado pelo revestimento" +
+        (r.d.esquema === "simples" ? "" : ", e também o banzo inferior sobre os apoios, por a madre ser contínua") +
+        "; a sucção do vento comprime o banzo inferior, livre entre tirantes.</figcaption></figure>" +
       "</div></section>";
   }
 
@@ -277,7 +284,8 @@
         " × [1 + (" + fmt(d.altitude, 0) + "/500)²] = " + fmt(n.sk, 3) + " kN/m²<br>s = μ<sub>1</sub> C<sub>e</sub> C<sub>t</sub> s<sub>k</sub> = " +
         fmt(n.mu1, 2) + " × " + fmt(n.Ce, 1) + " × " + fmt(n.Ct, 1) + " × " + fmt(n.sk, 3) + " = <b>" + fmt(n.s, 3) + " kN/m²</b> em projeção horizontal</p></div>" +
       '<div class="acao"><h3>Vento · zona ' + r.zonaVento + "</h3><p>" + zonaNota + ": v<sub>b</sub> = " + p.vb + " m/s · terreno " + d.terreno +
-        " · z<sub>e</sub> = " + fmt(r.hCumeeira, 2) + " m<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
+        " · z<sub>e</sub> = " + fmt(r.hCumeeira, 2) + " m" + (p.z > r.hCumeeira ? " (inferior a z<sub>min</sub>: usa-se z = " + fmt(p.z, 0) + " m)" : "") +
+        "<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
         " · q<sub>p</sub> = <b>" + fmt(p.qp, 3) + " kN/m²</b><br>Área carregada A = s × L = " + fmt(r.area, 1) + " m²<br>" +
         "Sucção: c<sub>pe</sub> = " + fmt(w.succao.cpe, 2) + " (zona " + w.succao.zona + ", θ = " + w.succao.direcao + "), c<sub>pi</sub> = +" + fmt(w.succao.cpi, 1) +
         " → <b>" + fmt(w.succao.w, 3) + " kN/m²</b><br>" +
@@ -303,12 +311,13 @@
       Q: "1,35 G + 1,5 Q",
       S: "1,35 G + 1,5 S + 1,5 × " + fmt(psi.W, 1) + " W<sub>p</sub>",
       Wp: "1,35 G + 1,5 W<sub>p</sub> + 1,5 × " + fmt(psi.S, 1) + " S",
-      Ws: "1,0 G + 1,5 W<sub>s</sub>"
+      Ws: "1,0 G<sub>rev</sub> + 1,5 W<sub>s</sub>"
     };
     var linhas = r.comb.elu.map(function (c) {
       var qn = c.qn + gM * c.gamaG * Math.cos(a), qt = c.qt + gM * c.gamaG * Math.sin(a);
+      var es = Madres.esforcos(e, qn, c.qnQ || 0, L);
       return "<tr><th scope=\"row\">" + formulas[c.id] + "</th><td>" + fmt(qn, 3) + "</td><td>" + fmt(qt, 3) + "</td><td>" +
-        fmt(e.mVao * qn * L * L, 2) + "</td><td>" + (e.mApoio ? fmt(-e.mApoio * qn * L * L, 2) : "—") + "</td><td>" + fmt(e.v * Math.abs(qn) * L, 2) + "</td></tr>";
+        fmt(es.mVao, 2) + "</td><td>" + (e.mApoio ? fmt(-es.mApoio, 2) : "—") + "</td><td>" + fmt(es.V, 2) + "</td></tr>";
     }).join("");
     return '<section class="cartao"><h2>Combinações de ações · ' + v.perfil.nome + "</h2>" +
       '<div class="tabela-rolo tabela-baixa"><table class="tabela tabela-simples"><thead><tr><th scope="col">ELU (NP EN 1990, 6.10)</th>' +
@@ -340,9 +349,11 @@
         : "<li>Madres " + d.tipo + " (" + OMEGAS[d.tipo].fabricante + ", " + OMEGAS[d.tipo].aco + ", f<sub>yb</sub> = " + OMEGAS[d.tipo].fyb + " MPa) com as propriedades da secção bruta do catálogo. Nas madres contínuas, a secção sobreposta resiste ao momento sobre os apoios" + (OMEGAS[d.tipo].seccoes[0].sobreposta ? "" : " (sem dados de sobreposição neste catálogo, usa-se a secção simples)") + ".</li>" +
           "<li>Flechas calculadas com o I<sub>y</sub> bruto da secção simples. A componente no plano da cobertura é resistida por flexão em torno de z (W<sub>z,min</sub>) entre travamentos.</li>" +
           "<li>Não avaliados: encurvadura local e distorcional, bambeamento do banzo inferior sob sucção (EN 1993-1-3, 10.1), esforço transverso, esmagamento da alma nos apoios e ligações aparafusadas.</li>") +
-      "<li>Vigas contínuas: coeficientes para carga uniforme em todos os vãos, sem alternância de sobrecargas.</li>" +
+      "<li>Madres contínuas: cargas permanentes, neve e vento em todos os vãos; a sobrecarga de cobertura nos vãos mais desfavoráveis (alternância).</li>" +
+      "<li>Na combinação com o vento em sucção só o revestimento e a madre contam como carga permanente favorável; as instalações suspensas não.</li>" +
+      (d.tipo !== "IPE" && d.esquema !== "simples" ? "<li>Sobreposição sobre os apoios de pelo menos " + (d.esquema === "continua2" ? "0,10 L" : "0,05 L") + " para cada lado. Com sobreposições menores, a secção simples no fim da sobreposição tem de ser verificada à parte.</li>" : "") +
       "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
-        ", interpolados para A = s × L. c<sub>pi</sub> = +0,2 ou −0,3 (aberturas desconhecidas). c<sub>s</sub>c<sub>d</sub> = 1, c<sub>0</sub> = 1.</li>" +
+        ", interpolados para A = s × L. c<sub>pi</sub> = " + fmt(d.cpiMax, 2) + " e " + fmt(d.cpiMin, 2) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1, c<sub>0</sub> = 1.</li>" +
       "<li>Neve sem acumulações junto a platibandas, desníveis ou edifícios contíguos.</li>" +
       (r.hCumeeira > 15 ? "<li><b>A altura do pavilhão (" + fmt(r.hCumeeira, 1) + " m) é superior a 15 m:</b> o valor c<sub>s</sub>c<sub>d</sub> = 1 deixa de estar garantido pela NP EN 1991-1-4, 6.2(1)a e tem de ser justificado.</li>" : "") +
       "<li>Os coeficientes de pressão exterior foram conferidos com os Quadros 7.2, 7.4a e 7.4b da NP EN 1991-1-4. Os restantes valores dos Anexos Nacionais foram confirmados em fontes secundárias.</li>" +

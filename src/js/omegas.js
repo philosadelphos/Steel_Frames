@@ -4,7 +4,7 @@
  * local ou distorcional, pelo que não substituem as propriedades efetivas da EN 1993-1-3.
  * Cada disposição: [H, h1, b1, b2, b3, t, y1 (mm), G (kg/m), A (mm²), Iy (cm⁴), Wy,min (cm³), iy (cm), Iz (cm⁴), Wz,min (cm³), iz (cm)]
  * Disposições: simples (uma ómega), sobreposta (duas ómegas encaixadas, nas zonas de sobreposição),
- * dupla (duas ómegas costas com costas).
+ * dupla (duas ómegas frente a frente, unidas pelas abas, formando uma secção fechada).
  */
 var OMEGAS = (function () {
   function d(v) {
@@ -77,13 +77,13 @@ var OMEGAS = (function () {
       descricao: "Madres em ómega Omegamax, aço S220GD + Z200",
       seccoes: [
         seccao("Omega 50", [54, n, n, 100, 130.8, 1.5, n, 2.43, 307, 13.70, 4.80, 2.11, 37.63, 5.75, 3.50], n, n,
-          { desenvolvimento: 207, areaPintura: 0.42, furo: "12×14" }),
+          { desenvolvimento: 207, areaPintura: 0.42, furo: "12×14", parafuso: "M10" }),
         seccao("Omega 100", [100, n, n, 100, 130.3, 1.5, n, 3.45, 441, 59.5, 11.3, 3.67, 47.55, 7.30, 3.28], n, n,
-          { desenvolvimento: 295, areaPintura: 0.59, furo: "12×14" }),
+          { desenvolvimento: 295, areaPintura: 0.59, furo: "12×14", parafuso: "M10" }),
         seccao("Omega 150", [145.5, n, n, 150, 183, 1.5, n, 4.84, 625, 178.60, 24.80, 5.35, 157.17, 17.18, 5.01], n, n,
-          { desenvolvimento: 414, areaPintura: 0.83, furo: "12×14" }),
+          { desenvolvimento: 414, areaPintura: 0.83, furo: "12×14", parafuso: "M10" }),
         seccao("Omega 200", [188.6, n, n, 200, 241.2, 1.5, n, 6.27, 791, 373.40, 39.40, 6.87, 345.09, 28.62, 6.61], n, n,
-          { desenvolvimento: 535, areaPintura: 1.07, furo: "12×14" })
+          { desenvolvimento: 535, areaPintura: 1.07, furo: "12×14", parafuso: "M10" })
       ]
     }
   };

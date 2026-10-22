@@ -33,7 +33,8 @@ var Acoes = (function () {
     IV: { z0: 1.0, zmin: 15 }
   };
   var RHO = 1.25;   // kg/m³
-  var CPI = [0.2, -0.3]; // 7.2.9(6), aberturas desconhecidas
+  // 7.2.9(6): edifícios sem face dominante (por exemplo, portões fechados ou resistentes ao vento).
+  var CPI = [0.2, -0.3];
 
   // Pressão dinâmica de pico qp(ze) com c0 = 1, kI = 1, cdir = cseason = 1.
   function pressaoPico(zona, categoria, ze) {
@@ -139,10 +140,11 @@ var Acoes = (function () {
   }
 
   // Pressão resultante na cobertura (kN/m², positiva para baixo) nos dois casos extremos.
-  function vento(zona, categoria, ze, alfa, posicao, area) {
+  function vento(zona, categoria, ze, alfa, posicao, area, cpi) {
     var pico = pressaoPico(zona, categoria, ze);
     var c = coeficientesCobertura(alfa, posicao, area);
-    var cpiMax = Math.max.apply(null, CPI), cpiMin = Math.min.apply(null, CPI);
+    var lista = cpi || CPI;
+    var cpiMax = Math.max.apply(null, lista), cpiMin = Math.min.apply(null, lista);
     // Pressão positiva = a empurrar a cobertura para baixo: w = qp (cpe − cpi), com sinal invertido para "para baixo".
     var wSuccao = pico.qp * (c.succao.cpe - cpiMax);    // negativo: levanta
     var wPressao = pico.qp * (c.pressao.cpe - cpiMin);  // positivo: empurra para baixo
@@ -165,6 +167,8 @@ var Acoes = (function () {
     function porProjecao(v) { return { n: v * e * cos * cos, t: v * e * cos * sen }; }
     return {
       G: porSuperficie(c.gRev + c.gInst),
+      // Contra a sucção só conta o revestimento: as instalações podem não existir ou ser retiradas.
+      Gfav: porSuperficie(c.gRev),
       Q: porProjecao(c.qH),
       S: porProjecao(c.s),
       Wp: { n: c.wPressao * e, t: 0 },
@@ -184,27 +188,28 @@ var Acoes = (function () {
    */
   function combinacoes(k, altitude) {
     var psiS = psi0Neve(altitude), psiW = PSI0.W;
-    function soma(gG, termos) {
-      var n = gG * k.G.n, t = gG * k.G.t;
+    function soma(gG, termos, G) {
+      var n = gG * G.n, t = gG * G.t;
       termos.forEach(function (x) { n += x[0] * x[1].n; t += x[0] * x[1].t; });
       return { n: n, t: t };
     }
     function variavel(termos) {
       return termos.reduce(function (s, x) { return s + x[0] * x[1].n; }, 0);
     }
+    // qnQ: parte da sobrecarga, que se coloca nos vãos mais desfavoráveis das madres contínuas.
     var defs = [
-      { id: "Q", nome: "Sobrecarga de cobertura", gG: GAMA.Gsup, var: [[1, k.Q]] },
-      { id: "S", nome: "Neve (base) + vento em pressão", gG: GAMA.Gsup, var: [[1, k.S], [psiW, k.Wp]] },
-      { id: "Wp", nome: "Vento em pressão (base) + neve", gG: GAMA.Gsup, var: [[1, k.Wp], [psiS, k.S]] },
-      { id: "Ws", nome: "Vento em sucção (base)", gG: GAMA.Ginf, var: [[1, k.Ws]] }
+      { id: "Q", nome: "Sobrecarga de cobertura", gG: GAMA.Gsup, G: k.G, var: [[1, k.Q]], qQ: k.Q.n },
+      { id: "S", nome: "Neve (base) + vento em pressão", gG: GAMA.Gsup, G: k.G, var: [[1, k.S], [psiW, k.Wp]], qQ: 0 },
+      { id: "Wp", nome: "Vento em pressão (base) + neve", gG: GAMA.Gsup, G: k.G, var: [[1, k.Wp], [psiS, k.S]], qQ: 0 },
+      { id: "Ws", nome: "Vento em sucção (base)", gG: GAMA.Ginf, G: k.Gfav, var: [[1, k.Ws]], qQ: 0 }
     ];
     var elu = defs.map(function (d) {
-      var r = soma(d.gG, d.var.map(function (x) { return [GAMA.Q * x[0], x[1]]; }));
-      return { id: d.id, nome: d.nome, gamaG: d.gG, qn: r.n, qt: r.t };
+      var r = soma(d.gG, d.var.map(function (x) { return [GAMA.Q * x[0], x[1]]; }), d.G);
+      return { id: d.id, nome: d.nome, gamaG: d.gG, qn: r.n, qt: r.t, qnQ: GAMA.Q * d.qQ };
     });
     var els = defs.map(function (d) {
-      var r = soma(1, d.var);
-      return { id: d.id, nome: d.nome, gamaG: 1, qn: r.n, qt: r.t, qnVar: variavel(d.var) };
+      var r = soma(1, d.var, d.G);
+      return { id: d.id, nome: d.nome, gamaG: 1, qn: r.n, qt: r.t, qnVar: variavel(d.var), qnQ: d.qQ };
     });
     return { elu: elu, els: els, psi0: { S: psiS, W: psiW, H: PSI0.H }, gama: GAMA };
   }
