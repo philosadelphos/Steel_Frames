@@ -6,8 +6,8 @@ Funciona inteiramente no navegador, sem servidor nem instalação.
 
 ## Como usar
 
-- **Num computador ou telemóvel:** descarregue o ficheiro [`index.html`](index.html) (botão *Download raw file* no GitHub) e abra-o no navegador. É um ficheiro único, com tudo incluído, e funciona sem internet. Sem ligação, só os tipos de letra passam a ser os do sistema.
-- **Online:** com o GitHub Pages ativo (*Settings → Pages → Deploy from a branch → `main` / root*), a app fica em `https://philosadelphos.github.io/Steel_Frames/`.
+- **No computador:** descarregue o ficheiro [`index.html`](index.html) (botão *Download raw file* no GitHub) e abra-o no navegador. É um ficheiro único, com tudo incluído, e funciona sem internet. Sem ligação, só os tipos de letra passam a ser os do sistema.
+- **Online e no telemóvel:** com o GitHub Pages ativo (*Settings → Pages → Deploy from a branch → `main` / root*), a app fica em `https://philosadelphos.github.io/Steel_Frames/`. No telemóvel é a forma recomendada: no iPhone, por exemplo, a pré-visualização da app Ficheiros não executa o JavaScript de um `.html` descarregado.
 
 ## O que faz hoje
 
