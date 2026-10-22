@@ -15,5 +15,7 @@ jobs:
           node-version: 24
       - name: Propriedades contra valores de catálogo
         run: node testes/verificar.js
+      - name: Ações e madres
+        run: node testes/madres.js
       - name: index.html gerado a partir de src/
         run: node ferramentas/construir.js --verificar

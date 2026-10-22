@@ -101,14 +101,14 @@ button, input, select { font: inherit; color: inherit; }
 
 /* Conteúdo */
 .conteudo { padding-block: 24px 8px; }
-.vista#vista-identificar {
+.vista-dupla {
   display: grid; gap: 24px;
   grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
   align-items: start;
 }
 .vista[hidden] { display: none !important; }
 @media (max-width: 880px) {
-  .vista#vista-identificar { grid-template-columns: minmax(0, 1fr); }
+  .vista-dupla { grid-template-columns: minmax(0, 1fr); }
 }
 
 .titulo-painel {
@@ -278,6 +278,75 @@ select {
   .cartao { animation: surgir 0.18s ease-out; }
   @keyframes surgir { from { transform: translateY(3px); } to { transform: none; } }
 }
+
+/* Madres */
+.painel-madres { position: static !important; }
+.painel-madres .grupo { gap: 10px; }
+.painel-madres .grupo legend {
+  font-family: var(--f-titulo); font-weight: 600; font-size: 1rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--tinta-suave); margin-bottom: 2px;
+}
+.verificar { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; cursor: pointer; }
+.verificar input { width: 16px; height: 16px; accent-color: var(--aco); }
+.painel-madres select { width: 100%; }
+.numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin-top: 16px; }
+.numeros p { margin: 2px 0 0; font-size: 0.82rem; color: var(--tinta-suave); }
+.verifs { list-style: none; margin: 18px 0 12px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.verif {
+  display: grid; grid-template-columns: minmax(0, 1fr) 3.5em 120px; gap: 2px 12px; align-items: center;
+}
+.verif-nome { font-weight: 500; }
+.verif-u { text-align: right; font-family: var(--f-dados); font-variant-numeric: tabular-nums; }
+.verif-det { grid-column: 1 / -1; font-size: 0.8rem; color: var(--tinta-suave); }
+@media (max-width: 480px) { .verif { grid-template-columns: minmax(0, 1fr) 3.5em 70px; } }
+.util { display: block; height: 8px; background: var(--superficie-2); border-radius: 4px; overflow: hidden; border: 1px solid var(--linha); }
+.util span { display: block; height: 100%; }
+.util-ok span { background: var(--ok); }
+.util-aviso span { background: var(--aviso); }
+.util-mau span { background: var(--mau); }
+.candidato-madre { grid-template-columns: 6.5em minmax(0, 1fr) 3.2em 70px; }
+.candidato-u { text-align: right; }
+@media (max-width: 480px) { .candidato-madre { grid-template-columns: 5.5em minmax(0, 1fr) 3em; } .candidato-madre .util { display: none; } }
+
+.esquicos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.esquico { margin: 0; min-width: 0; }
+.esquico svg { display: block; width: 100%; height: auto; max-height: 380px; }
+.esquico figcaption { font-size: 0.8rem; color: var(--tinta-suave); margin-top: 6px; }
+.esq-faixa { fill: var(--primario); fill-opacity: 0.22; }
+.esq-madre { stroke: var(--aco); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0.55; }
+.esq-madre-ativa { stroke: var(--primario); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.esq-portico { stroke: var(--tinta); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.esq-cumeeira { stroke: var(--tinta-suave); stroke-width: 1; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.esq-cota { stroke: var(--tinta-suave); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
+.esq-solo { stroke: var(--tinta-suave); stroke-width: 1; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
+.esq-estrutura { stroke: var(--tinta); stroke-width: 2.2; fill: none; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.esq-madre-sec { fill: var(--aco); }
+.esq-madre-sec-ativa { fill: var(--primario); }
+.esq-seta-g, .esq-seta-w { stroke-width: 2; vector-effect: non-scaling-stroke; }
+.esq-seta-g { stroke: var(--aco); }
+.esq-seta-g-cab { fill: var(--aco); }
+.esq-seta-w { stroke: var(--primario); }
+.esq-seta-w-cab { fill: var(--primario); }
+.esq-txt { fill: var(--tinta); font-family: var(--f-dados); stroke: var(--superficie); paint-order: stroke; stroke-linejoin: round; }
+
+.acoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; }
+.acao h3, h3.sub {
+  font-family: var(--f-titulo); font-weight: 600; font-size: 1rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--tinta-suave); margin: 0 0 4px;
+}
+h3.sub { margin-top: 18px; margin-bottom: 8px; }
+.acao p { margin: 0; font-size: 0.88rem; }
+.acao b, .acoes b { font-family: var(--f-dados); font-weight: 500; }
+.tabela-baixa { max-height: none; }
+.tabela-simples tbody tr { cursor: default; }
+.tabela-simples tbody tr:hover td { color: inherit; }
+.tabela-simples tbody th { text-align: left; font-weight: 400; white-space: normal; min-width: 10em; }
+.cartao .tabela-simples th:first-child { position: static; }
+.hipoteses { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; max-width: 75ch; }
+.verif-nao .verif-nome { color: var(--tinta-suave); }
+.tabela tbody tr.linha-omega { cursor: default; }
+.tabela tbody tr.linha-omega:hover td { color: inherit; }
+.tabela tbody tr.linha-omega td:first-child { font-family: var(--f-dados); font-weight: 500; font-size: 0.86rem; }
 </style>
 </head>
 <body>
@@ -289,13 +358,14 @@ select {
     </div>
     <nav class="separadores" aria-label="Secções">
       <button type="button" class="separador" id="tab-identificar" data-vista="identificar" aria-selected="true">Identificar perfil</button>
+      <button type="button" class="separador" id="tab-madres" data-vista="madres" aria-selected="false">Madres</button>
       <button type="button" class="separador" id="tab-catalogo" data-vista="catalogo" aria-selected="false">Catálogo</button>
     </nav>
   </div>
 </header>
 
 <main class="conteudo">
-  <section class="vista" id="vista-identificar" aria-labelledby="tab-identificar">
+  <section class="vista vista-dupla" id="vista-identificar" aria-labelledby="tab-identificar">
     <form class="painel-medidas" id="form-medidas" autocomplete="off">
       <h1 class="titulo-painel">Medidas do perfil</h1>
       <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas.</p>
@@ -341,6 +411,104 @@ select {
     <div class="resultado" id="resultado" aria-live="polite"></div>
   </section>
 
+  <section class="vista vista-dupla" id="vista-madres" aria-labelledby="tab-madres" hidden>
+    <form class="painel-medidas painel-madres" id="form-madres" autocomplete="off">
+      <h1 class="titulo-painel">Madres de cobertura</h1>
+      <p class="nota">Pré-dimensionamento de madres numa cobertura de duas águas, com as ações do Anexo Nacional português (Portugal continental).</p>
+
+      <fieldset class="grupo">
+        <legend>Pavilhão</legend>
+        <div class="campos">
+          <label class="campo" for="m-largura"><span>Vão do pórtico</span>
+            <span class="entrada"><input id="m-largura" name="largura" type="number" inputmode="decimal" min="1" step="0.1" value="20"><em>m</em></span></label>
+          <label class="campo" for="m-comprimento"><span>Comprimento</span>
+            <span class="entrada"><input id="m-comprimento" name="comprimento" type="number" inputmode="decimal" min="1" step="0.1" value="48"><em>m</em></span></label>
+          <label class="campo" for="m-beirado"><span>Altura do beirado</span>
+            <span class="entrada"><input id="m-beirado" name="beirado" type="number" inputmode="decimal" min="1" step="0.1" value="7"><em>m</em></span></label>
+          <label class="campo" for="m-alfa"><span>Inclinação</span>
+            <span class="entrada"><input id="m-alfa" name="alfa" type="number" inputmode="decimal" min="0" max="30" step="0.5" value="8"><em>°</em></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Madres</legend>
+        <label class="campo" for="m-tipo"><span>Tipo de madre</span>
+          <select id="m-tipo" name="tipo">
+            <option value="IPE" selected>IPE laminado (verificação EC3 completa)</option>
+            <option value="Madremax">Madremax · Constálica, S350GD (pré-seleção)</option>
+            <option value="Omegamax">Omegamax · Constálica, S220GD (pré-seleção)</option>
+          </select></label>
+        <div class="campos">
+          <label class="campo" for="m-vao"><span>Entre pórticos</span>
+            <span class="entrada"><input id="m-vao" name="vao" type="number" inputmode="decimal" min="1" step="0.1" value="6"><em>m</em></span></label>
+          <label class="campo" for="m-espacamento"><span>Entre madres</span>
+            <span class="entrada"><input id="m-espacamento" name="espacamento" type="number" inputmode="decimal" min="0.3" step="0.05" value="1.5"><em>m</em></span></label>
+        </div>
+        <label class="campo" for="m-esquema"><span>Esquema estático</span>
+          <select id="m-esquema" name="esquema"></select></label>
+        <label class="campo" for="m-tirantes"><span>Travamento do banzo inferior</span>
+          <select id="m-tirantes" name="tirantes">
+            <option value="0">Só nos pórticos</option>
+            <option value="1" selected>Tirantes a meio vão</option>
+            <option value="2">Tirantes a terços do vão</option>
+          </select></label>
+        <label class="campo" for="m-posicao"><span>Posição na cobertura</span>
+          <select id="m-posicao" name="posicao"></select></label>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Cargas permanentes e sobrecarga</legend>
+        <label class="campo" for="m-revestimento"><span>Revestimento</span>
+          <select id="m-revestimento" name="revestimento"></select></label>
+        <div class="campos">
+          <label class="campo" for="m-grev"><span>Peso do revestimento</span>
+            <span class="entrada"><input id="m-grev" name="grev" type="number" inputmode="decimal" min="0" step="0.01"><em>kN/m²</em></span></label>
+          <label class="campo" for="m-ginst"><span>Instalações suspensas</span>
+            <span class="entrada"><input id="m-ginst" name="ginst" type="number" inputmode="decimal" min="0" step="0.01" value="0.10"><em>kN/m²</em></span></label>
+          <label class="campo" for="m-qk"><span>Sobrecarga (cat. H)</span>
+            <span class="entrada"><input id="m-qk" name="qk" type="number" inputmode="decimal" min="0" step="0.05" value="0.4"><em>kN/m²</em></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Local</legend>
+        <div class="campos">
+          <label class="campo" for="m-altitude"><span>Altitude</span>
+            <span class="entrada"><input id="m-altitude" name="altitude" type="number" inputmode="decimal" min="0" max="1500" step="10" value="150"><em>m</em></span></label>
+          <label class="campo" for="m-zona-neve"><span>Zona de neve</span>
+            <select id="m-zona-neve" name="zonaNeve">
+              <option value="Z1">Z1</option>
+              <option value="Z2" selected>Z2</option>
+              <option value="Z3">Z3</option>
+            </select></label>
+        </div>
+        <label class="campo" for="m-exposicao"><span>Exposição à neve</span>
+          <select id="m-exposicao" name="exposicao">
+            <option value="normal" selected>Normal (Ce = 1,0)</option>
+            <option value="exposta">Exposta ao vento (Ce = 0,8)</option>
+            <option value="abrigada">Abrigada (Ce = 1,2)</option>
+          </select></label>
+        <label class="campo" for="m-terreno"><span>Categoria de terreno</span>
+          <select id="m-terreno" name="terreno">
+            <option value="I">I · Zona costeira exposta aos ventos do mar</option>
+            <option value="II">II · Vegetação rasteira, obstáculos isolados</option>
+            <option value="III" selected>III · Zonas industriais, suburbanas, florestas</option>
+            <option value="IV">IV · Zonas urbanas, edifícios com mais de 15 m</option>
+          </select></label>
+        <label class="verificar" for="m-costa"><input id="m-costa" name="costa" type="checkbox"> A menos de 5 km da costa</label>
+        <label class="verificar" for="m-orografia"><input id="m-orografia" name="orografia" type="checkbox"> Vale ou estuário com exposição desfavorável</label>
+        <p class="nota" id="m-zona-vento"></p>
+      </fieldset>
+
+      <label class="campo" for="m-aco" id="m-campo-aco"><span>Classe do aço (IPE)</span>
+        <select id="m-aco" name="aco"></select></label>
+
+      <p class="nota nota-exemplo" id="m-nota-exemplo">Exemplo carregado: pavilhão de 20 × 48 m com painel sandwich.</p>
+    </form>
+
+    <div class="resultado" id="resultado-madres" aria-live="polite"></div>
+  </section>
+
   <section class="vista" id="vista-catalogo" aria-labelledby="tab-catalogo" hidden>
     <div class="catalogo-topo">
       <h1 class="titulo-painel">Catálogo de perfis</h1>
@@ -350,13 +518,13 @@ select {
     <div class="tabela-rolo">
       <table class="tabela" id="tabela-catalogo"></table>
     </div>
-    <p class="nota">Toque numa linha para abrir o perfil com todas as propriedades.</p>
+    <p class="nota" id="catalogo-ajuda">Toque numa linha para abrir o perfil com todas as propriedades.</p>
   </section>
 </main>
 
 <footer class="rodape">
-  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação e resistência de secções, γ<sub>M0</sub> = 1,0) · EN 10025-2/-3 (classes de aço).</p>
-  <p>Propriedades calculadas a partir das dimensões nominais, incluindo as concordâncias. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
+  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação, resistência e bambeamento, γ<sub>M0</sub> = γ<sub>M1</sub> = 1,0) · EN 10025-2/-3 e EN 10346 (classes de aço) · NP EN 1990, NP EN 1991-1-1, 1991-1-3 e 1991-1-4 + Anexos Nacionais (ações e combinações) · catálogos Constálica (Madremax, Omegamax).</p>
+  <p>Propriedades dos perfis laminados calculadas a partir das dimensões nominais, incluindo as concordâncias. Coeficientes de pressão do vento conferidos com a NP EN 1991-1-4; restantes valores dos Anexos Nacionais confirmados em fontes secundárias. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
 </footer>
 
 <script>
@@ -625,6 +793,501 @@ var Seccao = (function () {
 if (typeof module !== "undefined") module.exports = Seccao;
 </script>
 <script>
+/*
+ * Madres em ómega enformadas a frio — catálogos Constálica (Madremax® MKC002_0219, Omegamax MKC003_0118).
+ * Propriedades da SECÇÃO BRUTA, tal como publicadas: o catálogo não inclui efeitos de encurvadura
+ * local ou distorcional, pelo que não substituem as propriedades efetivas da EN 1993-1-3.
+ * Cada disposição: [H, h1, b1, b2, b3, t, y1 (mm), G (kg/m), A (mm²), Iy (cm⁴), Wy,min (cm³), iy (cm), Iz (cm⁴), Wz,min (cm³), iz (cm)]
+ * Disposições: simples (uma ómega), sobreposta (duas ómegas encaixadas, nas zonas de sobreposição),
+ * dupla (duas ómegas costas com costas).
+ */
+var OMEGAS = (function () {
+  function d(v) {
+    return { H: v[0], h1: v[1], b1: v[2], b2: v[3], b3: v[4], t: v[5], y1: v[6], G: v[7], A: v[8],
+      Iy: v[9], Wy: v[10], iy: v[11], Iz: v[12], Wz: v[13], iz: v[14] };
+  }
+  function seccao(nome, simples, sobreposta, dupla, extra) {
+    var s = { nome: nome, simples: d(simples) };
+    if (sobreposta) s.sobreposta = d(sobreposta);
+    if (dupla) s.dupla = d(dupla);
+    return Object.assign(s, extra || {});
+  }
+  var n = null;
+
+  return {
+    Madremax: {
+      fabricante: "Constálica", aco: "S350GD + Z275", norma: "EN 10346", fyb: 350, fu: 420,
+      descricao: "Madres em ómega Madremax®, aço S350GD + Z275",
+      seccoes: [
+        seccao("Ω50×1,5",
+          [54.0, 25.0, 36.5, 100.0, 130.8, 1.5, 28.7, 2.43, 307, 13.70, 4.80, 2.11, 37.63, 5.75, 3.50],
+          [55.5, n, 36.5, 100.0, 130.8, 3.0, 28.7, 4.86, 614, 27.40, 9.60, 2.11, 75.25, 11.50, 3.50],
+          [108.0, 25.0, 36.5, 100.0, 130.8, 1.5, 54.0, 4.86, 614, 64.61, 11.96, 3.34, 75.25, 11.50, 3.50],
+          { desenvolvimento: 207, furo: "Ø12×14", parafuso: "M10" }),
+        seccao("Ω100×1,5",
+          [100.0, 50.0, 33.3, 100.0, 130.3, 1.5, 52.6, 3.45, 441, 59.50, 11.30, 3.67, 47.55, 7.30, 3.28],
+          [101.5, n, 33.3, 100.0, 130.3, 3.0, 52.6, 6.90, 882, 119.00, 22.60, 3.67, 95.10, 14.60, 3.28],
+          [200.0, 50.0, 33.3, 100.0, 130.3, 1.5, 100.0, 6.90, 882, 307.64, 30.76, 5.91, 95.10, 14.60, 3.28],
+          { desenvolvimento: 295, furo: "Ø12×14", parafuso: "M10" }),
+        seccao("Ω150×1,5",
+          [145.5, 75.0, 45.2, 150.0, 183.0, 1.5, 72.0, 4.84, 625, 178.60, 24.80, 5.35, 157.17, 17.18, 5.01],
+          [147.0, n, 45.2, 150.0, 183.0, 3.0, 72.0, 9.68, 1250, 357.20, 49.60, 5.35, 314.33, 34.35, 5.01],
+          [291.0, 75.0, 45.2, 150.0, 183.0, 1.5, 145.5, 9.68, 1250, 957.52, 65.81, 8.75, 314.33, 34.35, 5.01],
+          { desenvolvimento: 414, furo: "Ø12×14", parafuso: "M10" }),
+        seccao("Ω200×1,5",
+          [188.6, 95.4, 59.6, 200.0, 241.2, 1.5, 94.9, 6.27, 791, 373.40, 39.40, 6.87, 345.09, 28.62, 6.61],
+          [190.1, n, 59.6, 200.0, 241.2, 3.0, 94.9, 12.54, 1582, 746.80, 78.80, 6.87, 690.17, 57.23, 6.61],
+          [377.2, 95.4, 59.6, 200.0, 241.2, 1.5, 188.6, 12.54, 1582, 2087.51, 110.68, 11.49, 690.17, 57.23, 6.61],
+          { desenvolvimento: 535, furo: "Ø12×14", parafuso: "M10" }),
+        seccao("Ω200×2,0",
+          [189.1, 95.7, 59.8, 200.0, 241.2, 2.0, 96.4, 8.36, 1054, 479.2, 49.7, 6.74, 448.2, 37.2, 6.52],
+          [191.1, n, 59.8, 200.0, 241.2, 4.0, 96.4, 16.72, 2109, 958.5, 99.4, 6.74, 896.4, 74.3, 6.52],
+          [378.2, 95.7, 59.8, 200.0, 241.2, 2.0, 188.1, 16.72, 2109, 2731.9, 145.2, 11.38, 896.4, 74.3, 6.52],
+          { desenvolvimento: 535, furo: "Ø12×14", parafuso: "M10" }),
+        seccao("Ω250×2,0",
+          [225.9, 125.6, 60.0, 250.0, 288.9, 2.0, 109.2, 9.73, 1239, 818.50, 71.30, 8.13, 827.79, 57.32, 8.17],
+          [227.9, n, 60.0, 250.0, 288.9, 4.0, 109.2, 19.46, 2478, 1637.00, 142.60, 8.13, 1655.58, 114.63, 8.17],
+          [451.8, 125.6, 60.0, 250.0, 288.9, 2.0, 225.9, 19.46, 2478, 4809.53, 212.91, 13.93, 1655.58, 114.63, 8.17],
+          { desenvolvimento: 620, furo: "Ø12×14", parafuso: "M10" }),
+        seccao("Ω250×2,5",
+          [226.4, 126.0, 60.1, 250.0, 288.9, 2.5, 112.8, 12.16, 1538, 965.5, 85.6, 7.92, 1018.0, 70.5, 8.14],
+          [228.9, n, 60.1, 250.0, 288.9, 5.0, 112.8, 24.32, 3076, 1930.9, 171.2, 7.92, 2035.9, 141.0, 8.14],
+          [452.8, 126.0, 60.1, 250.0, 288.9, 2.5, 225.1, 24.32, 3076, 5928.0, 263.3, 13.88, 2035.9, 141.0, 8.14],
+          { desenvolvimento: 620, furo: "Ø12×14", parafuso: "M10" }),
+        seccao("Ω300×2,5",
+          [279.2, 123.8, 62.0, 250.0, 311.3, 2.5, 139.3, 14.60, 1843, 1784.60, 128.10, 9.84, 1353.87, 86.98, 8.57],
+          [281.7, n, 62.0, 250.0, 311.3, 5.0, 139.3, 29.20, 3686, 3569.20, 256.20, 9.84, 2707.74, 173.96, 8.57],
+          [558.4, 123.8, 62.0, 250.0, 311.3, 2.5, 279.2, 29.20, 3686, 10378.09, 371.71, 16.78, 2707.74, 173.96, 8.57],
+          { desenvolvimento: 745, furo: "Ø14", parafuso: "M10/12" }),
+        seccao("Ω300×3,0",
+          [279.7, 124.0, 62.2, 250.0, 311.8, 3.0, 143.1, 17.52, 2224, 2086.5, 145.8, 9.69, 1587.0, 102.7, 8.45],
+          [282.4, n, 62.2, 250.0, 311.8, 6.0, 143.1, 35.04, 4448, 4172.9, 291.6, 9.69, 3174.0, 205.4, 8.45],
+          [558.8, 124.0, 62.2, 250.0, 311.8, 3.0, 277.9, 35.04, 4448, 12255.0, 441.0, 16.60, 3174.0, 205.4, 8.45],
+          { desenvolvimento: 745, furo: "Ø14", parafuso: "M10/12" })
+      ]
+    },
+    // O catálogo Omegamax não indica b1 nem h1 nem y1; só a disposição simples.
+    Omegamax: {
+      fabricante: "Constálica", aco: "S220GD + Z200", norma: "EN 10346", fyb: 220, fu: 300,
+      descricao: "Madres em ómega Omegamax, aço S220GD + Z200",
+      seccoes: [
+        seccao("Omega 50", [54, n, n, 100, 130.8, 1.5, n, 2.43, 307, 13.70, 4.80, 2.11, 37.63, 5.75, 3.50], n, n,
+          { desenvolvimento: 207, areaPintura: 0.42, furo: "12×14" }),
+        seccao("Omega 100", [100, n, n, 100, 130.3, 1.5, n, 3.45, 441, 59.5, 11.3, 3.67, 47.55, 7.30, 3.28], n, n,
+          { desenvolvimento: 295, areaPintura: 0.59, furo: "12×14" }),
+        seccao("Omega 150", [145.5, n, n, 150, 183, 1.5, n, 4.84, 625, 178.60, 24.80, 5.35, 157.17, 17.18, 5.01], n, n,
+          { desenvolvimento: 414, areaPintura: 0.83, furo: "12×14" }),
+        seccao("Omega 200", [188.6, n, n, 200, 241.2, 1.5, n, 6.27, 791, 373.40, 39.40, 6.87, 345.09, 28.62, 6.61], n, n,
+          { desenvolvimento: 535, areaPintura: 1.07, furo: "12×14" })
+      ]
+    }
+  };
+})();
+
+if (typeof module !== "undefined") module.exports = OMEGAS;
+</script>
+<script>
+/*
+ * Ações em coberturas de duas águas segundo os Eurocódigos com os Anexos Nacionais portugueses
+ * (Portugal continental): neve (NP EN 1991-1-3), vento (NP EN 1991-1-4) e combinações (NP EN 1990).
+ * Unidades: m, graus, kN/m², kN/m.
+ */
+var Acoes = (function () {
+  // ----- Neve — NP EN 1991-1-3 + Anexo Nacional: sk = Cz [1 + (H/500)²] -----
+  var NEVE_CZ = { Z1: 0.30, Z2: 0.20, Z3: 0.10 };
+  var NEVE_CE = { exposta: 0.8, normal: 1.0, abrigada: 1.2 }; // Quadro 5.1
+  var NEVE_CT = 1.0;
+
+  // Coeficiente de forma μ1 para coberturas de uma e duas águas (Quadro 5.2).
+  function mu1(alfa) {
+    if (alfa <= 30) return 0.8;
+    if (alfa < 60) return 0.8 * (60 - alfa) / 30;
+    return 0;
+  }
+
+  function neve(zona, altitude, exposicao, alfa) {
+    var sk = NEVE_CZ[zona] * (1 + Math.pow(altitude / 500, 2));
+    var mu = mu1(alfa), ce = NEVE_CE[exposicao];
+    return { sk: sk, mu1: mu, Ce: ce, Ct: NEVE_CT, s: mu * ce * NEVE_CT * sk };
+  }
+
+  // ----- Vento — NP EN 1991-1-4 + Anexo Nacional -----
+  // Zona A: generalidade do território; zona B: faixa costeira de 5 km ou altitude > 600 m.
+  var VENTO_VB0 = { A: 27, B: 30 };
+  // Quadro NA-4.1: categorias de terreno do Anexo Nacional.
+  var TERRENO = {
+    I: { z0: 0.005, zmin: 1 },
+    II: { z0: 0.05, zmin: 3 },
+    III: { z0: 0.3, zmin: 8 },
+    IV: { z0: 1.0, zmin: 15 }
+  };
+  var RHO = 1.25;   // kg/m³
+  var CPI = [0.2, -0.3]; // 7.2.9(6), aberturas desconhecidas
+
+  // Pressão dinâmica de pico qp(ze) com c0 = 1, kI = 1, cdir = cseason = 1.
+  function pressaoPico(zona, categoria, ze) {
+    var t = TERRENO[categoria];
+    var vb = VENTO_VB0[zona];
+    var z = Math.max(ze, t.zmin);
+    var kr = 0.19 * Math.pow(t.z0 / 0.05, 0.07);
+    var cr = kr * Math.log(z / t.z0);
+    var Iv = 1 / Math.log(z / t.z0);
+    var vm = cr * vb;
+    var qp = (1 + 7 * Iv) * 0.5 * RHO * vm * vm / 1000;
+    return { vb: vb, qb: 0.5 * RHO * vb * vb / 1000, z0: t.z0, zmin: t.zmin, z: z, kr: kr, cr: cr, Iv: Iv, vm: vm, qp: qp };
+  }
+
+  /*
+   * Coeficientes de pressão exterior [cpe,10, cpe,1].
+   * Duas águas: Quadro 7.4a (θ = 0°, com casos de sucção e de pressão) e 7.4b (θ = 90°).
+   * Para α < 5° aplica-se a cobertura em terraço de bordo reto (Quadro 7.2), sem zona J.
+   * Valores conferidos com o texto da NP EN 1991-1-4 em 22/10/2026.
+   */
+  var TERRACO = {
+    neg: { F: [-1.8, -2.5], G: [-1.2, -2.0], H: [-0.7, -1.2], I: [-0.2, -0.2] },
+    pos: { I: [0.2, 0.2] }
+  };
+  var ALFAS = [5, 15, 30, 45];
+  var DUAS_AGUAS_0 = {
+    neg: {
+      F: [[-1.7, -2.5], [-0.9, -2.0], [-0.5, -1.5], [-0.0, -0.0]],
+      G: [[-1.2, -2.0], [-0.8, -1.5], [-0.5, -1.5], [-0.0, -0.0]],
+      H: [[-0.6, -1.2], [-0.3, -0.3], [-0.2, -0.2], [-0.0, -0.0]],
+      I: [[-0.6, -0.6], [-0.4, -0.4], [-0.4, -0.4], [-0.2, -0.2]],
+      J: [[-0.6, -0.6], [-1.0, -1.5], [-0.5, -0.5], [-0.3, -0.3]]
+    },
+    pos: {
+      F: [[0.0, 0.0], [0.2, 0.2], [0.7, 0.7], [0.7, 0.7]],
+      G: [[0.0, 0.0], [0.2, 0.2], [0.7, 0.7], [0.7, 0.7]],
+      H: [[0.0, 0.0], [0.2, 0.2], [0.4, 0.4], [0.6, 0.6]],
+      I: [[-0.6, -0.6], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]],
+      J: [[0.2, 0.2], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+    }
+  };
+  var DUAS_AGUAS_90 = {
+    neg: {
+      F: [[-1.6, -2.2], [-1.3, -2.0], [-1.1, -1.5], [-1.1, -1.5]],
+      G: [[-1.3, -2.0], [-1.3, -2.0], [-1.4, -2.0], [-1.4, -2.0]],
+      H: [[-0.7, -1.2], [-0.6, -1.2], [-0.8, -1.2], [-0.9, -1.2]],
+      I: [[-0.6, -0.6], [-0.5, -0.5], [-0.5, -0.5], [-0.5, -0.5]]
+    }
+  };
+
+  // Zonas que uma madre atravessa, conforme a sua posição na cobertura.
+  var POSICOES = {
+    corrente: { nome: "Zona corrente", zonas: ["H", "I"] },
+    bordadura: { nome: "Bordadura, cantos e cumeeira", zonas: ["F", "G", "H", "I", "J"] }
+  };
+
+  // Interpolação linear em α entre linhas do quadro (só entre valores do mesmo sinal, como exige a norma).
+  function interpolarAlfa(linhas, alfa) {
+    if (alfa <= ALFAS[0]) return linhas[0];
+    for (var i = 1; i < ALFAS.length; i++) {
+      if (alfa <= ALFAS[i]) {
+        var t = (alfa - ALFAS[i - 1]) / (ALFAS[i] - ALFAS[i - 1]);
+        var a = linhas[i - 1], b = linhas[i];
+        // Valores de sinais opostos não se interpolam: usa-se o mais desfavorável dos dois.
+        return [0, 1].map(function (k) {
+          if (a[k] * b[k] < 0) return Math.abs(a[k]) > Math.abs(b[k]) ? a[k] : b[k];
+          return a[k] + t * (b[k] - a[k]);
+        });
+      }
+    }
+    return linhas[linhas.length - 1];
+  }
+
+  // 7.2.1: cpe para área carregada A (m²) entre 1 e 10 m².
+  function cpeArea(par, area) {
+    if (area >= 10) return par[0];
+    if (area <= 1) return par[1];
+    return par[1] - (par[1] - par[0]) * Math.log(area) / Math.LN10;
+  }
+
+  // Coeficientes extremos (sucção máxima e pressão máxima) nas zonas da posição escolhida.
+  function coeficientesCobertura(alfa, posicao, area) {
+    var zonas = POSICOES[posicao].zonas;
+    var succao = { cpe: 0, zona: null, direcao: null }, pressao = { cpe: -Infinity, zona: null, direcao: null };
+    function considerar(cpe, zona, direcao) {
+      if (cpe < succao.cpe) succao = { cpe: cpe, zona: zona, direcao: direcao };
+      if (cpe > pressao.cpe) pressao = { cpe: cpe, zona: zona, direcao: direcao };
+    }
+    if (alfa < 5) {
+      zonas.forEach(function (z) {
+        var zt = z === "J" ? "I" : z;
+        if (TERRACO.neg[zt]) considerar(cpeArea(TERRACO.neg[zt], area), zt, "0° e 90°");
+        if (TERRACO.pos[zt]) considerar(cpeArea(TERRACO.pos[zt], area), zt, "0° e 90°");
+      });
+    } else {
+      zonas.forEach(function (z) {
+        considerar(cpeArea(interpolarAlfa(DUAS_AGUAS_0.neg[z], alfa), area), z, "0°");
+        considerar(cpeArea(interpolarAlfa(DUAS_AGUAS_0.pos[z], alfa), area), z, "0°");
+        if (DUAS_AGUAS_90.neg[z]) considerar(cpeArea(interpolarAlfa(DUAS_AGUAS_90.neg[z], alfa), area), z, "90°");
+      });
+    }
+    return { succao: succao, pressao: pressao };
+  }
+
+  // Pressão resultante na cobertura (kN/m², positiva para baixo) nos dois casos extremos.
+  function vento(zona, categoria, ze, alfa, posicao, area) {
+    var pico = pressaoPico(zona, categoria, ze);
+    var c = coeficientesCobertura(alfa, posicao, area);
+    var cpiMax = Math.max.apply(null, CPI), cpiMin = Math.min.apply(null, CPI);
+    // Pressão positiva = a empurrar a cobertura para baixo: w = qp (cpe − cpi), com sinal invertido para "para baixo".
+    var wSuccao = pico.qp * (c.succao.cpe - cpiMax);    // negativo: levanta
+    var wPressao = pico.qp * (c.pressao.cpe - cpiMin);  // positivo: empurra para baixo
+    return {
+      pico: pico, area: area,
+      succao: { cpe: c.succao.cpe, cpi: cpiMax, zona: c.succao.zona, direcao: c.succao.direcao, w: wSuccao },
+      pressao: { cpe: c.pressao.cpe, cpi: cpiMin, zona: c.pressao.zona, direcao: c.pressao.direcao, w: Math.max(wPressao, 0) }
+    };
+  }
+
+  // ----- Cargas por metro de madre -----
+  /*
+   * c: { espacamento (m, medido na pendente), alfa, gRev, gInst (kN/m² de cobertura),
+   *      qH, s (kN/m² em projeção horizontal), wPressao, wSuccao (kN/m², normais à cobertura) }
+   * Devolve, para cada ação, as componentes normal (n, positiva para baixo) e tangencial (t) em kN/m.
+   */
+  function cargasMadre(c) {
+    var a = c.alfa * Math.PI / 180, cos = Math.cos(a), sen = Math.sin(a), e = c.espacamento;
+    function porSuperficie(v) { return { n: v * e * cos, t: v * e * sen }; }
+    function porProjecao(v) { return { n: v * e * cos * cos, t: v * e * cos * sen }; }
+    return {
+      G: porSuperficie(c.gRev + c.gInst),
+      Q: porProjecao(c.qH),
+      S: porProjecao(c.s),
+      Wp: { n: c.wPressao * e, t: 0 },
+      Ws: { n: c.wSuccao * e, t: 0 }
+    };
+  }
+
+  // ----- Combinações — NP EN 1990 (expressão 6.10, STR) -----
+  var GAMA = { Gsup: 1.35, Ginf: 1.0, Q: 1.5 };
+  var PSI0 = { H: 0, W: 0.6 };
+  function psi0Neve(altitude) { return altitude > 1000 ? 0.7 : 0.5; }
+
+  /*
+   * A sobrecarga de cobertura (categoria H) não se combina com a neve nem com o vento
+   * (NP EN 1991-1-1, 3.3.2(1)). Cada combinação: { id, nome, gamaG, qn, qt } (ELU)
+   * ou { id, nome, qn, qnVar } (ELS característica). gamaG multiplica o peso próprio da madre.
+   */
+  function combinacoes(k, altitude) {
+    var psiS = psi0Neve(altitude), psiW = PSI0.W;
+    function soma(gG, termos) {
+      var n = gG * k.G.n, t = gG * k.G.t;
+      termos.forEach(function (x) { n += x[0] * x[1].n; t += x[0] * x[1].t; });
+      return { n: n, t: t };
+    }
+    function variavel(termos) {
+      return termos.reduce(function (s, x) { return s + x[0] * x[1].n; }, 0);
+    }
+    var defs = [
+      { id: "Q", nome: "Sobrecarga de cobertura", gG: GAMA.Gsup, var: [[1, k.Q]] },
+      { id: "S", nome: "Neve (base) + vento em pressão", gG: GAMA.Gsup, var: [[1, k.S], [psiW, k.Wp]] },
+      { id: "Wp", nome: "Vento em pressão (base) + neve", gG: GAMA.Gsup, var: [[1, k.Wp], [psiS, k.S]] },
+      { id: "Ws", nome: "Vento em sucção (base)", gG: GAMA.Ginf, var: [[1, k.Ws]] }
+    ];
+    var elu = defs.map(function (d) {
+      var r = soma(d.gG, d.var.map(function (x) { return [GAMA.Q * x[0], x[1]]; }));
+      return { id: d.id, nome: d.nome, gamaG: d.gG, qn: r.n, qt: r.t };
+    });
+    var els = defs.map(function (d) {
+      var r = soma(1, d.var);
+      return { id: d.id, nome: d.nome, gamaG: 1, qn: r.n, qt: r.t, qnVar: variavel(d.var) };
+    });
+    return { elu: elu, els: els, psi0: { S: psiS, W: psiW, H: PSI0.H }, gama: GAMA };
+  }
+
+  return {
+    NEVE_CZ: NEVE_CZ, NEVE_CE: NEVE_CE, VENTO_VB0: VENTO_VB0, TERRENO: TERRENO, POSICOES: POSICOES,
+    mu1: mu1, neve: neve, pressaoPico: pressaoPico, coeficientesCobertura: coeficientesCobertura, vento: vento,
+    cargasMadre: cargasMadre, combinacoes: combinacoes,
+    _interpolarAlfa: interpolarAlfa, _cpeArea: cpeArea
+  };
+})();
+
+if (typeof module !== "undefined") module.exports = Acoes;
+</script>
+<script>
+/*
+ * Pré-dimensionamento de madres de cobertura em perfis I laminados (NP EN 1993-1-1).
+ * Depende de seccao.js. Unidades de entrada: m, kN/m; resultados em kN, kN·m, mm.
+ */
+var Madres = (function () {
+  var E = 210000;   // MPa
+  var G = 81000;    // MPa (EC3 3.2.6)
+
+  // Coeficientes de esforços e flecha para carga uniforme q em vãos iguais L.
+  // mVao, mApoio: q·L²; v: q·L; flecha: q·L⁴/(E·I).
+  var ESQUEMAS = {
+    simples: { nome: "Simplesmente apoiada", mVao: 1 / 8, mApoio: 0, v: 0.5, flecha: 5 / 384 },
+    continua2: { nome: "Contínua, 2 vãos", mVao: 9 / 128, mApoio: 1 / 8, v: 0.625, flecha: 1 / 185 },
+    continua3: { nome: "Contínua, 3 ou mais vãos", mVao: 0.080, mApoio: 0.107, v: 0.607, flecha: 0.0069 }
+  };
+
+  // Limites de flecha (L/x) para coberturas em geral.
+  var LIMITES_FLECHA = { max: 200, variaveis: 250 };
+
+  // Bambeamento pelo caso geral (EC3 6.3.2.2, Quadros 6.3 e 6.4). Não se usa o método de 6.3.2.3
+  // porque não foi possível confirmar a sua adoção no Anexo Nacional; o caso geral é mais conservador.
+  var LT_LAMBDA0 = 0.2;
+  var ALFA_LT = { a: 0.21, b: 0.34 };
+
+  // Momento crítico elástico (fórmula de 3 fatores com zg = 0, k = kw = 1), em kN·m.
+  function momentoCritico(p, props, Lcr, C1) {
+    var Iz = props.Iz * 1e4, It = props.It * 1e4, Iw = props.Iw * 1e6, L = Lcr * 1000;
+    var base = Math.PI * Math.PI * E * Iz / (L * L);
+    return C1 * base * Math.sqrt(Iw / Iz + L * L * G * It / (Math.PI * Math.PI * E * Iz)) / 1e6;
+  }
+
+  // Coeficiente de redução χLT (6.3.2.2) para perfis I laminados: curva a se h/b ≤ 2, b se h/b > 2.
+  function chiLT(p, Wy, fy, Mcr) {
+    var lambda = Math.sqrt(Wy * 1e3 * fy / (Mcr * 1e6));
+    var curva = p.h / p.b <= 2 ? "a" : "b";
+    if (lambda <= LT_LAMBDA0) return { lambda: lambda, curva: curva, chi: 1 };
+    var a = ALFA_LT[curva];
+    var phi = 0.5 * (1 + a * (lambda - LT_LAMBDA0) + lambda * lambda);
+    var chi = 1 / (phi + Math.sqrt(phi * phi - lambda * lambda));
+    return { lambda: lambda, curva: curva, chi: Math.min(chi, 1) };
+  }
+
+  /*
+   * Verifica um perfil para um conjunto de combinações.
+   * cfg: { L, esquema, tirantes (0, 1 ou 2), fy, combELU: [{id, qn, qt}], combELS: [{id, qn, qnVar}] }
+   * qn: componente normal à cobertura (positiva para baixo); qt: componente no plano da cobertura.
+   */
+  function verificar(p, props, cfg) {
+    var e = ESQUEMAS[cfg.esquema];
+    var L = cfg.L, nSeg = cfg.tirantes + 1, Lseg = L / nSeg;
+    var res = Seccao.resistencias(p, props, cfg.fy);
+    var classe = res.classe.flexao;
+    var Wy = classe <= 2 ? props.Wply : props.Wely;
+    var Wz = classe <= 2 ? props.Wplz : props.Welz;
+    var McyRd = Wy * 1e3 * cfg.fy / Seccao.GAMMA_M0 / 1e6;
+    var MczRd = Wz * 1e3 * cfg.fy / Seccao.GAMMA_M0 / 1e6;
+    var VRd = res.VplzRd;
+
+    // Banzo inferior comprimido entre travamentos (tirantes ou escoras) a cada Lseg.
+    var C1 = cfg.tirantes === 0 && cfg.esquema === "simples" ? 1.127 : 1.0;
+    var Mcr = momentoCritico(p, props, Lseg, C1);
+    var lt = chiLT(p, Wy, cfg.fy, Mcr);
+    var MbRd = lt.chi * Wy * 1e3 * cfg.fy / Seccao.GAMMA_M1 / 1e6;
+
+    var pior = { seccao: { u: 0 }, bambeamento: { u: 0 }, corte: { u: 0 }, flecha: { u: 0 }, flechaVar: { u: 0 } };
+    function registar(chave, u, extra) {
+      if (u > pior[chave].u) pior[chave] = Object.assign({ u: u }, extra);
+    }
+
+    cfg.combELU.forEach(function (c) {
+      var qn = c.qn + (c.gMadre || 0) * cfg.cosAlfa, qt = c.qt + (c.gMadre || 0) * cfg.senAlfa;
+      var mVao = e.mVao * qn * L * L;            // > 0: banzo superior comprimido no vão
+      var mApoio = e.mApoio * qn * L * L;        // > 0: banzo inferior comprimido sobre os apoios
+      var Mz = Math.abs(qt) * Lseg * Lseg / 8;
+      var V = e.v * Math.abs(qn) * L;
+
+      // Resistência da secção à flexão desviada (6.2.9, α = 2 e β = 1 para classes 1 e 2).
+      var My = Math.max(Math.abs(mVao), Math.abs(mApoio));
+      var uSec = classe <= 2 ? Math.pow(My / McyRd, 2) + Mz / MczRd : My / McyRd + Mz / MczRd;
+      registar("seccao", uSec, { comb: c.id, My: My, Mz: Mz });
+
+      // Bambeamento sempre que o banzo inferior (livre) fica comprimido.
+      var MyLT = Math.max(mVao < 0 ? -mVao : 0, mApoio > 0 ? mApoio : 0);
+      if (MyLT > 0) registar("bambeamento", MyLT / MbRd + Mz / MczRd, { comb: c.id, My: MyLT, Mz: Mz });
+
+      registar("corte", V / VRd, { comb: c.id, V: V });
+    });
+
+    var IyMm = props.Iy * 1e4;
+    cfg.combELS.forEach(function (c) {
+      var qn = c.qn + (c.gMadre || 0) * cfg.cosAlfa;
+      var d = e.flecha * Math.abs(qn) * Math.pow(L * 1000, 4) / (E * IyMm);         // q em kN/m = N/mm
+      var dVar = e.flecha * Math.abs(c.qnVar) * Math.pow(L * 1000, 4) / (E * IyMm);
+      registar("flecha", d / (L * 1000 / LIMITES_FLECHA.max), { comb: c.id, d: d, lim: L * 1000 / LIMITES_FLECHA.max });
+      registar("flechaVar", dVar / (L * 1000 / LIMITES_FLECHA.variaveis), { comb: c.id, d: dVar, lim: L * 1000 / LIMITES_FLECHA.variaveis });
+    });
+
+    var uMax = Math.max(pior.seccao.u, pior.bambeamento.u, pior.corte.u, pior.flecha.u, pior.flechaVar.u);
+    return {
+      perfil: p, props: props, classe: classe,
+      McyRd: McyRd, MczRd: MczRd, VRd: VRd, MbRd: MbRd, Mcr: Mcr, lt: lt, C1: C1, Lseg: Lseg,
+      verificacoes: pior, uMax: uMax, ok: uMax <= 1
+    };
+  }
+
+  // Ordena os perfis por peso e devolve a verificação de cada um e o mais leve que verifica.
+  function dimensionar(perfis, cfg) {
+    var lista = perfis.map(function (p) {
+      var props = Seccao.propriedades(p);
+      var gMadre = props.G * 9.81 / 1000; // kN/m
+      var c = Object.assign({}, cfg, {
+        combELU: cfg.combELU.map(function (x) { return Object.assign({}, x, { gMadre: gMadre * x.gamaG }); }),
+        combELS: cfg.combELS.map(function (x) { return Object.assign({}, x, { gMadre: gMadre }); })
+      });
+      return verificar(p, props, c);
+    }).sort(function (a, b) { return a.props.G - b.props.G; });
+    var escolhido = lista.filter(function (r) { return r.ok; })[0] || null;
+    return { lista: lista, escolhido: escolhido };
+  }
+
+  /*
+   * Madres em ómega enformadas a frio (catálogo com propriedades da secção bruta).
+   * Só se verifica o que essas propriedades permitem: tensões na secção bruta (limite superior da
+   * resistência, porque ignora a encurvadura local e distorcional) e flechas com Iy bruto.
+   * Nas madres contínuas, o momento sobre os apoios é resistido pela secção sobreposta.
+   */
+  function verificarOmega(sec, fam, cfg) {
+    var e = ESQUEMAS[cfg.esquema];
+    var L = cfg.L, Lseg = L / (cfg.tirantes + 1);
+    var sim = sec.simples, sob = cfg.esquema !== "simples" && sec.sobreposta ? sec.sobreposta : sim;
+    var fRd = fam.fyb / Seccao.GAMMA_M0;
+    var gMadre = sim.G * 9.81 / 1000;
+    var pior = {
+      seccao: { u: 0 }, flecha: { u: 0 }, flechaVar: { u: 0 },
+      bambeamento: { u: 0, naoAvaliado: true }, corte: { u: 0, naoAvaliado: true }
+    };
+    function registar(chave, u, extra) {
+      if (u > pior[chave].u) pior[chave] = Object.assign({ u: u }, extra);
+    }
+    cfg.combELU.forEach(function (c) {
+      var qn = c.qn + gMadre * c.gamaG * cfg.cosAlfa, qt = c.qt + gMadre * c.gamaG * cfg.senAlfa;
+      var mVao = Math.abs(e.mVao * qn * L * L), mApoio = Math.abs(e.mApoio * qn * L * L);
+      var Mz = Math.abs(qt) * Lseg * Lseg / 8;
+      var sVao = mVao * 1e3 / sim.Wy + Mz * 1e3 / sim.Wz;   // MPa (kN·m e cm³)
+      var sApoio = mApoio * 1e3 / sob.Wy;
+      var s = Math.max(sVao, sApoio);
+      registar("seccao", s / fRd, { comb: c.id, sigma: s, My: Math.max(mVao, mApoio), Mz: Mz, noApoio: sApoio > sVao });
+    });
+    var Iy = sim.Iy * 1e4;
+    cfg.combELS.forEach(function (c) {
+      var qn = c.qn + gMadre * cfg.cosAlfa;
+      var d = e.flecha * Math.abs(qn) * Math.pow(L * 1000, 4) / (E * Iy);
+      var dVar = e.flecha * Math.abs(c.qnVar) * Math.pow(L * 1000, 4) / (E * Iy);
+      registar("flecha", d / (L * 1000 / LIMITES_FLECHA.max), { comb: c.id, d: d, lim: L * 1000 / LIMITES_FLECHA.max });
+      registar("flechaVar", dVar / (L * 1000 / LIMITES_FLECHA.variaveis), { comb: c.id, d: dVar, lim: L * 1000 / LIMITES_FLECHA.variaveis });
+    });
+    var uMax = Math.max(pior.seccao.u, pior.flecha.u, pior.flechaVar.u);
+    return {
+      omega: true, perfil: { nome: sec.nome }, sec: sec, fam: fam, props: { G: sim.G },
+      fRd: fRd, Lseg: Lseg, sobreposta: sob !== sim, verificacoes: pior, uMax: uMax, ok: uMax <= 1
+    };
+  }
+
+  function dimensionarOmegas(fam, cfg) {
+    var lista = fam.seccoes.map(function (s) { return verificarOmega(s, fam, cfg); })
+      .sort(function (a, b) { return a.props.G - b.props.G; });
+    return { lista: lista, escolhido: lista.filter(function (r) { return r.ok; })[0] || null };
+  }
+
+  return {
+    ESQUEMAS: ESQUEMAS, LIMITES_FLECHA: LIMITES_FLECHA, E: E, G: G,
+    momentoCritico: momentoCritico, chiLT: chiLT, verificar: verificar, dimensionar: dimensionar,
+    verificarOmega: verificarOmega, dimensionarOmegas: dimensionarOmegas
+  };
+})();
+
+if (typeof module !== "undefined") module.exports = Madres;
+</script>
+<script>
 /* Interface: identificação de perfis por medidas e catálogo. Depende de perfis.js e seccao.js. */
 (function () {
   var FAMILIAS = Object.keys(PERFIS);
@@ -829,8 +1492,36 @@ if (typeof module !== "undefined") module.exports = Seccao;
   }
 
   // ----- Catálogo -----
+  // Tabela das madres em ómega: valores do catálogo do fabricante, sem cálculo.
+  function renderCatalogoOmega(fam) {
+    var f = OMEGAS[fam];
+    $("catalogo-desc").textContent = fam + " · " + f.descricao + " · " + f.fabricante +
+      " · propriedades da secção bruta, tal como no catálogo (sem efeitos de encurvadura)";
+    var colunas = [
+      ["Secção", ""], ["Disposição", ""], ["H", "mm"], ["b<sub>1</sub>", "mm"], ["b<sub>2</sub>", "mm"], ["b<sub>3</sub>", "mm"],
+      ["t", "mm"], ["G", "kg/m"], ["A", "cm²"], ["I<sub>y</sub>", "cm⁴"], ["W<sub>y,min</sub>", "cm³"], ["i<sub>y</sub>", "cm"],
+      ["I<sub>z</sub>", "cm⁴"], ["W<sub>z,min</sub>", "cm³"], ["i<sub>z</sub>", "cm"]
+    ];
+    var NOMES = { simples: "simples", sobreposta: "sobreposta", dupla: "dupla" };
+    var cab = "<thead><tr>" + colunas.map(function (c) {
+      return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>";
+    }).join("") + "</tr></thead>";
+    function valor(v, casas) { return v === null || v === undefined ? "—" : fmt(v, casas); }
+    var corpo = f.seccoes.map(function (sec) {
+      return ["simples", "sobreposta", "dupla"].filter(function (k) { return sec[k]; }).map(function (k, i) {
+        var x = sec[k];
+        return '<tr class="linha-omega"><td>' + (i === 0 ? sec.nome : "") + "</td><td>" + NOMES[k] + "</td><td>" +
+          [valor(x.H, 1), valor(x.b1, 1), valor(x.b2, 1), valor(x.b3, 1), valor(x.t, 1), valor(x.G, 2), valor(x.A / 100, 2),
+            valor(x.Iy, 2), valor(x.Wy, 2), valor(x.iy, 2), valor(x.Iz, 2), valor(x.Wz, 2), valor(x.iz, 2)].join("</td><td>") + "</td></tr>";
+      }).join("");
+    }).join("");
+    $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+  }
+
   function renderCatalogo() {
     var fam = estado.familiaCatalogo;
+    $("catalogo-ajuda").hidden = !!OMEGAS[fam];
+    if (OMEGAS[fam]) { renderCatalogoOmega(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
     var colunas = [
       ["Perfil", ""], ["h", "mm"], ["b", "mm"], ["t<sub>w</sub>", "mm"], ["t<sub>f</sub>", "mm"], ["r", "mm"],
@@ -868,7 +1559,7 @@ if (typeof module !== "undefined") module.exports = Seccao;
 
   // ----- Vistas -----
   function mostrar(vista) {
-    ["identificar", "catalogo"].forEach(function (v) {
+    ["identificar", "madres", "catalogo"].forEach(function (v) {
       $("vista-" + v).hidden = v !== vista;
       $("tab-" + v).setAttribute("aria-selected", String(v === vista));
     });
@@ -880,7 +1571,7 @@ if (typeof module !== "undefined") module.exports = Seccao;
     $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
       return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
     }).join("");
-    $("fichas-catalogo").innerHTML = FAMILIAS.map(function (f) {
+    $("fichas-catalogo").innerHTML = FAMILIAS.concat(Object.keys(OMEGAS)).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
     }).join("");
     $("in-aco").innerHTML = Object.keys(Seccao.ACOS).map(function (a) {
@@ -929,7 +1620,414 @@ if (typeof module !== "undefined") module.exports = Seccao;
 
     renderCatalogo();
     render();
-    if (location.hash === "#catalogo") mostrar("catalogo");
+    if (location.hash === "#catalogo" || location.hash === "#madres") mostrar(location.hash.slice(1));
+  }
+
+  iniciar();
+  window.SteelFrames = { fmt: fmt, mostrar: mostrar };
+})();
+</script>
+<script>
+/* Vista "Madres": formulário, esquiços e resultados. Depende de acoes.js, madres.js e app.js. */
+(function () {
+  var fmt = window.SteelFrames.fmt;
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("form-madres");
+  var saida = $("resultado-madres");
+  var IPE = Seccao.todos().filter(function (p) { return p.familia === "IPE"; });
+
+  // Pesos indicativos, arredondados por excesso a partir de fichas de fabricantes (O Feliz, Kingspan,
+  // Hiansa): painel sandwich 8,7 a 11,5 kg/m², chapa simples 4,5 a 7,4 kg/m², fibrocimento cerca de 14 kg/m².
+  var REVESTIMENTOS = [
+    { id: "sandwich40", nome: "Painel sandwich 40 mm", g: 0.10 },
+    { id: "sandwich60", nome: "Painel sandwich 60 mm", g: 0.11 },
+    { id: "sandwich80", nome: "Painel sandwich 80 mm", g: 0.12 },
+    { id: "chapa", nome: "Chapa perfilada simples", g: 0.08 },
+    { id: "chapadupla", nome: "Chapa dupla com isolamento", g: 0.15 },
+    { id: "fibrocimento", nome: "Placas de fibrocimento", g: 0.18 },
+    { id: "outro", nome: "Outro (introduzir o peso)", g: null }
+  ];
+
+  var estado = { escolhido: null };
+
+  // ----- Leitura e cálculo -----
+  function num(nome) {
+    var v = parseFloat(String(form.elements[nome].value).replace(",", "."));
+    return isFinite(v) ? v : NaN;
+  }
+
+  function ler() {
+    return {
+      largura: num("largura"), comprimento: num("comprimento"), beirado: num("beirado"), alfa: num("alfa"),
+      L: num("vao"), s: num("espacamento"),
+      tipo: form.elements.tipo.value,
+      esquema: form.elements.esquema.value, tirantes: parseInt(form.elements.tirantes.value, 10),
+      posicao: form.elements.posicao.value,
+      gRev: num("grev"), gInst: num("ginst"), qk: num("qk"),
+      altitude: num("altitude"), zonaNeve: form.elements.zonaNeve.value, exposicao: form.elements.exposicao.value,
+      terreno: form.elements.terreno.value, costa: form.elements.costa.checked, orografia: form.elements.orografia.checked,
+      aco: form.elements.aco.value
+    };
+  }
+
+  function validar(d) {
+    var erros = [];
+    function pos(v, nome) { if (!(v > 0)) erros.push(nome + " tem de ser um número positivo."); }
+    pos(d.largura, "O vão do pórtico"); pos(d.comprimento, "O comprimento"); pos(d.beirado, "A altura do beirado");
+    pos(d.L, "O espaçamento entre pórticos"); pos(d.s, "O espaçamento entre madres");
+    if (!(d.alfa >= 0 && d.alfa <= 30)) erros.push("A inclinação tem de estar entre 0° e 30°.");
+    if (!(d.gRev >= 0) || !(d.gInst >= 0) || !(d.qk >= 0)) erros.push("As cargas têm de ser números iguais ou superiores a zero.");
+    if (!(d.altitude >= 0 && d.altitude <= 1500)) erros.push("A altitude tem de estar entre 0 e 1500 m (limite da NP EN 1991-1-3).");
+    if (d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
+    return erros;
+  }
+
+  function calcular(d) {
+    var a = d.alfa * Math.PI / 180;
+    var hCumeeira = d.beirado + d.largura / 2 * Math.tan(a);
+    var zonaVento = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
+    var area = d.s * d.L;
+    var vento = Acoes.vento(zonaVento, d.terreno, hCumeeira, d.alfa, d.posicao, area);
+    var neve = Acoes.neve(d.zonaNeve, d.altitude, d.exposicao, d.alfa);
+    var cargas = Acoes.cargasMadre({
+      espacamento: d.s, alfa: d.alfa, gRev: d.gRev, gInst: d.gInst, qH: d.qk, s: neve.s,
+      wPressao: vento.pressao.w, wSuccao: vento.succao.w
+    });
+    var comb = Acoes.combinacoes(cargas, d.altitude);
+    var cfg = {
+      L: d.L, esquema: d.esquema, tirantes: d.tirantes,
+      cosAlfa: Math.cos(a), senAlfa: Math.sin(a), combELU: comb.elu, combELS: comb.els
+    };
+    var dim;
+    if (d.tipo === "IPE") {
+      // Todos os IPE têm tf ≤ 40 mm, por isso fy é o mesmo para toda a série (Quadro 3.1).
+      cfg.fy = Seccao.tensoes(d.aco, 40).fy;
+      dim = Madres.dimensionar(IPE, cfg);
+    } else {
+      dim = Madres.dimensionarOmegas(OMEGAS[d.tipo], cfg);
+    }
+    return { d: d, hCumeeira: hCumeeira, zonaVento: zonaVento, area: area, vento: vento, neve: neve, cargas: cargas, comb: comb, dim: dim };
+  }
+
+  // ----- Esquiços (unidades do SVG = metros) -----
+  function seta(x1, y1, x2, y2, cab, cls) {
+    var ang = Math.atan2(y2 - y1, x2 - x1), a1 = ang + Math.PI * 0.85, a2 = ang - Math.PI * 0.85;
+    return '<line class="' + cls + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>' +
+      '<polygon class="' + cls + '-cab" points="' + x2 + "," + y2 + " " + (x2 + cab * Math.cos(a1)) + "," + (y2 + cab * Math.sin(a1)) +
+      " " + (x2 + cab * Math.cos(a2)) + "," + (y2 + cab * Math.sin(a2)) + '"/>';
+  }
+  // O contorno da cor do fundo (paint-order) mantém o texto legível por cima das linhas.
+  function texto(x, y, fs, conteudo, extra) {
+    return '<text class="esq-txt" x="' + x + '" y="' + y + '" font-size="' + fs + '" stroke-width="' + fs * 0.28 + '"' + (extra || "") + ">" + conteudo + "</text>";
+  }
+
+  function posicoesMadres(pendente, s) {
+    var lista = [];
+    for (var x = 0; x < pendente - s * 0.25; x += s) lista.push(x);
+    lista.push(pendente);
+    return lista;
+  }
+
+  function esquicoPlanta(r) {
+    var d = r.d, C = d.comprimento, W = d.largura, a = d.alfa * Math.PI / 180;
+    var pendente = W / 2 / Math.cos(a);
+    var M = Math.max(C, W), fs = M * 0.036, pad = M * 0.1;
+    var nPorticos = Math.max(1, Math.round(C / d.L));
+    var passo = C / nPorticos;
+    var madres = posicoesMadres(pendente, d.s);
+    var g = "";
+    // Faixa de influência da madre analisada
+    var iMadre = d.posicao === "bordadura" ? 1 : Math.min(madres.length - 2, Math.max(1, Math.floor(madres.length / 2)));
+    var yMadre = madres[iMadre] * Math.cos(a);
+    var vao = d.posicao === "bordadura" ? 0 : Math.floor(nPorticos / 2);
+    var x0 = vao * passo, x1 = x0 + passo;
+    var meia = d.s * Math.cos(a) / 2;
+    g += '<rect class="esq-faixa" x="' + x0 + '" y="' + (yMadre - meia) + '" width="' + passo + '" height="' + (2 * meia) + '"/>';
+    // Madres nas duas águas
+    madres.forEach(function (m) {
+      [m * Math.cos(a), W - m * Math.cos(a)].forEach(function (y) {
+        g += '<line class="esq-madre" x1="0" y1="' + y + '" x2="' + C + '" y2="' + y + '"/>';
+      });
+    });
+    // Pórticos
+    for (var k = 0; k <= nPorticos; k++) {
+      g += '<line class="esq-portico" x1="' + k * passo + '" y1="0" x2="' + k * passo + '" y2="' + W + '"/>';
+    }
+    g += '<line class="esq-cumeeira" x1="0" y1="' + W / 2 + '" x2="' + C + '" y2="' + W / 2 + '"/>';
+    g += '<line class="esq-madre-ativa" x1="' + x0 + '" y1="' + yMadre + '" x2="' + x1 + '" y2="' + yMadre + '"/>';
+    // Cotas
+    var yc = W + pad * 0.45;
+    g += '<path class="esq-cota" d="M' + x0 + " " + (W + pad * 0.15) + "V" + (yc + pad * 0.1) + "M" + x1 + " " + (W + pad * 0.15) + "V" + (yc + pad * 0.1) + "M" + x0 + " " + yc + "H" + x1 + '"/>';
+    g += texto((x0 + x1) / 2, yc + fs * 1.15, fs, "L = " + fmt(passo, 2) + " m", ' text-anchor="middle"');
+    var xs = C + pad * 0.35;
+    g += '<path class="esq-cota" d="M' + C + " " + (yMadre - meia) + "H" + (xs + pad * 0.1) + "M" + C + " " + (yMadre + meia) + "H" + (xs + pad * 0.1) + "M" + xs + " " + (yMadre - meia) + "V" + (yMadre + meia) + '"/>';
+    g += texto(xs + fs * 0.4, yMadre + fs * 0.35, fs, "s", "");
+    g += texto(C / 2, W / 2 - fs * 0.4, fs * 0.85, "cumeeira", ' text-anchor="middle" fill-opacity="0.75"');
+    g += texto(-pad * 0.2, W / 2, fs * 0.85, "empena", ' text-anchor="middle" transform="rotate(-90 ' + (-pad * 0.2) + " " + W / 2 + ')"');
+    var vb = [-pad, -pad * 0.4, C + 2 * pad, W + pad * 1.6];
+    return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Planta da cobertura com a faixa de influência da madre">' + g + "</svg>";
+  }
+
+  function esquicoCorte(r) {
+    var d = r.d, W = d.largura, hb = d.beirado, hc = r.hCumeeira, a = d.alfa * Math.PI / 180;
+    var M = Math.max(W, hc), fs = M * 0.042, pad = M * 0.12;
+    function Y(y) { return hc - y; }
+    var g = "";
+    g += '<line class="esq-solo" x1="' + (-pad * 0.5) + '" y1="' + Y(0) + '" x2="' + (W + pad * 0.5) + '" y2="' + Y(0) + '"/>';
+    g += '<path class="esq-estrutura" d="M0 ' + Y(0) + "V" + Y(hb) + "L" + W / 2 + " " + Y(hc) + "L" + W + " " + Y(hb) + "V" + Y(0) + '"/>';
+    var pendente = W / 2 / Math.cos(a);
+    var madres = posicoesMadres(pendente, d.s);
+    var lado = Math.max(W * 0.012, 0.12);
+    var iMadre = d.posicao === "bordadura" ? 1 : Math.min(madres.length - 2, Math.max(1, Math.floor(madres.length / 2)));
+    madres.forEach(function (m, i) {
+      [[m * Math.cos(a), hb + m * Math.sin(a)], [W - m * Math.cos(a), hb + m * Math.sin(a)]].forEach(function (pt, lado2) {
+        var ativa = lado2 === 0 && i === iMadre;
+        g += '<rect class="' + (ativa ? "esq-madre-sec-ativa" : "esq-madre-sec") + '" x="' + (pt[0] - lado) + '" y="' + (Y(pt[1]) - 2 * lado) + '" width="' + 2 * lado + '" height="' + 2 * lado + '"/>';
+      });
+    });
+    // Cargas na madre analisada: gravidade para baixo, sucção para cima.
+    var mx = madres[iMadre] * Math.cos(a), my = hb + madres[iMadre] * Math.sin(a);
+    var comp = Math.max(hc * 0.22, fs * 2.5), cab = fs * 0.5;
+    g += seta(mx - fs * 0.6, Y(my) - comp - 2 * lado, mx - fs * 0.6, Y(my) - 2.4 * lado, cab, "esq-seta-g");
+    g += seta(mx + fs * 0.6, Y(my) - 2.4 * lado, mx + fs * 0.6, Y(my) - comp - 2 * lado, cab, "esq-seta-w");
+    g += texto(mx - fs * 1.0, Y(my) - comp - 2 * lado - fs * 0.3, fs * 0.85, "G, Q, S", ' text-anchor="end"');
+    g += texto(mx + fs * 1.0, Y(my) - comp - 2 * lado - fs * 0.3, fs * 0.85, "W sucção", "");
+    // Cotas
+    var yc = Y(0) + pad * 0.45;
+    g += '<path class="esq-cota" d="M0 ' + (Y(0) + pad * 0.1) + "V" + (yc + pad * 0.1) + "M" + W + " " + (Y(0) + pad * 0.1) + "V" + (yc + pad * 0.1) + "M0 " + yc + "H" + W + '"/>';
+    g += texto(W / 2, yc + fs * 1.15, fs, fmt(W, 1) + " m", ' text-anchor="middle"');
+    var xc = -pad * 0.4;
+    g += '<path class="esq-cota" d="M' + (-pad * 0.1) + " " + Y(0) + "H" + (xc - pad * 0.1) + "M" + (-pad * 0.1) + " " + Y(hb) + "H" + (xc - pad * 0.1) + "M" + xc + " " + Y(0) + "V" + Y(hb) + '"/>';
+    g += texto(xc - fs * 0.35, Y(hb / 2), fs, fmt(hb, 1) + " m", ' text-anchor="middle" transform="rotate(-90 ' + (xc - fs * 0.35) + " " + Y(hb / 2) + ')"');
+    var xh = W + pad * 0.45;
+    g += '<path class="esq-cota" d="M' + (W / 2 + pad * 0.1) + " " + Y(hc) + "H" + (xh + pad * 0.1) + "M" + (W + pad * 0.1) + " " + Y(0) + "H" + (xh + pad * 0.1) + "M" + xh + " " + Y(0) + "V" + Y(hc) + '"/>';
+    g += texto(xh + fs * 1.0, Y(hc / 2), fs, fmt(hc, 2) + " m", ' text-anchor="middle" transform="rotate(-90 ' + (xh + fs * 1.0) + " " + Y(hc / 2) + ')"');
+    g += texto(W * 0.8, Y(hb + (W * 0.2) * Math.tan(a)) + fs * 1.6, fs * 0.85, "α = " + fmt(d.alfa, 1) + "°", ' text-anchor="middle"');
+    var topo = comp + 2 * lado + fs * 1.6;
+    var vb = [-pad, -topo, W + pad * 2.1, hc + topo + pad];
+    return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Corte transversal do pavilhão com as cargas na madre">' + g + "</svg>";
+  }
+
+  // ----- Apresentação -----
+  var NOMES_VERIF = {
+    seccao: { nome: "Flexão da secção", det: function (v) { return "M<sub>y,Ed</sub> = " + fmt(v.My, 2) + " · M<sub>z,Ed</sub> = " + fmt(v.Mz, 2) + " kN·m"; } },
+    bambeamento: { nome: "Bambeamento do banzo inferior", det: function (v) { return "M<sub>y,Ed</sub> = " + fmt(v.My, 2) + " kN·m com o banzo inferior comprimido"; } },
+    corte: { nome: "Esforço transverso", det: function (v) { return "V<sub>Ed</sub> = " + fmt(v.V, 2) + " kN"; } },
+    flecha: { nome: "Flecha total", det: function (v) { return fmt(v.d, 1) + " mm ≤ L/" + Madres.LIMITES_FLECHA.max + " = " + fmt(v.lim, 1) + " mm"; } },
+    flechaVar: { nome: "Flecha das ações variáveis", det: function (v) { return fmt(v.d, 1) + " mm ≤ L/" + Madres.LIMITES_FLECHA.variaveis + " = " + fmt(v.lim, 1) + " mm"; } }
+  };
+
+  var NOMES_OMEGA = {
+    seccao: { nome: "Tensões na secção bruta", det: function (v) {
+      return "σ = " + fmt(v.sigma, 0) + " MPa " + (v.noApoio ? "sobre o apoio (secção sobreposta)" : "no vão") + " · limite f<sub>yb</sub>/γ<sub>M0</sub>";
+    } }
+  };
+
+  function nomeComb(r, id) {
+    var c = r.comb.elu.filter(function (x) { return x.id === id; })[0];
+    return c ? c.nome.toLowerCase() : "";
+  }
+
+  function barra(u) {
+    var cls = u > 1 ? "mau" : u > 0.9 ? "aviso" : "ok";
+    return '<span class="util util-' + cls + '"><span style="width:' + Math.min(100, u * 100).toFixed(0) + '%"></span></span>';
+  }
+
+  function linhaVerif(r, k, x) {
+    var nome = (x.naoAvaliado || !r.d || r.d.tipo === "IPE") ? NOMES_VERIF[k].nome : (NOMES_OMEGA[k] || NOMES_VERIF[k]).nome;
+    if (x.naoAvaliado) {
+      return '<li class="verif verif-nao"><span class="verif-nome">' + nome + '</span><span class="verif-u">—</span>' + barra(0) +
+        '<span class="verif-det">Não avaliado: exige as propriedades efetivas da secção (EN 1993-1-3), que o catálogo não dá.</span></li>';
+    }
+    if (k === "bambeamento" && !x.comb) {
+      return '<li class="verif"><span class="verif-nome">' + nome + '</span><span class="verif-u">—</span>' + barra(0) +
+        '<span class="verif-det">O banzo inferior não fica comprimido em nenhuma combinação.</span></li>';
+    }
+    var det = (r.d.tipo !== "IPE" && NOMES_OMEGA[k] ? NOMES_OMEGA[k] : NOMES_VERIF[k]).det(x);
+    return '<li class="verif"><span class="verif-nome">' + nome + '</span><span class="verif-u">' + fmt(x.u * 100, 0) + " %</span>" + barra(x.u) +
+      '<span class="verif-det">' + det + " · " + nomeComb(r, x.comb) + "</span></li>";
+  }
+
+  function cartaoResultado(r, v) {
+    var d = r.d, omega = d.tipo !== "IPE";
+    if (!v) {
+      var maior = omega ? OMEGAS[d.tipo].seccoes[OMEGAS[d.tipo].seccoes.length - 1].nome : "IPE 600";
+      return '<section class="cartao"><h2>Resultado</h2><p class="alerta">Nenhuma secção até à ' + maior + " verifica estas condições. Reduza o espaçamento entre pórticos ou entre madres" + (omega ? "." : ", ou acrescente tirantes.") + "</p></section>";
+    }
+    var linhas = Object.keys(NOMES_VERIF).map(function (k) { return linhaVerif(r, k, v.verificacoes[k]); }).join("");
+    var condiciona = Object.keys(v.verificacoes).reduce(function (a, b) { return v.verificacoes[a].u >= v.verificacoes[b].u ? a : b; });
+    var nomeCond = (omega && NOMES_OMEGA[condiciona] ? NOMES_OMEGA[condiciona] : NOMES_VERIF[condiciona]).nome.toLowerCase();
+    var kgm2 = v.props.G / d.s;
+    var selo = !v.ok
+      ? '<span class="selo selo-mau">Não verifica · ' + fmt(v.uMax * 100, 0) + " %</span>"
+      : omega ? '<span class="selo selo-aviso">Pré-seleção · ' + fmt(v.uMax * 100, 0) + " %</span>"
+      : '<span class="selo selo-ok">Verifica · ' + fmt(v.uMax * 100, 0) + " %</span>";
+    var manual = estado.escolhido && v !== r.dim.escolhido;
+    var sub = omega
+      ? OMEGAS[d.tipo].fabricante + " · " + OMEGAS[d.tipo].aco + " · " + Madres.ESQUEMAS[d.esquema].nome.toLowerCase() + (v.sobreposta ? ", sobreposta nos apoios" : "")
+      : d.aco + " · " + Madres.ESQUEMAS[d.esquema].nome.toLowerCase();
+    var notaFinal = omega
+      ? '<p class="alerta">Pré-seleção com as propriedades da <b>secção bruta</b> do catálogo ' + OMEGAS[d.tipo].fabricante + ". As secções em ómega de paredes finas são de classe 4: a resistência real é inferior à da secção bruta e depende da encurvadura local e distorcional, que o catálogo não considera. Confirme a madre com as tabelas de carga ou as propriedades efetivas do fabricante (setor técnico da " + OMEGAS[d.tipo].fabricante + ").</p>"
+      : '<p class="nota">Bambeamento: L<sub>cr</sub> = ' + fmt(v.Lseg, 2) + " m entre travamentos, C<sub>1</sub> = " + fmt(v.C1, 3) +
+        ", M<sub>cr</sub> = " + fmt(v.Mcr, 1) + " kN·m, λ̄<sub>LT</sub> = " + fmt(v.lt.lambda, 2) + ", curva " + v.lt.curva +
+        ", χ<sub>LT</sub> = " + fmt(v.lt.chi, 3) + ", M<sub>b,Rd</sub> = " + fmt(v.MbRd, 1) + " kN·m.</p>";
+    return '<section class="cartao">' +
+      '<div class="cabeca-resultado"><h2 class="nome-perfil">' + v.perfil.nome + "</h2>" +
+        '<span class="familia-perfil">' + sub + "</span>" + selo + "</div>" +
+      (manual ? '<p class="alerta">Secção escolhida à mão. A mais leve que verifica é a ' + (r.dim.escolhido ? r.dim.escolhido.perfil.nome : "—") + ".</p>" : "") +
+      '<div class="numeros">' +
+        '<div><span class="valor-grande">' + fmt(v.props.G, 2) + " <small>kg/m</small></span><p>peso da madre</p></div>" +
+        '<div><span class="valor-grande">' + fmt(kgm2, 1) + " <small>kg/m²</small></span><p>de cobertura, só em madres</p></div>" +
+        '<div><span class="valor-grande">' + fmt(v.uMax * 100, 0) + " <small>%</small></span><p>condiciona: " + nomeCond + "</p></div>" +
+      "</div>" +
+      '<ul class="verifs">' + linhas + "</ul>" + notaFinal +
+      "</section>";
+  }
+
+  function cartaoEsquicos(r) {
+    return '<section class="cartao"><h2>Esquiços</h2><div class="esquicos">' +
+      '<figure class="esquico">' + esquicoPlanta(r) + "<figcaption>Planta da cobertura: a faixa a cor é a área que descarrega na madre analisada (L × s).</figcaption></figure>" +
+      '<figure class="esquico">' + esquicoCorte(r) + "<figcaption>Corte transversal: a gravidade comprime o banzo superior, travado pelo revestimento; a sucção do vento comprime o banzo inferior, livre entre tirantes.</figcaption></figure>" +
+      "</div></section>";
+  }
+
+  function cartaoAcoes(r) {
+    var d = r.d, n = r.neve, w = r.vento, p = w.pico, k = r.cargas;
+    function linha(nome, simbolo, x) {
+      return "<tr><th scope=\"row\">" + nome + "</th><td>" + simbolo + "</td><td>" + fmt(x.n, 3) + "</td><td>" + fmt(x.t, 3) + "</td></tr>";
+    }
+    var zonaNota = r.zonaVento === "B"
+      ? (d.costa ? "faixa costeira de 5 km" : d.orografia ? "exposição orográfica desfavorável" : "altitude superior a 600 m")
+      : "generalidade do território";
+    return '<section class="cartao"><h2>Ações</h2><div class="acoes">' +
+      '<div class="acao"><h3>Permanentes</h3><p>Revestimento ' + fmt(d.gRev, 2) + " + instalações " + fmt(d.gInst, 2) +
+        " = <b>" + fmt(d.gRev + d.gInst, 2) + " kN/m²</b> de cobertura, mais o peso próprio da madre.</p></div>" +
+      '<div class="acao"><h3>Sobrecarga (categoria H)</h3><p>q<sub>k</sub> = <b>' + fmt(d.qk, 2) + " kN/m²</b> em projeção horizontal. Não se combina com a neve nem com o vento.</p></div>" +
+      '<div class="acao"><h3>Neve · zona ' + d.zonaNeve + "</h3><p>s<sub>k</sub> = C<sub>z</sub> [1 + (H/500)²] = " + fmt(Acoes.NEVE_CZ[d.zonaNeve], 2) +
+        " × [1 + (" + fmt(d.altitude, 0) + "/500)²] = " + fmt(n.sk, 3) + " kN/m²<br>s = μ<sub>1</sub> C<sub>e</sub> C<sub>t</sub> s<sub>k</sub> = " +
+        fmt(n.mu1, 2) + " × " + fmt(n.Ce, 1) + " × " + fmt(n.Ct, 1) + " × " + fmt(n.sk, 3) + " = <b>" + fmt(n.s, 3) + " kN/m²</b> em projeção horizontal</p></div>" +
+      '<div class="acao"><h3>Vento · zona ' + r.zonaVento + "</h3><p>" + zonaNota + ": v<sub>b</sub> = " + p.vb + " m/s · terreno " + d.terreno +
+        " · z<sub>e</sub> = " + fmt(r.hCumeeira, 2) + " m<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
+        " · q<sub>p</sub> = <b>" + fmt(p.qp, 3) + " kN/m²</b><br>Área carregada A = s × L = " + fmt(r.area, 1) + " m²<br>" +
+        "Sucção: c<sub>pe</sub> = " + fmt(w.succao.cpe, 2) + " (zona " + w.succao.zona + ", θ = " + w.succao.direcao + "), c<sub>pi</sub> = +" + fmt(w.succao.cpi, 1) +
+        " → <b>" + fmt(w.succao.w, 3) + " kN/m²</b><br>" +
+        "Pressão: c<sub>pe</sub> = " + fmt(w.pressao.cpe, 2) + " (zona " + w.pressao.zona + "), c<sub>pi</sub> = " + fmt(w.pressao.cpi, 1) +
+        " → <b>" + fmt(w.pressao.w, 3) + " kN/m²</b></p></div>" +
+      "</div>" +
+      (d.zonaNeve === "Z1" ? '<p class="alerta">Em alguns concelhos da zona Z1 (Aguiar da Beira, Fornos de Algodres, Mangualde, Nelas, Penalva do Castelo, Sátão e Viseu), o Anexo Nacional exige também a situação acidental de queda excecional de neve. Essa situação não está incluída aqui.</p>' : "") +
+      '<h3 class="sub">Por metro de madre (espaçamento s = ' + fmt(d.s, 2) + ' m)</h3>' +
+      '<div class="tabela-rolo tabela-baixa"><table class="tabela tabela-simples"><thead><tr><th scope="col">Ação</th><th scope="col"></th><th scope="col">Normal<span class="un">kN/m</span></th><th scope="col">No plano<span class="un">kN/m</span></th></tr></thead><tbody>' +
+        linha("Permanentes (sem a madre)", "G", k.G) + linha("Sobrecarga", "Q", k.Q) + linha("Neve", "S", k.S) +
+        linha("Vento em pressão", "W<sub>p</sub>", k.Wp) + linha("Vento em sucção", "W<sub>s</sub>", k.Ws) +
+      "</tbody></table></div>" +
+      '<p class="nota">Componente normal positiva para baixo. A componente no plano da cobertura é resistida pela madre em flexão em torno do eixo fraco, entre tirantes.</p>' +
+      "</section>";
+  }
+
+  function cartaoCombinacoes(r, v) {
+    if (!v) return "";
+    var e = Madres.ESQUEMAS[r.d.esquema], L = r.d.L, a = r.d.alfa * Math.PI / 180;
+    var gM = v.props.G * 9.81 / 1000;
+    var psi = r.comb.psi0;
+    var formulas = {
+      Q: "1,35 G + 1,5 Q",
+      S: "1,35 G + 1,5 S + 1,5 × " + fmt(psi.W, 1) + " W<sub>p</sub>",
+      Wp: "1,35 G + 1,5 W<sub>p</sub> + 1,5 × " + fmt(psi.S, 1) + " S",
+      Ws: "1,0 G + 1,5 W<sub>s</sub>"
+    };
+    var linhas = r.comb.elu.map(function (c) {
+      var qn = c.qn + gM * c.gamaG * Math.cos(a), qt = c.qt + gM * c.gamaG * Math.sin(a);
+      return "<tr><th scope=\"row\">" + formulas[c.id] + "</th><td>" + fmt(qn, 3) + "</td><td>" + fmt(qt, 3) + "</td><td>" +
+        fmt(e.mVao * qn * L * L, 2) + "</td><td>" + (e.mApoio ? fmt(-e.mApoio * qn * L * L, 2) : "—") + "</td><td>" + fmt(e.v * Math.abs(qn) * L, 2) + "</td></tr>";
+    }).join("");
+    return '<section class="cartao"><h2>Combinações de ações · ' + v.perfil.nome + "</h2>" +
+      '<div class="tabela-rolo tabela-baixa"><table class="tabela tabela-simples"><thead><tr><th scope="col">ELU (NP EN 1990, 6.10)</th>' +
+      '<th scope="col">q<sub>n,Ed</sub><span class="un">kN/m</span></th><th scope="col">q<sub>t,Ed</sub><span class="un">kN/m</span></th>' +
+      '<th scope="col">M<sub>vão</sub><span class="un">kN·m</span></th><th scope="col">M<sub>apoio</sub><span class="un">kN·m</span></th><th scope="col">V<sub>Ed</sub><span class="un">kN</span></th></tr></thead><tbody>' +
+      linhas + "</tbody></table></div>" +
+      '<p class="nota">Inclui o peso próprio do ' + v.perfil.nome + " (" + fmt(gM, 3) + " kN/m). Momento positivo comprime o banzo superior. Para a flecha usam-se as mesmas combinações com coeficientes 1,0 (combinação característica).</p>" +
+      "</section>";
+  }
+
+  function cartaoComparacao(r, v) {
+    var itens = r.dim.lista.slice(0, 10).map(function (x) {
+      var cond = Object.keys(x.verificacoes).reduce(function (a, b) { return x.verificacoes[a].u >= x.verificacoes[b].u ? a : b; });
+      return '<li><button type="button" class="candidato candidato-madre" data-nome="' + x.perfil.nome + '" aria-current="' + (x === v) + '">' +
+        '<span class="candidato-nome">' + x.perfil.nome + "</span>" +
+        '<span class="candidato-dims">' + fmt(x.props.G, 2) + " kg/m · " + (x.ok ? (x.omega ? "pré-seleção" : "verifica") : "não verifica") + " · " + ((x.omega && NOMES_OMEGA[cond]) ? NOMES_OMEGA[cond] : NOMES_VERIF[cond]).nome.toLowerCase() + "</span>" +
+        '<span class="candidato-u">' + fmt(x.uMax * 100, 0) + " %</span>" + barra(x.uMax) + "</button></li>";
+    }).join("");
+    var titulo = r.d.tipo === "IPE" ? "Perfis IPE comparados" : "Secções " + r.d.tipo + " comparadas";
+    return '<section class="cartao"><h2>' + titulo + '</h2><ul class="candidatos">' + itens + "</ul></section>";
+  }
+
+  function cartaoHipoteses(r) {
+    var d = r.d;
+    return '<section class="cartao"><h2>Hipóteses</h2><ul class="hipoteses">' +
+      (d.tipo === "IPE"
+        ? "<li>Madres de perfis IPE laminados, com o eixo forte normal à cobertura e o revestimento fixado ao banzo superior, que fica travado lateralmente.</li>" +
+          "<li>Bambeamento do banzo inferior verificado pelo caso geral da EC3 (6.3.2.2) entre travamentos (tirantes ou escoras), com z<sub>g</sub> = 0 e sem contar com a restrição do revestimento. São hipóteses do lado da segurança.</li>"
+        : "<li>Madres " + d.tipo + " (" + OMEGAS[d.tipo].fabricante + ", " + OMEGAS[d.tipo].aco + ", f<sub>yb</sub> = " + OMEGAS[d.tipo].fyb + " MPa) com as propriedades da secção bruta do catálogo. Nas madres contínuas, a secção sobreposta resiste ao momento sobre os apoios" + (OMEGAS[d.tipo].seccoes[0].sobreposta ? "" : " (sem dados de sobreposição neste catálogo, usa-se a secção simples)") + ".</li>" +
+          "<li>Flechas calculadas com o I<sub>y</sub> bruto da secção simples. A componente no plano da cobertura é resistida por flexão em torno de z (W<sub>z,min</sub>) entre travamentos.</li>" +
+          "<li>Não avaliados: encurvadura local e distorcional, bambeamento do banzo inferior sob sucção (EN 1993-1-3, 10.1), esforço transverso, esmagamento da alma nos apoios e ligações aparafusadas.</li>") +
+      "<li>Vigas contínuas: coeficientes para carga uniforme em todos os vãos, sem alternância de sobrecargas.</li>" +
+      "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
+        ", interpolados para A = s × L. c<sub>pi</sub> = +0,2 ou −0,3 (aberturas desconhecidas). c<sub>s</sub>c<sub>d</sub> = 1, c<sub>0</sub> = 1.</li>" +
+      "<li>Neve sem acumulações junto a platibandas, desníveis ou edifícios contíguos.</li>" +
+      (r.hCumeeira > 15 ? "<li><b>A altura do pavilhão (" + fmt(r.hCumeeira, 1) + " m) é superior a 15 m:</b> o valor c<sub>s</sub>c<sub>d</sub> = 1 deixa de estar garantido pela NP EN 1991-1-4, 6.2(1)a e tem de ser justificado.</li>" : "") +
+      "<li>Os coeficientes de pressão exterior foram conferidos com os Quadros 7.2, 7.4a e 7.4b da NP EN 1991-1-4. Os restantes valores dos Anexos Nacionais foram confirmados em fontes secundárias.</li>" +
+      "</ul></section>";
+  }
+
+  function render() {
+    var d = ler();
+    var erros = validar(d);
+    var zona = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
+    $("m-zona-vento").innerHTML = "Zona de vento <b>" + zona + "</b> (v<sub>b,0</sub> = " + Acoes.VENTO_VB0[zona] + " m/s). A zona B aplica-se a menos de 5 km da costa ou acima de 600 m de altitude.";
+    if (erros.length) {
+      saida.innerHTML = '<section class="cartao"><h2>Dados por corrigir</h2><ul class="hipoteses">' + erros.map(function (e) { return "<li>" + e + "</li>"; }).join("") + "</ul></section>";
+      return;
+    }
+    $("m-campo-aco").hidden = d.tipo !== "IPE";
+    var r = calcular(d);
+    var v = estado.escolhido && r.dim.lista.filter(function (x) { return x.perfil.nome === estado.escolhido; })[0] || r.dim.escolhido;
+    saida.innerHTML = cartaoResultado(r, v) + cartaoEsquicos(r) + cartaoAcoes(r) + cartaoCombinacoes(r, v) + cartaoComparacao(r, v) + cartaoHipoteses(r);
+  }
+
+  function iniciar() {
+    $("m-esquema").innerHTML = Object.keys(Madres.ESQUEMAS).map(function (k) {
+      return '<option value="' + k + '">' + Madres.ESQUEMAS[k].nome + "</option>";
+    }).join("");
+    $("m-posicao").innerHTML = Object.keys(Acoes.POSICOES).map(function (k) {
+      return '<option value="' + k + '">' + Acoes.POSICOES[k].nome + " (zonas " + Acoes.POSICOES[k].zonas.join(", ") + ")</option>";
+    }).join("");
+    $("m-revestimento").innerHTML = REVESTIMENTOS.map(function (x) {
+      return '<option value="' + x.id + '">' + x.nome + (x.g !== null ? " · " + fmt(x.g, 2) + " kN/m²" : "") + "</option>";
+    }).join("");
+    $("m-aco").innerHTML = ["S235", "S275", "S355"].map(function (a) {
+      return '<option value="' + a + '"' + (a === "S275" ? " selected" : "") + ">" + a + "</option>";
+    }).join("");
+    form.elements.grev.value = REVESTIMENTOS[0].g;
+
+    form.addEventListener("submit", function (e) { e.preventDefault(); });
+    form.addEventListener("input", function (e) {
+      if (e.target.name === "revestimento") {
+        var rev = REVESTIMENTOS.filter(function (x) { return x.id === e.target.value; })[0];
+        if (rev.g !== null) form.elements.grev.value = rev.g;
+        else form.elements.grev.focus();
+      }
+      if (e.target.name === "grev") form.elements.revestimento.value = "outro";
+      estado.escolhido = null;
+      $("m-nota-exemplo").hidden = true;
+      render();
+    });
+    saida.addEventListener("click", function (e) {
+      var b = e.target.closest(".candidato-madre");
+      if (!b) return;
+      estado.escolhido = b.getAttribute("data-nome");
+      render();
+    });
+    render();
   }
 
   iniciar();

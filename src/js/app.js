@@ -202,8 +202,36 @@
   }
 
   // ----- Catálogo -----
+  // Tabela das madres em ómega: valores do catálogo do fabricante, sem cálculo.
+  function renderCatalogoOmega(fam) {
+    var f = OMEGAS[fam];
+    $("catalogo-desc").textContent = fam + " · " + f.descricao + " · " + f.fabricante +
+      " · propriedades da secção bruta, tal como no catálogo (sem efeitos de encurvadura)";
+    var colunas = [
+      ["Secção", ""], ["Disposição", ""], ["H", "mm"], ["b<sub>1</sub>", "mm"], ["b<sub>2</sub>", "mm"], ["b<sub>3</sub>", "mm"],
+      ["t", "mm"], ["G", "kg/m"], ["A", "cm²"], ["I<sub>y</sub>", "cm⁴"], ["W<sub>y,min</sub>", "cm³"], ["i<sub>y</sub>", "cm"],
+      ["I<sub>z</sub>", "cm⁴"], ["W<sub>z,min</sub>", "cm³"], ["i<sub>z</sub>", "cm"]
+    ];
+    var NOMES = { simples: "simples", sobreposta: "sobreposta", dupla: "dupla" };
+    var cab = "<thead><tr>" + colunas.map(function (c) {
+      return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>";
+    }).join("") + "</tr></thead>";
+    function valor(v, casas) { return v === null || v === undefined ? "—" : fmt(v, casas); }
+    var corpo = f.seccoes.map(function (sec) {
+      return ["simples", "sobreposta", "dupla"].filter(function (k) { return sec[k]; }).map(function (k, i) {
+        var x = sec[k];
+        return '<tr class="linha-omega"><td>' + (i === 0 ? sec.nome : "") + "</td><td>" + NOMES[k] + "</td><td>" +
+          [valor(x.H, 1), valor(x.b1, 1), valor(x.b2, 1), valor(x.b3, 1), valor(x.t, 1), valor(x.G, 2), valor(x.A / 100, 2),
+            valor(x.Iy, 2), valor(x.Wy, 2), valor(x.iy, 2), valor(x.Iz, 2), valor(x.Wz, 2), valor(x.iz, 2)].join("</td><td>") + "</td></tr>";
+      }).join("");
+    }).join("");
+    $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+  }
+
   function renderCatalogo() {
     var fam = estado.familiaCatalogo;
+    $("catalogo-ajuda").hidden = !!OMEGAS[fam];
+    if (OMEGAS[fam]) { renderCatalogoOmega(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
     var colunas = [
       ["Perfil", ""], ["h", "mm"], ["b", "mm"], ["t<sub>w</sub>", "mm"], ["t<sub>f</sub>", "mm"], ["r", "mm"],
@@ -241,7 +269,7 @@
 
   // ----- Vistas -----
   function mostrar(vista) {
-    ["identificar", "catalogo"].forEach(function (v) {
+    ["identificar", "madres", "catalogo"].forEach(function (v) {
       $("vista-" + v).hidden = v !== vista;
       $("tab-" + v).setAttribute("aria-selected", String(v === vista));
     });
@@ -253,7 +281,7 @@
     $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
       return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
     }).join("");
-    $("fichas-catalogo").innerHTML = FAMILIAS.map(function (f) {
+    $("fichas-catalogo").innerHTML = FAMILIAS.concat(Object.keys(OMEGAS)).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
     }).join("");
     $("in-aco").innerHTML = Object.keys(Seccao.ACOS).map(function (a) {
@@ -302,8 +330,9 @@
 
     renderCatalogo();
     render();
-    if (location.hash === "#catalogo") mostrar("catalogo");
+    if (location.hash === "#catalogo" || location.hash === "#madres") mostrar(location.hash.slice(1));
   }
 
   iniciar();
+  window.SteelFrames = { fmt: fmt, mostrar: mostrar };
 })();

@@ -20,13 +20,14 @@
     </div>
     <nav class="separadores" aria-label="Secções">
       <button type="button" class="separador" id="tab-identificar" data-vista="identificar" aria-selected="true">Identificar perfil</button>
+      <button type="button" class="separador" id="tab-madres" data-vista="madres" aria-selected="false">Madres</button>
       <button type="button" class="separador" id="tab-catalogo" data-vista="catalogo" aria-selected="false">Catálogo</button>
     </nav>
   </div>
 </header>
 
 <main class="conteudo">
-  <section class="vista" id="vista-identificar" aria-labelledby="tab-identificar">
+  <section class="vista vista-dupla" id="vista-identificar" aria-labelledby="tab-identificar">
     <form class="painel-medidas" id="form-medidas" autocomplete="off">
       <h1 class="titulo-painel">Medidas do perfil</h1>
       <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas.</p>
@@ -72,6 +73,104 @@
     <div class="resultado" id="resultado" aria-live="polite"></div>
   </section>
 
+  <section class="vista vista-dupla" id="vista-madres" aria-labelledby="tab-madres" hidden>
+    <form class="painel-medidas painel-madres" id="form-madres" autocomplete="off">
+      <h1 class="titulo-painel">Madres de cobertura</h1>
+      <p class="nota">Pré-dimensionamento de madres numa cobertura de duas águas, com as ações do Anexo Nacional português (Portugal continental).</p>
+
+      <fieldset class="grupo">
+        <legend>Pavilhão</legend>
+        <div class="campos">
+          <label class="campo" for="m-largura"><span>Vão do pórtico</span>
+            <span class="entrada"><input id="m-largura" name="largura" type="number" inputmode="decimal" min="1" step="0.1" value="20"><em>m</em></span></label>
+          <label class="campo" for="m-comprimento"><span>Comprimento</span>
+            <span class="entrada"><input id="m-comprimento" name="comprimento" type="number" inputmode="decimal" min="1" step="0.1" value="48"><em>m</em></span></label>
+          <label class="campo" for="m-beirado"><span>Altura do beirado</span>
+            <span class="entrada"><input id="m-beirado" name="beirado" type="number" inputmode="decimal" min="1" step="0.1" value="7"><em>m</em></span></label>
+          <label class="campo" for="m-alfa"><span>Inclinação</span>
+            <span class="entrada"><input id="m-alfa" name="alfa" type="number" inputmode="decimal" min="0" max="30" step="0.5" value="8"><em>°</em></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Madres</legend>
+        <label class="campo" for="m-tipo"><span>Tipo de madre</span>
+          <select id="m-tipo" name="tipo">
+            <option value="IPE" selected>IPE laminado (verificação EC3 completa)</option>
+            <option value="Madremax">Madremax · Constálica, S350GD (pré-seleção)</option>
+            <option value="Omegamax">Omegamax · Constálica, S220GD (pré-seleção)</option>
+          </select></label>
+        <div class="campos">
+          <label class="campo" for="m-vao"><span>Entre pórticos</span>
+            <span class="entrada"><input id="m-vao" name="vao" type="number" inputmode="decimal" min="1" step="0.1" value="6"><em>m</em></span></label>
+          <label class="campo" for="m-espacamento"><span>Entre madres</span>
+            <span class="entrada"><input id="m-espacamento" name="espacamento" type="number" inputmode="decimal" min="0.3" step="0.05" value="1.5"><em>m</em></span></label>
+        </div>
+        <label class="campo" for="m-esquema"><span>Esquema estático</span>
+          <select id="m-esquema" name="esquema"></select></label>
+        <label class="campo" for="m-tirantes"><span>Travamento do banzo inferior</span>
+          <select id="m-tirantes" name="tirantes">
+            <option value="0">Só nos pórticos</option>
+            <option value="1" selected>Tirantes a meio vão</option>
+            <option value="2">Tirantes a terços do vão</option>
+          </select></label>
+        <label class="campo" for="m-posicao"><span>Posição na cobertura</span>
+          <select id="m-posicao" name="posicao"></select></label>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Cargas permanentes e sobrecarga</legend>
+        <label class="campo" for="m-revestimento"><span>Revestimento</span>
+          <select id="m-revestimento" name="revestimento"></select></label>
+        <div class="campos">
+          <label class="campo" for="m-grev"><span>Peso do revestimento</span>
+            <span class="entrada"><input id="m-grev" name="grev" type="number" inputmode="decimal" min="0" step="0.01"><em>kN/m²</em></span></label>
+          <label class="campo" for="m-ginst"><span>Instalações suspensas</span>
+            <span class="entrada"><input id="m-ginst" name="ginst" type="number" inputmode="decimal" min="0" step="0.01" value="0.10"><em>kN/m²</em></span></label>
+          <label class="campo" for="m-qk"><span>Sobrecarga (cat. H)</span>
+            <span class="entrada"><input id="m-qk" name="qk" type="number" inputmode="decimal" min="0" step="0.05" value="0.4"><em>kN/m²</em></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Local</legend>
+        <div class="campos">
+          <label class="campo" for="m-altitude"><span>Altitude</span>
+            <span class="entrada"><input id="m-altitude" name="altitude" type="number" inputmode="decimal" min="0" max="1500" step="10" value="150"><em>m</em></span></label>
+          <label class="campo" for="m-zona-neve"><span>Zona de neve</span>
+            <select id="m-zona-neve" name="zonaNeve">
+              <option value="Z1">Z1</option>
+              <option value="Z2" selected>Z2</option>
+              <option value="Z3">Z3</option>
+            </select></label>
+        </div>
+        <label class="campo" for="m-exposicao"><span>Exposição à neve</span>
+          <select id="m-exposicao" name="exposicao">
+            <option value="normal" selected>Normal (Ce = 1,0)</option>
+            <option value="exposta">Exposta ao vento (Ce = 0,8)</option>
+            <option value="abrigada">Abrigada (Ce = 1,2)</option>
+          </select></label>
+        <label class="campo" for="m-terreno"><span>Categoria de terreno</span>
+          <select id="m-terreno" name="terreno">
+            <option value="I">I · Zona costeira exposta aos ventos do mar</option>
+            <option value="II">II · Vegetação rasteira, obstáculos isolados</option>
+            <option value="III" selected>III · Zonas industriais, suburbanas, florestas</option>
+            <option value="IV">IV · Zonas urbanas, edifícios com mais de 15 m</option>
+          </select></label>
+        <label class="verificar" for="m-costa"><input id="m-costa" name="costa" type="checkbox"> A menos de 5 km da costa</label>
+        <label class="verificar" for="m-orografia"><input id="m-orografia" name="orografia" type="checkbox"> Vale ou estuário com exposição desfavorável</label>
+        <p class="nota" id="m-zona-vento"></p>
+      </fieldset>
+
+      <label class="campo" for="m-aco" id="m-campo-aco"><span>Classe do aço (IPE)</span>
+        <select id="m-aco" name="aco"></select></label>
+
+      <p class="nota nota-exemplo" id="m-nota-exemplo">Exemplo carregado: pavilhão de 20 × 48 m com painel sandwich.</p>
+    </form>
+
+    <div class="resultado" id="resultado-madres" aria-live="polite"></div>
+  </section>
+
   <section class="vista" id="vista-catalogo" aria-labelledby="tab-catalogo" hidden>
     <div class="catalogo-topo">
       <h1 class="titulo-painel">Catálogo de perfis</h1>
@@ -81,17 +180,21 @@
     <div class="tabela-rolo">
       <table class="tabela" id="tabela-catalogo"></table>
     </div>
-    <p class="nota">Toque numa linha para abrir o perfil com todas as propriedades.</p>
+    <p class="nota" id="catalogo-ajuda">Toque numa linha para abrir o perfil com todas as propriedades.</p>
   </section>
 </main>
 
 <footer class="rodape">
-  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação e resistência de secções, γ<sub>M0</sub> = 1,0) · EN 10025-2/-3 (classes de aço).</p>
-  <p>Propriedades calculadas a partir das dimensões nominais, incluindo as concordâncias. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
+  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação, resistência e bambeamento, γ<sub>M0</sub> = γ<sub>M1</sub> = 1,0) · EN 10025-2/-3 e EN 10346 (classes de aço) · NP EN 1990, NP EN 1991-1-1, 1991-1-3 e 1991-1-4 + Anexos Nacionais (ações e combinações) · catálogos Constálica (Madremax, Omegamax).</p>
+  <p>Propriedades dos perfis laminados calculadas a partir das dimensões nominais, incluindo as concordâncias. Coeficientes de pressão do vento conferidos com a NP EN 1991-1-4; restantes valores dos Anexos Nacionais confirmados em fontes secundárias. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
 </footer>
 
 <script src="js/perfis.js"></script>
 <script src="js/seccao.js"></script>
+<script src="js/omegas.js"></script>
+<script src="js/acoes.js"></script>
+<script src="js/madres.js"></script>
 <script src="js/app.js"></script>
+<script src="js/vista-madres.js"></script>
 </body>
 </html>
