@@ -130,6 +130,36 @@ perto("qp com c0 = 1,2", p12.qp, 0.5 * 1.25 * 27 * 27 * (p1.cr * p1.cr * 1.44 + 
 perto("Iv com c0 = 1,2 é Iv(c0 = 1) / 1,2", p12.Iv, p1.Iv / 1.2, 1e-12);
 perto("c0 passa por Acoes.vento", Acoes.vento("A", "III", 9, 15, "corrente", 20, null, 1.2).pico.qp, p12.qp, 1e-12);
 
+// Orografia pelo Anexo A.3: contas à mão com as expressões (A.1) a (A.13).
+// Escarpa com Φ = 0,5 (> 0,3): na crista, junto ao solo, s = A(0) = 1,0124 e c0 = 1 + 0,6 s.
+perto("A.3: crista de escarpa, z → 0: c0 = 1 + 0,6 × 1,0124", Acoes.coeficienteOrografia({ tipo: "escarpa", H: 50, Lu: 100, x: 0 }, 1e-9).c0, 1 + 0.6 * 1.0124, 1e-6);
+// Colina com Φ = 0,2, a Lu/2 a barlavento, z = 10 m (z/Le = 0,05): A = 0,92119, B = 2,59359, s = A e^(−B/2).
+var zl = 0.05, A5 = 0.1552 * Math.pow(zl, 4) - 0.8575 * Math.pow(zl, 3) + 1.8133 * zl * zl - 1.9115 * zl + 1.0124;
+var B6 = 0.3542 * zl * zl - 1.0577 * zl + 2.6456;
+perto("A.3: colina, barlavento x = −Lu/2: c0 = 1 + 2 s Φ", Acoes.coeficienteOrografia({ tipo: "colina", H: 40, Lu: 200, Ld: 200, x: -100 }, 10).c0, 1 + 2 * 0.2 * A5 * Math.exp(-B6 / 2), 1e-9);
+// Colina, sotavento x = Ld/3 (A.11 a A.13).
+var B13 = -0.3056 * zl * zl + 1.0212 * zl - 1.7637;
+perto("A.3: colina, sotavento x = Ld/3", Acoes.coeficienteOrografia({ tipo: "colina", H: 40, Lu: 200, Ld: 300, x: 100 }, 10).c0, 1 + 2 * 0.2 * A5 * Math.exp(B13 / 3), 1e-9);
+// Escarpa, sotavento, X/Le = 0,12 e z/Le = 0,06 (< 0,1: usam-se os valores de z/Le = 0,1, A.8 a A.10).
+var lz = -1, lx = Math.log10(0.12);
+var sA = (-1.3420 * -1 - 0.8222 * 1 + 0.4609 * -1 - 0.0791) * lx * lx + (-1.0196 * -1 - 0.8910 + 0.5343 * -1 - 0.1156) * lx + (0.8030 * -1 + 0.4236 - 0.5738 * -1 + 0.1606);
+perto("A.3: escarpa, sotavento (A.7) com z/Le limitado a 0,1", Acoes.coeficienteOrografia({ tipo: "escarpa", H: 50, Lu: 100, x: 0.12 * 50 / 0.3 }, 0.06 * 50 / 0.3).c0, 1 + 0.6 * sA, 1e-9);
+perto("A.3: declive inferior a 0,05: c0 = 1", Acoes.coeficienteOrografia({ tipo: "colina", H: 4, Lu: 100, Ld: 100, x: 0 }, 10).c0, 1, 1e-12);
+perto("A.3: fora do domínio (x < −1,5 Lu): c0 = 1", Acoes.coeficienteOrografia({ tipo: "colina", H: 40, Lu: 200, Ld: 200, x: -400 }, 10).c0, 1, 1e-12);
+
+// Zonas de neve por distrito e concelho (NA–4.1(1)) e caso do Quadro NA–A.1.
+var nConc = 0;
+Object.keys(Acoes.NEVE_DISTRITOS).forEach(function (k) { var v = Acoes.NEVE_DISTRITOS[k]; if (typeof v !== "string") Object.keys(v).forEach(function (z) { nConc += v[z].length; }); });
+igual("18 distritos do continente", Object.keys(Acoes.NEVE_DISTRITOS).length, 18);
+igual("105 concelhos nos 6 distritos repartidos (12 + 17 + 16 + 15 + 21 + 24)", nConc, 105);
+igual("Nelas: zona Z1, caso B3", JSON.stringify(Acoes.zonaNeve("Viseu", "Nelas")), JSON.stringify({ zona: "Z1", caso: "B3" }));
+igual("Fornos de Algodres (Guarda): caso B3", Acoes.zonaNeve("Guarda", "Fornos de Algodres").caso, "B3");
+igual("outro concelho da Guarda: zona Z1, caso B2", JSON.stringify(Acoes.zonaNeve("Guarda", "")), JSON.stringify({ zona: "Z1", caso: "B2" }));
+igual("Mação: zona Z1", Acoes.zonaNeve("Santarém", "Mação").zona, "Z1");
+igual("Santarém (concelho): zona Z3", Acoes.zonaNeve("Santarém", "Santarém").zona, "Z3");
+igual("Lisboa: zona Z3, caso A", Acoes.zonaNeve("Lisboa", "").caso, "A");
+igual("Leiria sem concelho: zona por decidir", Acoes.zonaNeve("Leiria", "").zona, null);
+
 // Carga concentrada Q_k = 1,0 kN (Quadro NA–6.10), verificada à parte (6.3.4.2(3)P): só no ELU.
 var kq = Acoes.cargasMadre({ espacamento: 2, alfa: 10, gRev: 0.1, gInst: 0.1, qH: 0.4, s: 0.2, wPressao: 0.3, wSuccao: -0.8 });
 var cq = Acoes.combinacoes(kq, 100);

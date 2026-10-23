@@ -28,8 +28,8 @@ Pré-dimensionamento de madres de uma cobertura de duas águas em Portugal conti
 - **Ações:**
   - peso do revestimento (painel sandwich, chapa, fibrocimento) e das instalações;
   - sobrecarga de cobertura (categoria H);
-  - **neve** (zonas Z1 a Z3 e altitude);
-  - **vento** (zonas A e B, categorias de terreno I a IV, coeficientes de pressão das zonas F a J, pressão interior).
+  - **neve** (zona pelo distrito e concelho, altitude e situações excecionais do Anexo Nacional);
+  - **vento** (zonas A e B, categorias de terreno I a IV, orografia pelo Anexo A.3, coeficientes de pressão das zonas F a J, pressão interior).
 - **Esquiços:** planta com a faixa de influência da madre e corte com as cargas de gravidade e de sucção.
 - **Combinações:** ELU e características da NP EN 1990, incluindo a **sucção do vento**, que comprime o banzo inferior das madres.
 - **Madres IPE:** verificação completa (flexão desviada, bambeamento, esforço transverso, flechas L/200 e L/250) e escolha do perfil mais leve.
@@ -63,7 +63,7 @@ As propriedades dos perfis laminados são calculadas a partir das dimensões nom
 ## Plano
 
 1. Identificação de perfis *(feito)*.
-2. Madres de cobertura em IPE *(feito)* e em Superomega, C e Z da O Feliz *(feito)*. A seguir: cálculo de c<sub>0</sub> pelo Anexo A.3, zona de neve pelo concelho e coberturas de uma água.
+2. Madres de cobertura em IPE *(feito)* e em Superomega, C e Z da O Feliz *(feito)*. Orografia pelo Anexo A.3 e zona de neve pelo concelho *(feito)*. A seguir: coberturas de uma água e vão do painel sandwich.
 3. **Pórtico de duas águas** com bases encastradas: esforços na travessa e nos pilares, flexão composta com encurvadura e bambeamento (EC3 6.3.3), deslocamentos.
 4. Pilares de empena, madres de fachada e contraventamentos, com UPN, cantoneiras e tubos SHS/RHS/CHS.
 5. Medição sobre fotografia: calibrar a escala com um objeto de dimensão conhecida e marcar os pontos do perfil.

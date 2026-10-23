@@ -169,6 +169,12 @@
       <fieldset class="grupo">
         <legend>Local</legend>
         <div class="campos">
+          <label class="campo" for="m-distrito"><span>Distrito</span>
+            <select id="m-distrito" name="distrito"></select></label>
+          <label class="campo" for="m-concelho" id="m-campo-concelho"><span>Concelho</span>
+            <select id="m-concelho" name="concelho"></select></label>
+        </div>
+        <div class="campos">
           <label class="campo" for="m-altitude"><span>Altitude</span>
             <span class="entrada"><input id="m-altitude" name="altitude" type="text" inputmode="decimal" min="0" max="1500" step="10" value="150"><em>m</em></span></label>
           <label class="campo" for="m-zona-neve"><span>Zona de neve</span>
@@ -178,6 +184,7 @@
               <option value="Z3">Z3</option>
             </select></label>
         </div>
+        <p class="nota" id="m-nota-neve"></p>
         <label class="campo" for="m-exposicao"><span>Exposição à neve</span>
           <select id="m-exposicao" name="exposicao">
             <option value="normal" selected>Normal (Ce = 1,0)</option>
@@ -200,9 +207,26 @@
         <p class="nota">+0,2 / −0,3 sem face dominante. Com portões grandes que possam ficar abertos, ver NP EN 1991-1-4, 7.2.9(5).</p>
         <label class="verificar" for="m-costa"><input id="m-costa" name="costa" type="checkbox"> A menos de 5 km da costa</label>
         <p class="nota" id="m-zona-vento"></p>
-        <label class="campo" for="m-c0"><span>Coeficiente de orografia c<sub>0</sub></span>
+        <label class="campo" for="m-orografia"><span>Orografia (vento)</span>
+          <select id="m-orografia" name="orografia">
+            <option value="plano" selected>Terreno plano (c0 = 1,0)</option>
+            <option value="colina">Colina isolada ou em cadeia (Anexo A.3)</option>
+            <option value="escarpa">Falésia ou escarpa (Anexo A.3)</option>
+            <option value="manual">c0 de estudo específico</option>
+          </select></label>
+        <div class="campos" id="m-campos-orografia">
+          <label class="campo" for="m-oro-h"><span>Altura do relevo H</span>
+            <span class="entrada"><input id="m-oro-h" name="oroH" type="text" inputmode="decimal" min="0" step="1" value="30"><em>m</em></span></label>
+          <label class="campo" for="m-oro-lu"><span>Vertente a barlavento L<sub>u</sub></span>
+            <span class="entrada"><input id="m-oro-lu" name="oroLu" type="text" inputmode="decimal" min="1" step="10" value="300"><em>m</em></span></label>
+          <label class="campo" for="m-oro-ld" id="m-campo-oro-ld"><span>Vertente a sotavento L<sub>d</sub></span>
+            <span class="entrada"><input id="m-oro-ld" name="oroLd" type="text" inputmode="decimal" min="1" step="10" value="300"><em>m</em></span></label>
+          <label class="campo" for="m-oro-x"><span>Distância à crista x</span>
+            <span class="entrada"><input id="m-oro-x" name="oroX" type="text" inputmode="decimal" step="10" value="0"><em>m</em></span></label>
+        </div>
+        <label class="campo" for="m-c0" id="m-campo-c0"><span>Coeficiente de orografia c<sub>0</sub></span>
           <span class="entrada"><input id="m-c0" name="c0" type="text" inputmode="decimal" min="1" max="2" step="0.05" value="1,0"></span></label>
-        <p class="nota">c<sub>0</sub> = 1,0 em terreno plano: declive médio a barlavento inferior a 3° (NP EN 1991-1-4, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, calcule c<sub>0</sub> pelo Anexo A.3. Em vales onde o vento possa ser afunilado, ou com orografia complexa, a norma remete para parecer técnico ou ensaio (A.3(4) e NA–4.3.3(1)): a app não trata esses casos, mas aceita aqui um c<sub>0</sub> que esteja justificado.</p>
+        <p class="nota" id="m-nota-orografia"></p>
       </fieldset>
 
       <p class="nota nota-exemplo" id="m-nota-exemplo">Exemplo carregado: pavilhão de 20 × 48 m, alturas de 7,0 m no pilar e 8,4 m a meio vão, com painel sandwich.</p>

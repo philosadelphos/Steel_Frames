@@ -23,7 +23,7 @@ Restantes parâmetros, conferidos em 23/10/2026:
 | Categorias de terreno I a IV: z<sub>0</sub> / z<sub>min</sub> | 0,005/1 · 0,05/3 · 0,3/8 · 1,0/15 m | Quadro NA–4.1 | ☑ |
 | k<sub>r</sub> = 0,19 (z<sub>0</sub>/0,05)<sup>0,07</sup> | procedimento recomendado | expressão (4.5), NA–4.3.2(1) | ☑ |
 | ρ, k<sub>I</sub> | 1,25 kg/m³, 1,0 | 4.5(1) e 4.4(1), Notas 2, sem prescrição nacional | ☑ |
-| c<sub>0</sub> | 1,0 por omissão; campo editável (1,0 a 2,0), que entra em v<sub>m</sub> e em I<sub>v</sub> | 4.3.3: desprezável com declive médio a barlavento < 3°; senão Anexo A.3 (NA–4.3.3(1)); em vales com afunilamento, estudo específico (A.3(4)) | ✔ (o cálculo pelo A.3 ainda não está na app) |
+| c<sub>0</sub> | terreno plano (1,0); colina ou escarpa pelo Anexo A.3, expressões (A.1) a (A.13); ou valor de estudo específico. Entra em v<sub>m</sub> e em I<sub>v</sub> | 4.3.3 e NA–4.3.3(1); vales com afunilamento e orografia complexa: parecer técnico ou ensaio (A.3(4)), fora do âmbito da app | ✔ |
 | c<sub>pi</sub> sem aberturas dominantes | +0,2 / −0,3 | 7.2.9(6), Nota 2 | ☑ |
 | Interpolação de c<sub>pe</sub> para 1 m² < A < 10 m² | c<sub>pe,1</sub> − (c<sub>pe,1</sub> − c<sub>pe,10</sub>) log<sub>10</sub> A | 7.2.1(1), Nota 2, e Figura 7.2, sem prescrição nacional | ☑ |
 | c<sub>s</sub>c<sub>d</sub> | 1,0 (edifícios com h < 15 m) | 6.2(1)a) | ☑ |
@@ -35,7 +35,7 @@ Restantes parâmetros, conferidos em 23/10/2026:
 |---|---|---|---|
 | s<sub>k</sub> | C<sub>z</sub> [1 + (H/500)²] kN/m² | NA–4.1(1) | ☑ |
 | C<sub>z</sub> zonas Z1 / Z2 / Z3 | 0,30 / 0,20 / 0,10 | NA–4.1(1) | ☑ |
-| Zonas por concelho | escolha manual na app | NA–4.1(1) tem a lista completa por distrito e concelho (o Anexo C não se aplica) | ☑ (a app pode passar a escolher pelo concelho) |
+| Zonas por concelho | distrito e, nos distritos repartidos, concelho (ou zona à mão) | NA–4.1(1), lista completa por distrito e concelho (o Anexo C não se aplica) | ☑ |
 | Queda de neve excecional, C<sub>esl</sub> = 2,5 | aviso na app, não calculada | NA–4.3(1) e Quadro NA–A.1 (caso B3: Aguiar da Beira, Fornos de Algodres, Mangualde, Nelas, Penalva do Castelo, Sátão e Viseu) | ☑ |
 | Deslocamento excecional da neve (Anexo B) | aviso na app, não calculado | Quadro NA–A.1, Nota 1: caso B2 em todos os restantes concelhos da zona Z1 (relevante com platibandas, obstáculos ou construções mais altas contíguas) | ✔ |
 | μ<sub>1</sub> (duas águas) | 0,8 até 30°, linear até 0 a 60° | Quadro 5.2 | ☑ |
@@ -116,8 +116,7 @@ Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálcul
 
 ## 4. Ideias anotadas para mais tarde
 
-- Escolher o concelho e obter a zona de neve automaticamente (o NA–4.1(1) da NP EN 1991-1-3 tem a lista completa). A zona de vento não depende do concelho, mas da distância à costa e da altitude.
-- Calcular c<sub>0</sub> pelo Anexo A.3 da NP EN 1991-1-4 (colinas, cadeias de colinas, falésias e escarpas), a partir de H, L<sub>u</sub>, L<sub>d</sub> e da posição do pavilhão em relação à crista.
+- Verificar o vão do painel sandwich (espaçamento entre madres) com as tabelas de cálculo direto do catálogo O Feliz Painel (cargas características por espessura, vão simples ou múltiplo, ascendentes e descendentes). O catálogo não dá a rigidez C<sub>D</sub> da ligação painel–madre: pedir à O Feliz.
 - Coberturas de uma água (Quadros 7.3a e 7.3b da NP EN 1991-1-4).
 - Ligações das madres enformadas: parafusos na alma com esquadro e arrancamento das fixações em sucção (EN 1993-1-3, 8.3).
 - Madres que servem de escoras do contraventamento (esforço axial com flexão, EN 1993-1-3, 10.1.4.2 e 6.2).
