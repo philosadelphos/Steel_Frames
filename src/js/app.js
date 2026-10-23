@@ -12,6 +12,39 @@
   };
 
   var $ = function (id) { return document.getElementById(id); };
+
+  // Últimos valores introduzidos, guardados só neste aparelho. Sem armazenamento disponível
+  // (navegação privada, por exemplo) a app funciona na mesma, apenas sem memória.
+  var Memoria = {
+    ler: function (chave) {
+      try { return JSON.parse(localStorage.getItem("steel-frames:" + chave) || "null"); } catch (e) { return null; }
+    },
+    gravar: function (chave, valor) {
+      try { localStorage.setItem("steel-frames:" + chave, JSON.stringify(valor)); } catch (e) { /* sem armazenamento */ }
+    },
+    apagar: function (chave) {
+      try { localStorage.removeItem("steel-frames:" + chave); } catch (e) { /* sem armazenamento */ }
+    },
+    // Valores dos campos com nome de um formulário (texto, listas e caixas de seleção).
+    doFormulario: function (form) {
+      var v = {};
+      Array.prototype.forEach.call(form.elements, function (el) {
+        if (el.name) v[el.name] = el.type === "checkbox" ? el.checked : el.value;
+      });
+      return v;
+    },
+    // Repõe os valores; numa lista, só aceita opções que existam (os dados podem ser de outra versão).
+    paraFormulario: function (form, v) {
+      Object.keys(v || {}).forEach(function (nome) {
+        var el = form.elements[nome];
+        if (!el || !el.tagName) return;
+        if (el.type === "checkbox") el.checked = !!v[nome];
+        else if (el.tagName === "SELECT") {
+          if (Array.prototype.some.call(el.options, function (o) { return o.value === v[nome]; })) el.value = v[nome];
+        } else el.value = v[nome];
+      });
+    }
+  };
   var form = $("form-medidas");
   var resultado = $("resultado");
 
@@ -278,6 +311,7 @@
       $("tab-" + v).setAttribute("aria-selected", String(v === vista));
     });
     try { history.replaceState(null, "", "#" + vista); } catch (e) { /* sem histórico disponível */ }
+    Memoria.gravar("vista", vista);
   }
 
   // ----- Arranque -----
@@ -294,6 +328,28 @@
 
     form.elements.h.value = EXEMPLO.h;
     form.elements.b.value = EXEMPLO.b;
+    var padrao = Memoria.doFormulario(form);
+    var guardado = Memoria.ler("identificar");
+    function aplicar(v, familias) {
+      Memoria.paraFormulario(form, v);
+      estado.aco = form.elements.aco.value;
+      estado.familias = FAMILIAS.filter(function (f) { return !familias || familias.indexOf(f) !== -1; });
+      Array.prototype.forEach.call(form.querySelectorAll("#fichas-familias input"), function (i) {
+        i.checked = estado.familias.indexOf(i.value) !== -1;
+      });
+    }
+    if (guardado) {
+      aplicar(guardado.campos, guardado.familias);
+      $("nota-exemplo").hidden = true;
+    }
+    function gravar() { Memoria.gravar("identificar", { campos: Memoria.doFormulario(form), familias: estado.familias }); }
+    $("repor-identificar").addEventListener("click", function () {
+      aplicar(padrao, null);
+      Memoria.apagar("identificar");
+      estado.escolhido = null;
+      $("nota-exemplo").hidden = false;
+      render();
+    });
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
@@ -305,6 +361,7 @@
         estado.escolhido = null;
         $("nota-exemplo").hidden = true;
       }
+      gravar();
       render();
     });
     resultado.addEventListener("click", function (e) {
@@ -336,9 +393,12 @@
 
     renderCatalogo();
     render();
-    if (location.hash === "#catalogo" || location.hash === "#madres") mostrar(location.hash.slice(1));
+    // Abre a vista do endereço; sem endereço (por exemplo, pelo ícone do ecrã principal), a última usada.
+    var vista = location.hash === "#catalogo" || location.hash === "#madres" || location.hash === "#identificar"
+      ? location.hash.slice(1) : Memoria.ler("vista");
+    if (vista === "catalogo" || vista === "madres") mostrar(vista);
   }
 
   iniciar();
-  window.SteelFrames = { fmt: fmt, mostrar: mostrar };
+  window.SteelFrames = { fmt: fmt, mostrar: mostrar, Memoria: Memoria };
 })();

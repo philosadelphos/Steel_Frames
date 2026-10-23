@@ -353,6 +353,12 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
 }
 .resultado .cartao { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 110px); }
 .nome-perfil:focus { outline: none; }
+.acoes-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.botao-sec {
+  padding: 6px 12px; border: 1px solid var(--linha); border-radius: var(--raio);
+  background: var(--superficie-2); cursor: pointer; font-size: 0.86rem; font-weight: 500;
+}
+.botao-sec:hover { border-color: var(--aco); }
 </style>
 </head>
 <body>
@@ -412,6 +418,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
         <select id="in-aco" name="aco"></select></label>
 
       <p class="nota nota-exemplo" id="nota-exemplo">Exemplo carregado: secção medida com 300 × 150 mm.</p>
+      <div class="acoes-form"><button type="button" class="botao-sec" id="repor-identificar">Repor o exemplo</button><span class="nota">Os valores ficam guardados neste aparelho.</span></div>
     </form>
 
     <div class="resultado" id="resultado" aria-live="polite"></div>
@@ -455,7 +462,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
           <select id="m-esquema" name="esquema"></select></label>
         <label class="campo" for="m-tirantes"><span>Travamento do banzo inferior</span>
           <select id="m-tirantes" name="tirantes">
-            <option value="0">Só nos pórticos</option>
+            <option value="0">Sem travamento intermédio (só nos pórticos)</option>
             <option value="1" selected>Tirantes a meio vão</option>
             <option value="2">Tirantes a terços do vão</option>
           </select></label>
@@ -518,6 +525,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
         <select id="m-aco" name="aco"></select></label>
 
       <p class="nota nota-exemplo" id="m-nota-exemplo">Exemplo carregado: pavilhão de 20 × 48 m, alturas de 7,0 m no pilar e 8,4 m a meio vão, com painel sandwich.</p>
+      <div class="acoes-form"><button type="button" class="botao-sec" id="repor-madres">Repor o exemplo</button><span class="nota">Os valores ficam guardados neste aparelho.</span></div>
     </form>
 
     <div class="resultado" id="resultado-madres" aria-live="polite"></div>
@@ -1345,6 +1353,39 @@ if (typeof module !== "undefined") module.exports = Madres;
   };
 
   var $ = function (id) { return document.getElementById(id); };
+
+  // Últimos valores introduzidos, guardados só neste aparelho. Sem armazenamento disponível
+  // (navegação privada, por exemplo) a app funciona na mesma, apenas sem memória.
+  var Memoria = {
+    ler: function (chave) {
+      try { return JSON.parse(localStorage.getItem("steel-frames:" + chave) || "null"); } catch (e) { return null; }
+    },
+    gravar: function (chave, valor) {
+      try { localStorage.setItem("steel-frames:" + chave, JSON.stringify(valor)); } catch (e) { /* sem armazenamento */ }
+    },
+    apagar: function (chave) {
+      try { localStorage.removeItem("steel-frames:" + chave); } catch (e) { /* sem armazenamento */ }
+    },
+    // Valores dos campos com nome de um formulário (texto, listas e caixas de seleção).
+    doFormulario: function (form) {
+      var v = {};
+      Array.prototype.forEach.call(form.elements, function (el) {
+        if (el.name) v[el.name] = el.type === "checkbox" ? el.checked : el.value;
+      });
+      return v;
+    },
+    // Repõe os valores; numa lista, só aceita opções que existam (os dados podem ser de outra versão).
+    paraFormulario: function (form, v) {
+      Object.keys(v || {}).forEach(function (nome) {
+        var el = form.elements[nome];
+        if (!el || !el.tagName) return;
+        if (el.type === "checkbox") el.checked = !!v[nome];
+        else if (el.tagName === "SELECT") {
+          if (Array.prototype.some.call(el.options, function (o) { return o.value === v[nome]; })) el.value = v[nome];
+        } else el.value = v[nome];
+      });
+    }
+  };
   var form = $("form-medidas");
   var resultado = $("resultado");
 
@@ -1611,6 +1652,7 @@ if (typeof module !== "undefined") module.exports = Madres;
       $("tab-" + v).setAttribute("aria-selected", String(v === vista));
     });
     try { history.replaceState(null, "", "#" + vista); } catch (e) { /* sem histórico disponível */ }
+    Memoria.gravar("vista", vista);
   }
 
   // ----- Arranque -----
@@ -1627,6 +1669,28 @@ if (typeof module !== "undefined") module.exports = Madres;
 
     form.elements.h.value = EXEMPLO.h;
     form.elements.b.value = EXEMPLO.b;
+    var padrao = Memoria.doFormulario(form);
+    var guardado = Memoria.ler("identificar");
+    function aplicar(v, familias) {
+      Memoria.paraFormulario(form, v);
+      estado.aco = form.elements.aco.value;
+      estado.familias = FAMILIAS.filter(function (f) { return !familias || familias.indexOf(f) !== -1; });
+      Array.prototype.forEach.call(form.querySelectorAll("#fichas-familias input"), function (i) {
+        i.checked = estado.familias.indexOf(i.value) !== -1;
+      });
+    }
+    if (guardado) {
+      aplicar(guardado.campos, guardado.familias);
+      $("nota-exemplo").hidden = true;
+    }
+    function gravar() { Memoria.gravar("identificar", { campos: Memoria.doFormulario(form), familias: estado.familias }); }
+    $("repor-identificar").addEventListener("click", function () {
+      aplicar(padrao, null);
+      Memoria.apagar("identificar");
+      estado.escolhido = null;
+      $("nota-exemplo").hidden = false;
+      render();
+    });
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
@@ -1638,6 +1702,7 @@ if (typeof module !== "undefined") module.exports = Madres;
         estado.escolhido = null;
         $("nota-exemplo").hidden = true;
       }
+      gravar();
       render();
     });
     resultado.addEventListener("click", function (e) {
@@ -1669,17 +1734,20 @@ if (typeof module !== "undefined") module.exports = Madres;
 
     renderCatalogo();
     render();
-    if (location.hash === "#catalogo" || location.hash === "#madres") mostrar(location.hash.slice(1));
+    // Abre a vista do endereço; sem endereço (por exemplo, pelo ícone do ecrã principal), a última usada.
+    var vista = location.hash === "#catalogo" || location.hash === "#madres" || location.hash === "#identificar"
+      ? location.hash.slice(1) : Memoria.ler("vista");
+    if (vista === "catalogo" || vista === "madres") mostrar(vista);
   }
 
   iniciar();
-  window.SteelFrames = { fmt: fmt, mostrar: mostrar };
+  window.SteelFrames = { fmt: fmt, mostrar: mostrar, Memoria: Memoria };
 })();
 </script>
 <script>
 /* Vista "Madres": formulário, esquiços e resultados. Depende de acoes.js, madres.js e app.js. */
 (function () {
-  var fmt = window.SteelFrames.fmt;
+  var fmt = window.SteelFrames.fmt, Memoria = window.SteelFrames.Memoria;
   var $ = function (id) { return document.getElementById(id); };
   var form = $("form-madres");
   var saida = $("resultado-madres");
@@ -2116,6 +2184,19 @@ if (typeof module !== "undefined") module.exports = Madres;
       return '<option value="' + a + '"' + (a === "S275" ? " selected" : "") + ">" + a + "</option>";
     }).join("");
     form.elements.grev.value = REVESTIMENTOS[0].g.toFixed(2).replace(".", ",");
+    var padrao = Memoria.doFormulario(form);
+    var guardado = Memoria.ler("madres");
+    if (guardado) {
+      Memoria.paraFormulario(form, guardado);
+      $("m-nota-exemplo").hidden = true;
+    }
+    $("repor-madres").addEventListener("click", function () {
+      Memoria.paraFormulario(form, padrao);
+      Memoria.apagar("madres");
+      estado.escolhido = null;
+      $("m-nota-exemplo").hidden = false;
+      render();
+    });
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
@@ -2127,6 +2208,7 @@ if (typeof module !== "undefined") module.exports = Madres;
       if (e.target.name === "grev") form.elements.revestimento.value = "outro";
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = true;
+      Memoria.gravar("madres", Memoria.doFormulario(form));
       render();
     });
     saida.addEventListener("click", function (e) {

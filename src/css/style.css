@@ -340,3 +340,9 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
 }
 .resultado .cartao { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 110px); }
 .nome-perfil:focus { outline: none; }
+.acoes-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.botao-sec {
+  padding: 6px 12px; border: 1px solid var(--linha); border-radius: var(--raio);
+  background: var(--superficie-2); cursor: pointer; font-size: 0.86rem; font-weight: 500;
+}
+.botao-sec:hover { border-color: var(--aco); }

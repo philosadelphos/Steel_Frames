@@ -1,6 +1,6 @@
 /* Vista "Madres": formulário, esquiços e resultados. Depende de acoes.js, madres.js e app.js. */
 (function () {
-  var fmt = window.SteelFrames.fmt;
+  var fmt = window.SteelFrames.fmt, Memoria = window.SteelFrames.Memoria;
   var $ = function (id) { return document.getElementById(id); };
   var form = $("form-madres");
   var saida = $("resultado-madres");
@@ -437,6 +437,19 @@
       return '<option value="' + a + '"' + (a === "S275" ? " selected" : "") + ">" + a + "</option>";
     }).join("");
     form.elements.grev.value = REVESTIMENTOS[0].g.toFixed(2).replace(".", ",");
+    var padrao = Memoria.doFormulario(form);
+    var guardado = Memoria.ler("madres");
+    if (guardado) {
+      Memoria.paraFormulario(form, guardado);
+      $("m-nota-exemplo").hidden = true;
+    }
+    $("repor-madres").addEventListener("click", function () {
+      Memoria.paraFormulario(form, padrao);
+      Memoria.apagar("madres");
+      estado.escolhido = null;
+      $("m-nota-exemplo").hidden = false;
+      render();
+    });
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
@@ -448,6 +461,7 @@
       if (e.target.name === "grev") form.elements.revestimento.value = "outro";
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = true;
+      Memoria.gravar("madres", Memoria.doFormulario(form));
       render();
     });
     saida.addEventListener("click", function (e) {
