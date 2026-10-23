@@ -64,7 +64,7 @@ Restantes parâmetros, conferidos em 23/10/2026:
 
 ### NP EN 1993-1-3 (perfis enformados a frio) — para as madres Superomega, C e Z
 
-Só está disponível a BS EN 1993-1-3:2006 (texto europeu, sem o Anexo Nacional português); a NP EN 1993-1-3 não está disponível. Quando estas madres entrarem na app usam-se os valores recomendados, assinalados como tal (por exemplo, χ<sub>LT</sub> do banzo livre em 10.1.4.2(1), Nota, e γ<sub>M</sub> do capítulo 2).
+Só está disponível a BS EN 1993-1-3:2006 (texto europeu, sem o Anexo Nacional português); a NP EN 1993-1-3 não está disponível. A app usa os valores recomendados e assinala-os nas hipóteses (por exemplo, χ<sub>LT</sub> do banzo livre em 10.1.4.2(1), Nota, e γ<sub>M</sub> do capítulo 2).
 
 ### NP EN 1993-1-1, Anexo BB (informativo): travamento pelo revestimento — `src/js/vista-madres.js`
 
@@ -72,15 +72,23 @@ Só está disponível a BS EN 1993-1-3:2006 (texto europeu, sem o Anexo Nacional
 |---|---|---|---|
 | Banzo superior das madres IPE travado pelo revestimento | admitido; a app só verifica o bambeamento do banzo inferior | BB.2.1: chapa trapezoidal ligada em todas as nervuras e rigidez S que cumpra a expressão (BB.2). Com painel sandwich ou fixação pela crista, confirmar com o fabricante (EN 1993-1-3, 10.1.1(5)) | ✔ (hipótese explicitada na app) |
 
-## 2. Madremax e Omegamax: o que pedir à Constálica
+## 2. Madres enformadas a frio: aproximações e o que confirmar
 
-Os catálogos só dão as propriedades da secção bruta. Como as secções são de classe 4, a app faz apenas uma **pré-seleção**: flechas com o I<sub>y</sub> bruto e tensões na secção bruta, que são um limite superior da resistência. Para uma verificação completa (EN 1993-1-3), é preciso pedir ao setor técnico da Constálica:
+As madres Superomega, C e Z da O Feliz verificam-se pela EN 1993-1-3, 10.1 (`src/js/enformados.js`). As Madremax e Omegamax da Constálica saíram da app: os catálogos só davam a secção bruta.
 
-- as **propriedades efetivas** de cada secção e disposição: W<sub>eff,y</sub> para momento positivo e negativo e I<sub>eff</sub>; ou
-- as **tabelas de cargas admissíveis** para gravidade e sucção, por vão e esquema (simplesmente apoiada e contínua com sobreposição); ou
-- o **Avis Technique SOCOTEC FAD 9495/1** citado no catálogo, que deverá incluir regras de cálculo;
-- o comprimento de sobreposição recomendado sobre os apoios;
-- a resistência das ligações M10 e ao esmagamento da alma nos apoios.
+**Aproximações e hipóteses do lado da segurança, a confirmar ou melhorar:**
+- **Restrição do revestimento.** Por omissão K = 0, e o banzo livre só fica travado nos pórticos e nos tirantes.
+  - Sem tirantes, as madres enformadas raramente verificam em sucção. No exemplo da app, o Superomega precisa do Ω250 com K = 0; com C<sub>D</sub> = 2 kN·m/m/rad e sem tirantes, basta o Ω200×1,5.
+  - Para painel sandwich, pedir ao fabricante do painel a rigidez de rotação C<sub>D</sub> da ligação painel–madre (10.1.5.2).
+  - A regra C<sub>D,A</sub> = 130 p não se aplica ao Superomega: a fixação fica a 22 mm da alma, e a 10.1.5.2(7) exige 25 mm.
+- **Esmagamento da alma do Superomega.** A madre apoia pelas abas, sem esquadro, e a alma tem dobras do mesmo lado da linha do sistema, que a 6.1.7.4 não cobre. A app usa a 6.1.7.3 para secções em ómega com a inclinação média da alma. Confirmar com a O Feliz (ensaios ou programa de cálculo).
+- **Banzo livre da ómega:** 1/5 da alma, como nas C e Z (a 10.1.4.1(2) não indica valor para ómegas); k<sub>h</sub> = 0 por simetria.
+- **Sobreposições.** Com 0,1 L ou mais para cada lado, a madre conta como contínua, com secção dupla no apoio.
+  - A rigidez e a resistência das sobreposições deviam vir de ensaios (10.1.3.4). Os tipos II e III do desenho da O Feliz garantem a transmissão dos esforços, segundo o fabricante.
+  - Sobreposições mais curtas ou desconhecidas contam como continuidade parcial.
+- **Componente no plano da cobertura** resistida pela madre entre tirantes (W<sub>z,eff</sub>), somada à flexão principal.
+
+**Não verificado:** ligações aparafusadas (emendas, apoios, esquadros e arrancamento das fixações em sucção), esforço axial nas madres que servem de escoras do contraventamento e reforço do vão extremo do Superomega (obrigatório, segundo o fabricante, com 6 ou mais vãos).
 
 ## 3. Catálogos O Feliz (Superomega, C e Z): conferência dos dados
 
@@ -91,7 +99,7 @@ Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálcul
 - Erros nas folhas de cálculo; o PDF está certo e é coerente com a geometria:
   - I<sub>z,bruta</sub> do 120×1,5 e do 120×2,0: o Excel tem 238,06 e 319,58 cm⁴, o PDF tem 156,18 e 209,68 cm⁴. As propriedades efetivas do próprio Excel (I<sub>z,eff</sub> = 153 e 208 cm⁴) só batem com os valores do PDF.
   - I<sub>t</sub> do 250×3,0: o Excel tem 10 000,57, o PDF tem 5660,41 (×10⁻⁴ cm⁴), coerente com t³.
-- Nas folhas efetivas, A<sub>eff</sub> em compressão excede A em 0,2 a 0,4 % no 120×1,5 (S280GD) e nos 200×2,0 e 200×2,5. Quando entrar na app, A<sub>eff</sub> fica limitado a A.
+- Nas folhas efetivas, A<sub>eff</sub> em compressão excede A em 0,2 a 0,4 % no 120×1,5 (S280GD) e nos 200×2,0 e 200×2,5. A app limita A<sub>eff</sub> a A.
 - Ligações (DXF "Situações de emenda"):
   - tipo I, emenda simples entre apoios, com l = 200 mm;
   - tipo II, sobreposição simples sobre o apoio, com l = b + 2l' e l' = e + 25 (20 ≤ e ≤ 70 mm, b ≥ 130 mm);
@@ -101,7 +109,7 @@ Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálcul
 
 **C e Z: 22 secções C (C140 a C300) e 19 Z (Z140 a Z300), S220GD a S350GD.**
 - As propriedades brutas do Excel batem, em todas as 41 secções (diferença máxima de 0,07 %), com um modelo de linha média de **cantos vivos**: h − t<sub>nom</sub>, b − t<sub>nom</sub>, a − t<sub>nom</sub>/2, com espessura t<sub>eff</sub>. O raio interior de 5 mm não é considerado.
-- A EN 1993-1-3, 5.1(3), só permite desprezar os cantos se r ≤ 5t e r ≤ 0,10 b<sub>p</sub> em todos os elementos. Nos reforços de 20 mm (b<sub>p</sub> ≈ 14 mm) a segunda condição não se cumpre. Além disso, nas propriedades de rigidez os cantos contam sempre. Com os cantos, A desce cerca de 3 % e I<sub>y</sub> e I<sub>z</sub> descem 4 a 7 %. Quando estas madres entrarem na app, aplica-se a redução δ da 5.1(4): A(1 − δ), I(1 − 2δ), I<sub>w</sub>(1 − 4δ), também às propriedades efetivas (5.1(5)).
+- A EN 1993-1-3, 5.1(3), só permite desprezar os cantos se r ≤ 5t e r ≤ 0,10 b<sub>p</sub> em todos os elementos. Nos reforços de 20 mm (b<sub>p</sub> ≈ 14 mm) a segunda condição não se cumpre. Além disso, nas propriedades de rigidez os cantos contam sempre. Com os cantos, A desce cerca de 3 % e I<sub>y</sub> e I<sub>z</sub> descem 4 a 7 %. A app aplica a redução δ da 5.1(4): A(1 − δ), I(1 − 2δ), I<sub>w</sub>(1 − 4δ), também às propriedades efetivas (5.1(5)).
 - O Z250 aparece nos quadros de furação do PDF, mas não tem propriedades em nenhuma das fontes.
 
 **A perguntar à O Feliz (dt@ofeliz.com):** confirmar os dois erros das folhas de cálculo do Superomega; se as propriedades das C e Z consideram os cantos; propriedades do Z250; rigidez e resistência das sobreposições tipo II e III (EN 1993-1-3, 10.1.3.4); recomendações de tirantes.
@@ -111,7 +119,8 @@ Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálcul
 - Escolher o concelho e obter a zona de neve automaticamente (o NA–4.1(1) da NP EN 1991-1-3 tem a lista completa). A zona de vento não depende do concelho, mas da distância à costa e da altitude.
 - Calcular c<sub>0</sub> pelo Anexo A.3 da NP EN 1991-1-4 (colinas, cadeias de colinas, falésias e escarpas), a partir de H, L<sub>u</sub>, L<sub>d</sub> e da posição do pavilhão em relação à crista.
 - Coberturas de uma água (Quadros 7.3a e 7.3b da NP EN 1991-1-4).
+- Ligações das madres enformadas: parafusos na alma com esquadro e arrancamento das fixações em sucção (EN 1993-1-3, 8.3).
+- Madres que servem de escoras do contraventamento (esforço axial com flexão, EN 1993-1-3, 10.1.4.2 e 6.2).
 - Coberturas em terraço com platibanda ou bordos arredondados (restantes linhas do Quadro 7.2).
 - Situação acidental de neve excecional e acumulação de neve junto a platibandas e desníveis.
-- Madres Z e C a partir dos catálogos, com propriedades efetivas.
 - Fase 3: pórtico de duas águas com bases encastradas.

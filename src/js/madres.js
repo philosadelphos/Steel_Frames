@@ -152,60 +152,10 @@ var Madres = (function () {
     return { lista: lista, escolhido: escolhido };
   }
 
-  /*
-   * Madres em ómega enformadas a frio (catálogo com propriedades da secção bruta).
-   * Só se verifica o que essas propriedades permitem: tensões na secção bruta (limite superior da
-   * resistência, porque ignora a encurvadura local e distorcional) e flechas com Iy bruto.
-   * Nas madres contínuas, o momento sobre os apoios é resistido pela secção sobreposta.
-   */
-  function verificarOmega(sec, fam, cfg) {
-    var e = ESQUEMAS[cfg.esquema];
-    var L = cfg.L, Lseg = L / (cfg.tirantes + 1);
-    var sim = sec.simples, sob = cfg.esquema !== "simples" && sec.sobreposta ? sec.sobreposta : sim;
-    var fRd = fam.fyb / Seccao.GAMMA_M0;
-    var gMadre = sim.G * 9.81 / 1000;
-    var pior = {
-      seccao: { u: 0 }, flecha: { u: 0 }, flechaVar: { u: 0 },
-      bambeamento: { u: 0, naoAvaliado: true }, corte: { u: 0, naoAvaliado: true }
-    };
-    function registar(chave, u, extra) {
-      if (u > pior[chave].u) pior[chave] = Object.assign({ u: u }, extra);
-    }
-    cfg.combELU.forEach(function (c) {
-      var qn = c.qn + gMadre * c.gamaG * cfg.cosAlfa, qt = c.qt + gMadre * c.gamaG * cfg.senAlfa;
-      var es = esforcos(e, qn, c.qnQ || 0, L, c.Pn);
-      var mVao = Math.abs(es.mVao), mApoio = Math.abs(es.mApoio);
-      var Mz = momentoPlano(qt, c.Pt, Lseg);
-      var sVao = mVao * 1e3 / sim.Wy + Mz * 1e3 / sim.Wz;   // MPa (kN·m e cm³)
-      var sApoio = mApoio * 1e3 / sob.Wy;
-      var s = Math.max(sVao, sApoio);
-      registar("seccao", s / fRd, { comb: c.id, sigma: s, My: Math.max(mVao, mApoio), Mz: Mz, noApoio: sApoio > sVao });
-    });
-    var Iy = sim.Iy * 1e4;
-    cfg.combELS.forEach(function (c) {
-      var qn = c.qn + gMadre * cfg.cosAlfa;
-      var d = coefFlecha(e, qn, c.qnQ || 0) * Math.pow(L * 1000, 4) / (E * Iy);
-      var dVar = coefFlecha(e, c.qnVar, c.qnQ || 0) * Math.pow(L * 1000, 4) / (E * Iy);
-      registar("flecha", d / (L * 1000 / LIMITES_FLECHA.max), { comb: c.id, d: d, lim: L * 1000 / LIMITES_FLECHA.max });
-      registar("flechaVar", dVar / (L * 1000 / LIMITES_FLECHA.variaveis), { comb: c.id, d: dVar, lim: L * 1000 / LIMITES_FLECHA.variaveis });
-    });
-    var uMax = Math.max(pior.seccao.u, pior.flecha.u, pior.flechaVar.u);
-    return {
-      omega: true, perfil: { nome: sec.nome }, sec: sec, fam: fam, props: { G: sim.G },
-      fRd: fRd, Lseg: Lseg, sobreposta: sob !== sim, verificacoes: pior, uMax: uMax, ok: uMax <= 1
-    };
-  }
-
-  function dimensionarOmegas(fam, cfg) {
-    var lista = fam.seccoes.map(function (s) { return verificarOmega(s, fam, cfg); })
-      .sort(function (a, b) { return a.props.G - b.props.G; });
-    return { lista: lista, escolhido: lista.filter(function (r) { return r.ok; })[0] || null };
-  }
-
   return {
     ESQUEMAS: ESQUEMAS, LIMITES_FLECHA: LIMITES_FLECHA, E: E, G: G, esforcos: esforcos,
-    momentoCritico: momentoCritico, chiLT: chiLT, verificar: verificar, dimensionar: dimensionar,
-    verificarOmega: verificarOmega, dimensionarOmegas: dimensionarOmegas
+    coefFlecha: coefFlecha, momentoPlano: momentoPlano,
+    momentoCritico: momentoCritico, chiLT: chiLT, verificar: verificar, dimensionar: dimensionar
   };
 })();
 

@@ -40,8 +40,45 @@
       altitude: num("altitude"), altitudeAmbigua: /^\d{1,3}[.,\s\u00a0\u202f]\d{3}$/.test(String(form.elements.altitude.value).trim()), zonaNeve: form.elements.zonaNeve.value, exposicao: form.elements.exposicao.value,
       terreno: form.elements.terreno.value, costa: form.elements.costa.checked, c0: num("c0"),
       cpiMax: num("cpiMax"), cpiMin: num("cpiMin"),
-      aco: form.elements.aco.value
+      aco: form.elements.aco.value,
+      ligacao: form.elements.ligacao.value, sobreposicao: opcional("sobreposicao"),
+      restricao: form.elements.restricao.value, fixacoes: num("fixacoes"), CD: num("cd"), apoio: num("apoio")
     };
+  }
+
+  // Campo que pode ficar vazio (valor desconhecido): devolve 0 nesse caso.
+  function opcional(nome) {
+    return String(form.elements[nome].value).trim() === "" ? 0 : num(nome);
+  }
+
+  // Classes de aço disponíveis para cada tipo de madre.
+  var ACOS_IPE = ["S235", "S275", "S355"];
+  function opcoesAco(tipo, valor) {
+    var lista = tipo === "IPE" ? ACOS_IPE : Enformados.FAMILIAS[tipo].acos;
+    var padrao = tipo === "IPE" ? "S275" : "S350GD";
+    var escolhido = lista.indexOf(valor) >= 0 ? valor : padrao;
+    $("m-aco").innerHTML = lista.map(function (a) {
+      return '<option value="' + a + '"' + (a === escolhido ? " selected" : "") + ">" + a + "</option>";
+    }).join("");
+  }
+
+  // Mostra só os campos que se aplicam ao tipo de madre, ao esquema e à restrição escolhidos.
+  function atualizarCampos(d) {
+    var enformado = d.tipo !== "IPE";
+    $("m-grupo-enformados").hidden = !enformado;
+    $("m-campos-continuidade").hidden = d.esquema === "simples";
+    $("m-campo-sobreposicao").hidden = d.ligacao !== "sobreposicao";
+    $("m-nota-sobreposicao").hidden = d.ligacao !== "sobreposicao";
+    $("m-campo-fixacoes").hidden = d.restricao !== "chapa";
+    $("m-campo-cd").hidden = d.restricao !== "cd";
+    $("m-campo-apoio").hidden = d.tipo !== "Superomega";
+    var nota = d.restricao === "nenhuma"
+      ? "Sem contar com o revestimento, o banzo livre comprimido pela sucção só fica travado nos tirantes: as madres enformadas precisam, em geral, de tirantes ou de um C<sub>D</sub> justificado."
+      : d.restricao === "chapa"
+        ? "Válido com chapa trapezoidal de espessura nominal ≥ 0,66 mm, banzo de fixação ≤ 120 mm e no máximo uma fixação por onda (10.1.5.2(7)). " +
+          (d.tipo === "Superomega" ? "No Superomega não se aplica: o banzo superior tem 44 mm e a fixação fica a menos de 25 mm da alma." : "")
+        : "Rigidez de rotação da ligação revestimento–madre, por metro (10.1.5.2). Para painel sandwich, peça-a ao fabricante do painel.";
+    $("m-nota-restricao").innerHTML = nota;
   }
 
   // Inclinação de cada água a partir das alturas no pilar e a meio vão (medidas do pavimento
@@ -73,6 +110,12 @@
     if (d.esquema === "continua2" && d.comprimento < 2 * d.L) erros.push("Uma madre contínua de 2 vãos precisa de pelo menos 2 vãos entre pórticos (comprimento ≥ 2 L).");
     if (d.esquema === "continua3" && d.comprimento < 3 * d.L) erros.push("Uma madre contínua de 3 ou mais vãos precisa de pelo menos 3 vãos entre pórticos (comprimento ≥ 3 L).");
     if (d.altitudeAmbigua) erros.push("Escreva a altitude sem separador de milhares (por exemplo, 1200).");
+    if (d.tipo !== "IPE") {
+      if (d.esquema !== "simples" && d.ligacao === "sobreposicao" && !(d.sobreposicao >= 0 && d.sobreposicao <= d.L)) erros.push("O comprimento da sobreposição tem de estar entre 0 e o espaçamento entre pórticos (ou ficar vazio, se for desconhecido).");
+      if (d.restricao === "chapa" && !(d.fixacoes >= 0.5 && d.fixacoes <= 10)) erros.push("O número de fixações por metro tem de estar entre 0,5 e 10.");
+      if (d.restricao === "cd" && !(d.CD > 0 && d.CD <= 50)) erros.push("A rigidez C<sub>D</sub> tem de ser positiva (até 50 kN·m/m/rad).");
+      if (d.tipo === "Superomega" && !(d.apoio >= 10 && d.apoio <= 400)) erros.push("A largura de apoio tem de estar entre 10 e 400 mm.");
+    }
     return erros;
   }
 
@@ -101,7 +144,10 @@
       cfg.aco = d.aco;
       dim = Madres.dimensionar(IPE, cfg);
     } else {
-      dim = Madres.dimensionarOmegas(OMEGAS[d.tipo], cfg);
+      dim = Enformados.dimensionar(d.tipo, Object.assign(cfg, {
+        aco: d.aco, ligacao: d.ligacao, sobreposicao: d.sobreposicao, restricao: d.restricao,
+        fixacoes: d.fixacoes, CD: d.CD, apoio: d.apoio
+      }));
     }
     return { d: d, hCumeeira: hCumeeira, ze: ze, zonaVento: zonaVento, area: area, vento: vento, neve: neve, cargas: cargas, comb: comb, dim: dim };
   }
@@ -224,11 +270,30 @@
     flechaVar: { nome: "Flecha das ações variáveis", det: function (v) { return fmt(v.d, 1) + " mm ≤ L/" + Madres.LIMITES_FLECHA.variaveis + " = " + fmt(v.lim, 1) + " mm"; } }
   };
 
-  var NOMES_OMEGA = {
-    seccao: { nome: "Tensões na secção bruta", det: function (v) {
-      return "σ = " + fmt(v.sigma, 0) + " MPa " + (v.noApoio ? "sobre o apoio (secção sobreposta)" : "no vão") + " · limite f<sub>yb</sub>/γ<sub>M0</sub>";
-    } }
+  // Madres enformadas a frio (EN 1993-1-3, 10.1)
+  function kNm(v) { return fmt(Math.abs(v), 2); }
+  var NOMES_EF = {
+    seccao: { nome: "Flexão da secção", det: function (v) {
+      return "M<sub>y,Ed</sub> = " + kNm(v.M) + " kN·m no " + v.onde + ", banzo " + v.banzo + " comprimido" +
+        (v.Mz > 0.005 ? " · M<sub>z,Ed</sub> = " + kNm(v.Mz) : "") + (v.Mfz > 0.0005 ? " · M<sub>fz,Ed</sub> = " + fmt(v.Mfz, 3) + " kN·m no banzo livre" : "");
+    } },
+    banzoLivre: { nome: "Encurvadura do banzo livre", det: function (v) {
+      return "M<sub>y,Ed</sub> = " + kNm(v.M) + " kN·m no " + v.onde + " · l<sub>fz</sub> = " + fmt(v.lfz / 1000, 2) + " m, R = " + fmt(v.R, 2) +
+        ", λ̄<sub>fz</sub> = " + fmt(v.lambda, 2) + ", χ<sub>LT</sub> = " + fmt(v.chi, 3);
+    } },
+    corte: { nome: "Esforço transverso", det: function (v) {
+      return "V<sub>Ed</sub> = " + fmt(v.V, 2) + " kN ≤ V<sub>b,Rd</sub> = " + fmt(v.VbRd, 1) + " kN" +
+        (v.interacao > 0 ? " · interação com o momento (6.27): " + fmt(v.interacao * 100, 0) + " %" : "");
+    } },
+    apoio: { nome: "Reação no apoio (alma)", det: function (v) {
+      return "F<sub>Ed</sub> = " + fmt(v.F, 2) + " kN, R<sub>w,Rd</sub> = " + fmt(v.Rw, 1) + " kN no " + v.onde + " (categoria " + v.categoria +
+        ", l<sub>a</sub> = " + fmt(v.la, 0) + " mm)" + (v.M ? " · com M<sub>Ed</sub> = " + kNm(v.M) + " kN·m (6.28c)" : "") +
+        (v.condicoes ? "" : " · fora das condições (6.17)");
+    } },
+    flecha: NOMES_VERIF.flecha,
+    flechaVar: NOMES_VERIF.flechaVar
   };
+  function nomes(d) { return d.tipo === "IPE" ? NOMES_VERIF : NOMES_EF; }
 
   // Coeficiente com sinal explícito e sinal de menos tipográfico (+0,20, −0,30).
   function coef(v) {
@@ -247,40 +312,57 @@
   }
 
   function linhaVerif(r, k, x) {
-    var nome = (x.naoAvaliado || !r.d || r.d.tipo === "IPE") ? NOMES_VERIF[k].nome : (NOMES_OMEGA[k] || NOMES_VERIF[k]).nome;
-    if (x.naoAvaliado) {
+    var nome = nomes(r.d)[k].nome;
+    function vazio(texto) {
       return '<li class="verif verif-nao"><span class="verif-nome">' + nome + '</span><span class="verif-u">—</span>' + barra(0) +
-        '<span class="verif-det">Não avaliado: exige as propriedades efetivas da secção (EN 1993-1-3), que o catálogo não dá.</span></li>';
+        '<span class="verif-det">' + texto + "</span></li>";
     }
-    if (k === "bambeamento" && !x.comb) {
-      return '<li class="verif"><span class="verif-nome">' + nome + '</span><span class="verif-u">—</span>' + barra(0) +
-        '<span class="verif-det">O banzo inferior não fica comprimido em nenhuma combinação.</span></li>';
-    }
-    var det = (r.d.tipo !== "IPE" && NOMES_OMEGA[k] ? NOMES_OMEGA[k] : NOMES_VERIF[k]).det(x);
+    if (x.naoAplicavel) return vazio("Não se aplica: madre ligada à asna por esquadro aparafusado à alma (10.1.3.2(2)). Os parafusos e o esquadro não são verificados aqui.");
+    if ((k === "bambeamento" || k === "banzoLivre") && !x.comb) return vazio("O banzo inferior não fica comprimido em nenhuma combinação.");
     return '<li class="verif"><span class="verif-nome">' + nome + '</span><span class="verif-u">' + fmt(x.u * 100, 0) + " %</span>" + barra(x.u) +
-      '<span class="verif-det">' + det + " · " + nomeComb(r, x.comb) + "</span></li>";
+      '<span class="verif-det">' + nomes(r.d)[k].det(x) + " · " + nomeComb(r, x.comb) + "</span></li>";
+  }
+
+  function descricaoContinuidade(v) {
+    if (v.continuidade === "nenhuma" || v.continuidade === "total") return "";
+    if (v.continuidade === "total-sobreposicao") return ", sobreposição de " + fmt(v.sobreposicao, 2) + " m nos apoios";
+    return ", continuidade parcial (sobreposição " + (v.sobreposicao ? "de " + fmt(v.sobreposicao, 2) + " m" : "de comprimento desconhecido") + ")";
+  }
+
+  function notaEnformado(v) {
+    var p = v.p, rr = v.restricao, partes = [];
+    partes.push(rr.tipo === "nenhuma"
+      ? "Banzo livre sem restrição do revestimento (K = 0): travado só nos pórticos" + (v.verificacoes.banzoLivre.La ? " e nos tirantes, L<sub>a</sub> = " + fmt(v.verificacoes.banzoLivre.La / 1000, 2) + " m" : "") + "."
+      : "Restrição do revestimento: C<sub>D</sub> = " + fmt(rr.CD / 1000, 3) + " kN·m/m/rad, K = " + fmt(rr.K * 1000, 3) + " N/mm por metro (10.13).");
+    if (rr.nota) partes.push(rr.nota);
+    partes.push("Banzo livre (com 1/5 da alma): A = " + fmt(p.livre.A, 0) + " mm², i<sub>fz</sub> = " + fmt(p.livre.i, 1) + " mm, k<sub>h</sub> = " +
+      fmt(p.kh.gravidade, 3) + " (gravidade) e " + fmt(p.kh.succao, 3) + " (sucção).");
+    if (p.delta) partes.push("Cantos arredondados: δ = " + fmt(p.delta, 4) + " (5.1(4)), aplicado às propriedades do catálogo.");
+    partes.push("f<sub>yb</sub> = " + p.fy + " MPa, W<sub>eff,y</sub> = " + fmt(p.Wpos, 2) + " / " + fmt(p.Wneg, 2) + " cm³ (banzo superior / inferior comprimido), I<sub>eff</sub> = " + fmt(p.Ieff, 1) + " cm⁴.");
+    return '<p class="nota">' + partes.join(" ") + "</p>";
   }
 
   function cartaoResultado(r, v) {
-    var d = r.d, omega = d.tipo !== "IPE";
+    var d = r.d, enformado = d.tipo !== "IPE";
     if (!v) {
-      var maior = omega ? OMEGAS[d.tipo].seccoes[OMEGAS[d.tipo].seccoes.length - 1].nome : "IPE 600";
-      return '<section class="cartao"><h2>Resultado</h2><p class="alerta">Nenhuma secção até à ' + maior + " verifica estas condições. Reduza o espaçamento entre pórticos ou entre madres" + (omega ? "." : ", ou acrescente tirantes.") + "</p></section>";
+      var maior = enformado ? Enformados.seccoes(d.tipo)[Enformados.seccoes(d.tipo).length - 1].nome : "IPE 600";
+      return '<section class="cartao"><h2>Resultado</h2><p class="alerta">Nenhuma secção até à ' + maior + " verifica estas condições. Reduza o espaçamento entre pórticos ou entre madres, ou acrescente tirantes" +
+        (enformado ? " ou a restrição do revestimento" : "") + ".</p></section>";
     }
-    var linhas = Object.keys(NOMES_VERIF).map(function (k) { return linhaVerif(r, k, v.verificacoes[k]); }).join("");
+    var N = nomes(d);
+    var linhas = Object.keys(N).map(function (k) { return linhaVerif(r, k, v.verificacoes[k]); }).join("");
     var condiciona = Object.keys(v.verificacoes).reduce(function (a, b) { return v.verificacoes[a].u >= v.verificacoes[b].u ? a : b; });
-    var nomeCond = (omega && NOMES_OMEGA[condiciona] ? NOMES_OMEGA[condiciona] : NOMES_VERIF[condiciona]).nome.toLowerCase();
+    var nomeCond = N[condiciona].nome.toLowerCase();
     var kgm2 = v.props.G / d.s;
     var selo = !v.ok
       ? '<span class="selo selo-mau">Não verifica · ' + fmt(v.uMax * 100, 0) + " %</span>"
-      : omega ? '<span class="selo selo-aviso">Pré-seleção · ' + fmt(v.uMax * 100, 0) + " %</span>"
       : '<span class="selo selo-ok">Verifica · ' + fmt(v.uMax * 100, 0) + " %</span>";
     var manual = estado.escolhido && v !== r.dim.escolhido;
-    var sub = omega
-      ? OMEGAS[d.tipo].fabricante + " · " + OMEGAS[d.tipo].aco + " · " + Madres.ESQUEMAS[d.esquema].nome.toLowerCase() + (v.sobreposta ? ", sobreposta nos apoios" : "")
+    var sub = enformado
+      ? Enformados.FAMILIAS[d.tipo].descricao + " · " + v.aco + " · " + Madres.ESQUEMAS[d.esquema].nome.toLowerCase() + descricaoContinuidade(v)
       : d.aco + " · " + Madres.ESQUEMAS[d.esquema].nome.toLowerCase();
-    var notaFinal = omega
-      ? '<p class="alerta">Pré-seleção com as propriedades da <b>secção bruta</b> do catálogo ' + OMEGAS[d.tipo].fabricante + ". As secções em ómega de paredes finas são de classe 4: a resistência real é inferior à da secção bruta e depende da encurvadura local e distorcional, que o catálogo não considera. As flechas também foram calculadas com o I<sub>y</sub> bruto, pelo que as reais serão maiores. Confirme a madre com as tabelas de carga ou as propriedades efetivas do fabricante (setor técnico da " + OMEGAS[d.tipo].fabricante + ").</p>"
+    var notaFinal = enformado
+      ? notaEnformado(v)
       : '<p class="nota">Bambeamento: L<sub>cr</sub> = ' + fmt(v.Lseg, 2) + " m entre travamentos, C<sub>1</sub> = " + fmt(v.C1, 3) +
         ", M<sub>cr</sub> = " + fmt(v.Mcr, 1) + " kN·m, λ̄<sub>LT</sub> = " + fmt(v.lt.lambda, 2) + ", curva " + v.lt.curva +
         ", χ<sub>LT</sub> = " + fmt(v.lt.chi, 3) + ", M<sub>b,Rd</sub> = " + fmt(v.MbRd, 1) + " kN·m.</p>";
@@ -288,7 +370,7 @@
       '<div class="cabeca-resultado"><h2 class="nome-perfil">' + v.perfil.nome + "</h2>" +
         '<span class="familia-perfil">' + sub + "</span>" + selo + "</div>" +
       (manual ? '<p class="alerta">Secção escolhida à mão. ' + (r.dim.escolhido
-        ? "A mais leve " + (omega ? "pré-selecionada" : "que verifica") + " é a " + r.dim.escolhido.perfil.nome + "."
+        ? "A mais leve que verifica é a " + r.dim.escolhido.perfil.nome + "."
         : "Nenhuma secção da série verifica estas condições.") + "</p>" : "") +
       '<div class="numeros">' +
         '<div><span class="valor-grande">' + fmt(v.props.G, 2) + " <small>kg/m</small></span><p>peso da madre</p></div>" +
@@ -386,11 +468,36 @@
       var cond = Object.keys(x.verificacoes).reduce(function (a, b) { return x.verificacoes[a].u >= x.verificacoes[b].u ? a : b; });
       return '<li><button type="button" class="candidato candidato-madre" data-nome="' + x.perfil.nome + '" aria-current="' + (x === v) + '">' +
         '<span class="candidato-nome">' + x.perfil.nome + "</span>" +
-        '<span class="candidato-dims">' + fmt(x.props.G, 2) + " kg/m · " + (x.ok ? (x.omega ? "pré-seleção" : "verifica") : "não verifica") + " · " + ((x.omega && NOMES_OMEGA[cond]) ? NOMES_OMEGA[cond] : NOMES_VERIF[cond]).nome.toLowerCase() + "</span>" +
+        '<span class="candidato-dims">' + fmt(x.props.G, 2) + " kg/m · " + (x.ok ? "verifica" : "não verifica") + " · " + nomes(r.d)[cond].nome.toLowerCase() + "</span>" +
         '<span class="candidato-u">' + (x.uMax > 9.99 ? ">999%" : fmt(x.uMax * 100, 0) + "\u00a0%") + "</span>" + barra(x.uMax) + "</button></li>";
     }).join("");
     var titulo = r.d.tipo === "IPE" ? "Perfis IPE comparados" : "Secções " + r.d.tipo + " comparadas";
     return '<section class="cartao"><h2>' + titulo + '</h2><ul class="candidatos">' + itens + "</ul></section>";
+  }
+
+  function hipotesesEnformados(r) {
+    var d = r.d, F = Enformados.FAMILIAS[d.tipo], so = d.tipo === "Superomega";
+    return "<li>Madres " + F.descricao + " em " + d.aco + ", com as propriedades efetivas do fabricante (EN 1993-1-3 e EN 1993-1-5). " +
+        (so ? "Nas folhas de cálculo do fabricante, o I<sub>z</sub> do 120×1,5 e do 120×2,0 e o I<sub>t</sub> do 250×3,0 foram corrigidos pelo catálogo em PDF, coerente com a geometria do desenho."
+          : "O catálogo calcula as propriedades com cantos vivos; aplica-se a redução δ da EN 1993-1-3, 5.1(4): A × (1 − δ), I e W × (1 − 2δ).") + "</li>" +
+      "<li>Verificação pela EN 1993-1-3, 10.1: banzo superior travado pelo revestimento (10.1.1(5) e (6)); banzo inferior livre, com a carga lateral k<sub>h</sub> q da Figura 10.3, o momento M<sub>fz</sub> do Quadro 10.1 e a encurvadura pela 10.1.4.2 (Quadros 10.2a e 10.2b), com o banzo livre formado pelo banzo, o reforço e 1/5 da alma." +
+        (so ? " Na ómega, simétrica e carregada no eixo, k<sub>h</sub> = 0." : "") + "</li>" +
+      "<li>Restrição do revestimento: " + (r.dim.lista[0] && !r.dim.lista[0].restricao.valida ? "a regra C<sub>D,A</sub> = 130 p não se aplica a esta madre (fixação a menos de 25 mm da alma, 10.1.5.2(7)): usa-se K = 0."
+        : d.restricao === "nenhuma" ? "nenhuma (K = 0), do lado da segurança." : d.restricao === "chapa" ? "C<sub>D,A</sub> = 130 p, p = " + fmt(d.fixacoes, 1) + " fixações por metro (10.1.5.2(7)), sem C<sub>D,C</sub>; K pela (10.13) com b<sub>mod</sub> = 2a + b e a fixação a meio do banzo." : "C<sub>D</sub> = " + fmt(d.CD, 2) + " kN·m/m/rad, indicado pelo fabricante do revestimento; K pela (10.13) com b<sub>mod</sub> = 2a + b.") + "</li>" +
+      "<li>Sem o Anexo Nacional português da EN 1993-1-3, usam-se os valores recomendados: γ<sub>M0</sub> = γ<sub>M1</sub> = 1,0 e χ<sub>LT</sub> do banzo livre pela EN 1993-1-1, 6.3.2.3, com a curva b, λ̄<sub>LT,0</sub> = 0,4 e β = 0,75 (nota de 10.1.4.2(1)).</li>" +
+      (d.esquema !== "simples"
+        ? "<li>Continuidade nos apoios intermédios: " + (d.ligacao === "continua" ? "madre contínua, sem emenda." :
+          "sobreposição " + (d.sobreposicao ? "de " + fmt(d.sobreposicao, 2) + " m (medida)" : "de comprimento desconhecido") +
+          ". Com 0,1 L ou mais para cada lado conta como contínua, com secção dupla no apoio e a secção simples verificada no fim da sobreposição; mais curta ou desconhecida, o vão verifica-se também como simplesmente apoiado e as flechas calculam-se assim (10.1.3.4). Nas sobreposições, o comprimento de encurvadura do banzo livre usa o Quadro 10.2a para 3 tirantes (10.1.4.2(3)).") + "</li>"
+        : "") +
+      "<li>Esforço transverso pela 6.1.5, com λ̄<sub>w</sub> da (6.10a) calculado com a altura desenvolvida da alma, e interação com o momento pela (6.27) com M<sub>f,Rd</sub> = 0.</li>" +
+      (so
+        ? "<li>Madre apoiada na asna pelas abas, sem esquadro: esmagamento da alma pela 6.1.7.3 (secções em ómega), categoria 1 nos apoios extremos (l<sub>a</sub> = 10 mm) e 2 nos intermédios (l<sub>a</sub> = largura de apoio, até 200 mm), e interação com o momento pela 6.1.11. É uma aproximação: as dobras da alma do Superomega não cumprem as condições da 6.1.7.4. A madre deve prolongar-se pelo menos 40 mm para lá do apoio.</li>"
+        : "<li>Madre ligada à asna por esquadro aparafusado à alma: o esmagamento da alma não se verifica (10.1.3.2(2)).</li>") +
+      "<li>Flechas com I<sub>eff</sub>, o menor dos dois sentidos da flexão, calculado pelo fabricante para f<sub>yb</sub> (do lado da segurança, 7.1(3)).</li>" +
+      "<li>A componente da carga no plano da cobertura é resistida pela madre em flexão em torno de z (W<sub>z,eff</sub>) entre tirantes, somada às tensões da flexão principal (do lado da segurança).</li>" +
+      "<li>Não verificados: ligações aparafusadas (emendas, apoios e arrancamento das fixações em sucção), esforço axial nas madres que servem de escoras do contraventamento" +
+        (so ? " e o reforço do vão extremo, que o fabricante exige com 6 ou mais vãos" : "") + ".</li>";
   }
 
   function cartaoHipoteses(r) {
@@ -399,12 +506,9 @@
       (d.tipo === "IPE"
         ? "<li>Madres de perfis IPE laminados, com o eixo forte normal à cobertura e o revestimento fixado ao banzo superior, que fica travado lateralmente. Esse travamento admite-se como na BB.2.1 da NP EN 1993-1-1: chapa trapezoidal ligada à madre em todas as nervuras, com rigidez de corte S que cumpra a expressão (BB.2). Com painel sandwich, ou com fixação pela crista, confirme essa rigidez com o fabricante do revestimento (ver também a EN 1993-1-3, 10.1.1(5)). Sem ela, o banzo superior comprimido sob a gravidade também tem de ser verificado ao bambeamento, o que a app não faz.</li>" +
           "<li>Bambeamento do banzo inferior verificado pelo caso geral da EC3 (6.3.2.2) entre travamentos (tirantes ou escoras), com z<sub>g</sub> = 0 e sem contar com a restrição do revestimento. São hipóteses do lado da segurança.</li>"
-        : "<li>Madres " + d.tipo + " (" + OMEGAS[d.tipo].fabricante + ", " + OMEGAS[d.tipo].aco + ", f<sub>yb</sub> = " + OMEGAS[d.tipo].fyb + " MPa) com as propriedades da secção bruta do catálogo. Nas madres contínuas, a secção sobreposta resiste ao momento sobre os apoios" + (OMEGAS[d.tipo].seccoes[0].sobreposta ? "" : " (sem dados de sobreposição neste catálogo, usa-se a secção simples)") + ".</li>" +
-          "<li>Flechas calculadas com o I<sub>y</sub> bruto da secção simples. A componente no plano da cobertura é resistida por flexão em torno de z (W<sub>z,min</sub>) entre travamentos.</li>" +
-          "<li>Não avaliados: encurvadura local e distorcional, bambeamento do banzo inferior sob sucção (EN 1993-1-3, 10.1), esforço transverso, esmagamento da alma nos apoios e ligações aparafusadas.</li>") +
+        : hipotesesEnformados(r)) +
       "<li>Madres contínuas: cargas permanentes, neve e vento em todos os vãos; a sobrecarga de cobertura nos vãos mais desfavoráveis (alternância).</li>" +
       "<li>Na combinação com o vento em sucção só o revestimento e a madre contam como carga permanente favorável; as instalações suspensas não.</li>" +
-      (d.tipo !== "IPE" && d.esquema !== "simples" ? "<li>Sobreposição sobre os apoios de pelo menos " + (d.esquema === "continua2" ? "0,10 L" : "0,05 L") + " para cada lado. Com sobreposições menores, a secção simples no fim da sobreposição tem de ser verificada à parte.</li>" : "") +
       "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
         ", interpolados para A = s × L. c<sub>pi</sub> = " + coef(d.cpiMax) + " e " + coef(d.cpiMin) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1.</li>" +
       "<li>Orografia: c<sub>0</sub> = " + fmt(d.c0, 2) + (d.c0 === 1 ? ", válido em terreno plano (declive médio a barlavento inferior a 3°, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, q<sub>p</sub> pode aumentar muito: calcule c<sub>0</sub> pelo Anexo A.3." : ", introduzido pelo utilizador (Anexo A.3 ou estudo específico).") +
@@ -424,7 +528,7 @@
     $("m-inclinacao").innerHTML = (isFinite(d.alfa)
       ? "Inclinação calculada: <b>α = " + fmt(d.alfa, 1) + "°</b>\u00a0(" + fmt(Math.tan(d.alfa * Math.PI / 180) * 100, 1) + "\u00a0%). "
       : "") + "Alturas medidas do pavimento à face inferior da cobertura.";
-    $("m-campo-aco").hidden = d.tipo !== "IPE";
+    atualizarCampos(d);
     var erros = validar(d);
     var zona = d.costa || d.altitude > 600 ? "B" : "A";
     $("m-zona-vento").innerHTML = "Zona de vento <b>" + zona + "</b> (v<sub>b,0</sub> = " + Acoes.VENTO_VB0[zona] + " m/s). A zona B aplica-se a menos de 5 km da costa ou acima de 600 m de altitude.";
@@ -447,18 +551,19 @@
     $("m-revestimento").innerHTML = REVESTIMENTOS.map(function (x) {
       return '<option value="' + x.id + '">' + x.nome + (x.g !== null ? " · " + fmt(x.g, 2) + " kN/m²" : "") + "</option>";
     }).join("");
-    $("m-aco").innerHTML = ["S235", "S275", "S355"].map(function (a) {
-      return '<option value="' + a + '"' + (a === "S275" ? " selected" : "") + ">" + a + "</option>";
-    }).join("");
+    opcoesAco("IPE", "S275");
     form.elements.grev.value = REVESTIMENTOS[0].g.toFixed(2).replace(".", ",");
     var padrao = Memoria.doFormulario(form);
     var guardado = Memoria.ler("madres");
     if (guardado) {
       Memoria.paraFormulario(form, guardado);
+      // A lista de classes de aço depende do tipo de madre guardado.
+      opcoesAco(form.elements.tipo.value, guardado.aco);
       $("m-nota-exemplo").hidden = true;
     }
     $("repor-madres").addEventListener("click", function () {
       Memoria.paraFormulario(form, padrao);
+      opcoesAco(padrao.tipo, padrao.aco);
       Memoria.apagar("madres");
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = false;
@@ -473,6 +578,7 @@
         else form.elements.grev.focus();
       }
       if (e.target.name === "grev") form.elements.revestimento.value = "outro";
+      if (e.target.name === "tipo") opcoesAco(e.target.value, form.elements.aco.value);
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = true;
       Memoria.gravar("madres", Memoria.doFormulario(form));

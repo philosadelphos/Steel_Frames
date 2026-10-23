@@ -17,5 +17,7 @@ jobs:
         run: node testes/verificar.js
       - name: Ações e madres
         run: node testes/madres.js
+      - name: Madres enformadas a frio e dados O Feliz
+        run: node testes/enformados.js
       - name: index.html gerado a partir de src/
         run: node ferramentas/construir.js --verificar

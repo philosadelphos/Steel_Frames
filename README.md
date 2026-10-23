@@ -33,13 +33,16 @@ Pré-dimensionamento de madres de uma cobertura de duas águas em Portugal conti
 - **Esquiços:** planta com a faixa de influência da madre e corte com as cargas de gravidade e de sucção.
 - **Combinações:** ELU e características da NP EN 1990, incluindo a **sucção do vento**, que comprime o banzo inferior das madres.
 - **Madres IPE:** verificação completa (flexão desviada, bambeamento, esforço transverso, flechas L/200 e L/250) e escolha do perfil mais leve.
-- **Madremax e Omegamax (Constálica):** pré-seleção com as propriedades do catálogo. Ver os limites em [Pendentes](docs/pendentes.md).
+- **Madres enformadas a frio da O Feliz (Superomega®, C e Z):** verificação pela EN 1993-1-3, 10.1, com as propriedades efetivas do fabricante:
+  - flexão com o banzo superior travado pelo revestimento e o banzo inferior livre (carga lateral k<sub>h</sub> q e encurvadura do banzo livre);
+  - restrição do revestimento opcional (C<sub>D</sub>), corte e, no Superomega apoiado pelas abas, reação no apoio;
+  - continuidade nos apoios: madre contínua ou sobreposição (empalme), com o comprimento medido como dado opcional.
 
 <p align="center"><img src="docs/imagens/esquicos.png" alt="Esquiços da planta e do corte com as cargas" width="560"> <img src="docs/imagens/telemovel.png" alt="Resultado no telemóvel" width="260"></p>
 
 ### Catálogo
 
-Tabelas completas das séries IPE, HEA, HEB e HEM (calculadas a partir das dimensões da EN 10365) e das madres Madremax e Omegamax (valores do catálogo do fabricante).
+Tabelas completas das séries IPE, HEA, HEB e HEM (calculadas a partir das dimensões da EN 10365) e das madres Superomega, C e Z da O Feliz (valores do fabricante).
 
 ## Normas e fontes
 
@@ -53,14 +56,14 @@ Tabelas completas das séries IPE, HEA, HEB e HEM (calculadas a partir das dimen
 | Sobrecarga de cobertura | NP EN 1991-1-1:2009 + Anexo Nacional |
 | Combinações de ações | NP EN 1990:2009 + Anexo Nacional |
 | Torção e momento crítico | SCI P363 · NCCI SN003 |
-| Madremax e Omegamax | Catálogos Constálica (MKC002_0219, MKC003_0118) |
+| Madres enformadas a frio | EN 1993-1-3:2006 (valores recomendados, sem Anexo Nacional português) · catálogos e desenhos O Feliz (Superomega®, madres C e Z) |
 
 As propriedades dos perfis laminados são calculadas a partir das dimensões nominais e coincidem com os catálogos ArcelorMittal (diferenças inferiores a 0,5 %). Os valores dos Anexos Nacionais foram conferidos com o texto das NP EN 1990, 1991-1-1, 1991-1-3, 1991-1-4 e 1993-1-1. A lista, com a cláusula de cada valor e o que ainda falta fazer, está em **[docs/pendentes.md](docs/pendentes.md)**.
 
 ## Plano
 
 1. Identificação de perfis *(feito)*.
-2. Madres de cobertura em IPE *(feito)*, Madremax e Omegamax em pré-seleção *(feito)*. A seguir: propriedades efetivas das ómegas, madres Z e C e coberturas de uma água.
+2. Madres de cobertura em IPE *(feito)* e em Superomega, C e Z da O Feliz *(feito)*. A seguir: cálculo de c<sub>0</sub> pelo Anexo A.3, zona de neve pelo concelho e coberturas de uma água.
 3. **Pórtico de duas águas** com bases encastradas: esforços na travessa e nos pilares, flexão composta com encurvadura e bambeamento (EC3 6.3.3), deslocamentos.
 4. Pilares de empena, madres de fachada e contraventamentos, com UPN, cantoneiras e tubos SHS/RHS/CHS.
 5. Medição sobre fotografia: calibrar a escala com um objeto de dimensão conhecida e marcar os pontos do perfil.
@@ -77,14 +80,17 @@ src/index.html           interface
 src/css/style.css        estilos (tema claro e escuro)
 src/js/perfis.js         dimensões nominais dos perfis (EN 10365)
 src/js/seccao.js         propriedades e verificações do Eurocódigo 3
-src/js/omegas.js         madres Madremax e Omegamax (catálogo Constálica)
+src/js/ofeliz.js         dados O Feliz: Superomega, C e Z (gerado)
 src/js/acoes.js          neve, vento e combinações (Anexos Nacionais)
-src/js/madres.js         verificação e escolha de madres
+src/js/madres.js         verificação e escolha de madres IPE
+src/js/enformados.js     madres enformadas a frio (EN 1993-1-3, 10.1)
 src/js/app.js            interface: identificação e catálogo
 src/js/vista-madres.js   interface: madres de cobertura
 ferramentas/construir.js gera index.html a partir de src/
+ferramentas/dados_ofeliz.py gera src/js/ofeliz.js a partir dos ficheiros do fabricante
 testes/verificar.js      propriedades contra valores de catálogo
-testes/madres.js         ações, madres e coerência dos dados Madremax
+testes/madres.js         ações e madres IPE
+testes/enformados.js     madres enformadas a frio e dados O Feliz
 docs/pendentes.md        valores a conferir com as normas e próximos passos
 ```
 
@@ -94,6 +100,7 @@ O código edita-se em `src/`, e durante o desenvolvimento pode abrir-se `src/ind
 node ferramentas/construir.js
 node testes/verificar.js
 node testes/madres.js
+node testes/enformados.js
 ```
 
 O GitHub Actions corre as mesmas verificações em cada Pull Request e falha se `index.html` não tiver sido gerado de novo.

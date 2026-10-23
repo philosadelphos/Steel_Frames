@@ -11,11 +11,12 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
   ```
   node ferramentas/construir.js      # gera index.html
   node testes/verificar.js           # propriedades dos perfis contra catálogo
-  node testes/madres.js              # ações, madres e dados das ómegas
+  node testes/madres.js              # ações e madres IPE
+  node testes/enformados.js          # madres enformadas a frio e dados O Feliz
   ```
-- O CI (`.github/workflows/verificar.yml`) corre os dois testes e `node ferramentas/construir.js --verificar`, que falha se o `index.html` não tiver sido gerado de novo.
+- O CI (`.github/workflows/verificar.yml`) corre os três testes e `node ferramentas/construir.js --verificar`, que falha se o `index.html` não tiver sido gerado de novo.
 - Fluxo de trabalho: ramo novo a partir da `main` → commits → Pull Request → o utilizador faz merge → o Pages atualiza sozinho.
-- `src/js/`: `perfis.js` (dimensões EN 10365), `seccao.js` (propriedades e EC3), `omegas.js` (catálogos Constálica), `acoes.js` (neve, vento, combinações), `madres.js` (verificação de madres), `app.js` (Identificar e Catálogo, memória dos formulários), `vista-madres.js` (separador Madres).
+- `src/js/`: `perfis.js` (dimensões EN 10365), `seccao.js` (propriedades e EC3), `ofeliz.js` (dados O Feliz, gerado por `ferramentas/dados_ofeliz.py`), `acoes.js` (neve, vento, combinações), `madres.js` (madres IPE), `enformados.js` (madres enformadas a frio, EN 1993-1-3), `app.js` (Identificar e Catálogo, memória dos formulários), `vista-madres.js` (separador Madres).
 
 ## Convenções da interface
 
@@ -37,11 +38,16 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
 - Orografia: c<sub>0</sub> introduzido pelo utilizador (1,0 em terreno plano). A antiga opção "vale ou estuário → zona B" foi retirada porque não consta do AN (vinha do RSA).
 - Normas e catálogos de fabricantes ficam em `docs/normas/` e `docs/catalogos/`, fora do git. Não há AN português da EN 1993-1-3 (só a BS EN 1993-1-3:2006): usar os valores recomendados e assinalá-los.
 - Catálogos O Feliz conferidos (ver `docs/pendentes.md`, secção 3): no Superomega, usar os valores do PDF onde o Excel diverge (I<sub>z</sub> 120×1,5 e 120×2,0, I<sub>t</sub> 250×3,0); nas C e Z, aplicar a redução δ da EN 1993-1-3, 5.1(4), porque o catálogo despreza os cantos arredondados.
-- Proposta, ainda por confirmar na fase Superomega/C/Z: banzo livre das madres enformadas a frio (EN 1993-1-3, 10.1) com K = 0, sem contar com a rigidez do revestimento (lado da segurança, como nos IPE).
-- Madremax e Omegamax (Constálica): os catálogos só têm a secção bruta e as secções são de classe 4, por isso a app faz **pré-seleção** (flechas e tensões na secção bruta) e marca o resto como "não avaliado". Falta pedir à Constálica as propriedades efetivas ou tabelas de cargas.
+- Madremax e Omegamax (Constálica) foram retiradas (catálogos só com a secção bruta) e substituídas pelas madres O Feliz: Superomega, C e Z, com propriedades efetivas.
+- Madres enformadas a frio pela EN 1993-1-3, 10.1 (`enformados.js`):
+  - banzo livre = banzo + reforço + 1/5 da alma; k<sub>h</sub> da Figura 10.3 (0 na ómega); M<sub>fz</sub> = κ<sub>R</sub> q<sub>h</sub> L<sub>a</sub>²/8; l<sub>fz</sub> pelos Quadros 10.2a/b, com o máximo de vão extremo e interior;
+  - restrição do revestimento: K = 0 por omissão (do lado da segurança); opções 130 p (10.1.5.2(7), não aplicável ao Superomega porque o banzo superior tem 44 mm) e C<sub>D</sub> do fabricante, com K pela (10.13) e b<sub>mod</sub> = 2a + b;
+  - continuidade: madre contínua; sobreposição ≥ 0,1 L para cada lado = contínua com secção dupla no apoio e verificação da secção simples no fim da sobreposição; mais curta ou desconhecida = parcial (vão e flechas também como simplesmente apoiada; Quadro 10.2a para 3 tirantes);
+  - Superomega apoiado pelas abas: esmagamento da alma pela 6.1.7.3 (aproximação, as dobras não cumprem a 6.1.7.4) e 6.1.11; C e Z com esquadro: sem esmagamento (10.1.3.2(2));
+  - corte pela (6.10a) com a altura desenvolvida; M + V pela (6.27) com M<sub>f,Rd</sub> = 0; flechas com I<sub>eff</sub> mínimo.
 
 ## Próximos passos combinados
 
 1. **Fase 3: pórtico de duas águas com bases encastradas** (pavilhões industriais, Portugal continental, sem pontes rolantes na primeira versão): esforços na travessa e nos pilares, flexão composta com encurvadura e bambeamento (EC3 6.3.3), deslocamentos. Reutilizar as ações de `acoes.js`.
-2. Madres Z e C: precisam de um catálogo com propriedades efetivas, ou do cálculo da secção efetiva pela EN 1993-1-3 a partir das dimensões.
+2. Cálculo de c<sub>0</sub> pelo Anexo A.3 e zona de neve pelo concelho (ver `docs/pendentes.md`).
 3. Ideias anotadas em `docs/pendentes.md`.
