@@ -236,38 +236,35 @@
   }
 
   // ----- Catálogo -----
-  // Tabela das madres em ómega: valores do catálogo do fabricante, sem cálculo.
-  function renderCatalogoOmega(fam) {
-    var f = OMEGAS[fam];
-    $("catalogo-desc").textContent = fam + " · " + f.descricao + " · " + f.fabricante +
-      " · propriedades da secção bruta, tal como no catálogo (sem efeitos de encurvadura)";
-    var colunas = [
-      ["Secção", ""], ["Disposição", ""], ["H", "mm"], ["b<sub>1</sub>", "mm"], ["b<sub>2</sub>", "mm"], ["b<sub>3</sub>", "mm"],
-      ["t", "mm"], ["G", "kg/m"], ["A", "cm²"], ["I<sub>y</sub>", "cm⁴"], ["W<sub>y,min</sub>", "cm³"], ["i<sub>y</sub>", "cm"],
-      ["I<sub>z</sub>", "cm⁴"], ["W<sub>z,min</sub>", "cm³"], ["i<sub>z</sub>", "cm"]
-    ];
-    var NOMES = { simples: "simples", sobreposta: "sobreposta", dupla: "dupla" };
+  // Tabela das madres O Feliz: valores do fabricante, sem cálculo (W efetivos em S350GD).
+  var FAMILIAS_OFELIZ = ["Superomega", "C", "Z"];
+  function renderCatalogoOFeliz(fam) {
+    var so = fam === "Superomega";
+    $("catalogo-desc").innerHTML = Enformados.FAMILIAS[fam].descricao + " · propriedades do fabricante, com a espessura de cálculo t<sub>eff</sub>" +
+      " · W<sub>eff,y</sub> em S350GD" + (so ? " (+: banzo superior comprimido)" : "") +
+      (so ? "" : " · na verificação, as propriedades são reduzidas pelo efeito dos cantos arredondados (EN 1993-1-3, 5.1(4))");
+    var colunas = [["Secção", ""], ["h", "mm"], ["b", "mm"]].concat(so ? [] : [["a", "mm"]]).concat([
+      ["t", "mm"], ["t<sub>eff</sub>", "mm"], ["G", "kg/m"], ["A", "cm²"], ["I<sub>y</sub>", "cm⁴"], ["I<sub>z</sub>", "cm⁴"],
+      ["I<sub>t</sub>", "cm⁴"], ["I<sub>w</sub>", "cm⁶"]]).concat(so
+      ? [["W<sub>eff,y+</sub>", "cm³"], ["W<sub>eff,y−</sub>", "cm³"]]
+      : [["W<sub>eff,y</sub>", "cm³"]]);
     var cab = "<thead><tr>" + colunas.map(function (c) {
       return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>";
     }).join("") + "</tr></thead>";
-    // Como no catálogo: uma ou duas casas decimais, sem acrescentar zeros.
-    var f12 = new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
-    function valor(v) { return v === null || v === undefined ? "—" : f12.format(v); }
-    var corpo = f.seccoes.map(function (sec) {
-      return ["simples", "sobreposta", "dupla"].filter(function (k) { return sec[k]; }).map(function (k, i) {
-        var x = sec[k];
-        return '<tr class="linha-omega"><td>' + (i === 0 ? sec.nome : "") + "</td><td>" + NOMES[k] + "</td><td>" +
-          [valor(x.H), valor(x.b1), valor(x.b2), valor(x.b3), valor(x.t), valor(x.G), valor(x.A / 100),
-            valor(x.Iy), valor(x.Wy), valor(x.iy), valor(x.Iz), valor(x.Wz), valor(x.iz)].join("</td><td>") + "</td></tr>";
-      }).join("");
+    var corpo = Enformados.seccoes(fam).map(function (s) {
+      var ef = s.ef.S350GD;
+      var v = [fmt(s.h, 0), fmt(s.b, 0)].concat(so ? [] : [fmt(s.a, 0)]).concat([fmt(s.t, 1), fmt(s.teff, 2), fmt(s.G, 2), fmt(s.A, 2),
+        fmt(s.Iy), fmt(s.Iz), fmt(s.It, 4), fmt(s.Iw)]).concat(so ? [fmt(ef[2], 2), fmt(ef[4], 2)] : [fmt(ef[2], 2)]);
+      return '<tr class="linha-omega"><td>' + s.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
     }).join("");
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
   }
 
   function renderCatalogo() {
     var fam = estado.familiaCatalogo;
-    $("catalogo-ajuda").hidden = !!OMEGAS[fam];
-    if (OMEGAS[fam]) { renderCatalogoOmega(fam); return; }
+    var ofeliz = FAMILIAS_OFELIZ.indexOf(fam) >= 0;
+    $("catalogo-ajuda").hidden = ofeliz;
+    if (ofeliz) { renderCatalogoOFeliz(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
     var colunas = [
       ["Perfil", ""], ["h", "mm"], ["b", "mm"], ["t<sub>w</sub>", "mm"], ["t<sub>f</sub>", "mm"], ["r", "mm"],
@@ -319,7 +316,7 @@
     $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
       return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
     }).join("");
-    $("fichas-catalogo").innerHTML = FAMILIAS.concat(Object.keys(OMEGAS)).map(function (f) {
+    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_OFELIZ).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
     }).join("");
     $("in-aco").innerHTML = Object.keys(Seccao.ACOS).map(function (a) {

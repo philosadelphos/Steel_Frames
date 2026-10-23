@@ -1,5 +1,5 @@
 /*
- * Verificações do motor de ações e do dimensionamento de madres.
+ * Verificações do motor de ações e do dimensionamento de madres IPE.
  * Correr com: node testes/madres.js
  */
 global.PERFIS = require("../src/js/perfis.js");
@@ -95,41 +95,6 @@ var vc = Madres.verificar(ipe120, pr120, {
   combELU: [{ id: "g", qn: 2, qt: 0 }], combELS: [{ id: "g", qn: 1.4, qnVar: 1 }]
 });
 perto("contínua 2 vãos: momento no apoio qL²/8 verificado ao bambeamento", vc.verificacoes.bambeamento.My, 6.25);
-
-// Ómegas Constálica: coerência interna das tabelas transcritas do catálogo.
-var OMEGAS = require("../src/js/omegas.js");
-Object.keys(OMEGAS).forEach(function (fam) {
-  OMEGAS[fam].seccoes.forEach(function (s) {
-    var x = s.simples;
-    perto(fam + " " + s.nome + ": iy = √(Iy/A)", x.iy, Math.sqrt(x.Iy * 1e4 / x.A) / 10, 0.01);
-    // O próprio catálogo tem diferenças até 1,4 % entre G e A (Ω150×1,5 e Ω200×2,0), confirmadas no PDF.
-    perto(fam + " " + s.nome + ": G ≈ A × 7850 kg/m³", x.G, x.A * 1e-6 * 7850, 0.02);
-    if (s.sobreposta) {
-      perto(fam + " " + s.nome + ": Iy sobreposta = 2 × simples", s.sobreposta.Iy, 2 * x.Iy, 0.001);
-      perto(fam + " " + s.nome + ": A sobreposta = 2 × simples", s.sobreposta.A, 2 * x.A, 0.002);
-      perto(fam + " " + s.nome + ": Iz dupla = Iz sobreposta", s.dupla.Iz, s.sobreposta.Iz, 0.001);
-    }
-    if (x.y1) perto(fam + " " + s.nome + ": Wy,min ≈ Iy / max(y1, H − y1)", x.Wy, x.Iy * 10 / Math.max(x.y1, x.H - x.y1), 0.025);
-  });
-});
-// Omegamax = Madremax simples nas mesmas dimensões
-perto("Omegamax 200 = Madremax Ω200×1,5 (Iy)", OMEGAS.Omegamax.seccoes[3].simples.Iy, OMEGAS.Madremax.seccoes[3].simples.Iy, 1e-9);
-
-// Madre Ω100×1,5 simplesmente apoiada, L = 5 m, qn = 1 kN/m (sem peso próprio: gamaG = 0)
-var om100 = OMEGAS.Madremax.seccoes[1];
-var vo = Madres.verificarOmega(om100, OMEGAS.Madremax, {
-  L: 5, esquema: "simples", tirantes: 0, cosAlfa: 1, senAlfa: 0,
-  combELU: [{ id: "x", qn: 1, qt: 0, gamaG: 0 }], combELS: []
-});
-perto("Ω100×1,5: σ = M/Wy,min (MPa)", vo.verificacoes.seccao.sigma, 3.125e6 / 11.3e3, 0.001);
-perto("Ω100×1,5: utilização σ/fyb", vo.verificacoes.seccao.u, 3.125e6 / 11.3e3 / 350, 0.001);
-var voc = Madres.verificarOmega(om100, OMEGAS.Madremax, {
-  L: 5, esquema: "continua2", tirantes: 0, cosAlfa: 1, senAlfa: 0,
-  combELU: [{ id: "x", qn: 1, qt: 0, gamaG: 0 }], combELS: []
-});
-igual("Ω100×1,5 contínua: usa a secção sobreposta nos apoios", voc.sobreposta, true);
-perto("Ω100×1,5 contínua: governa o vão (9/128 qL² / Wy simples)", voc.verificacoes.seccao.sigma, 9 / 128 * 25 * 1e3 / 11.3, 0.001);
-igual("ómegas: bambeamento marcado como não avaliado", voc.verificacoes.bambeamento.naoAvaliado, true);
 
 // Sobrecarga em alternância nas madres contínuas (só a parte qnQ).
 var e2 = Madres.ESQUEMAS.continua2, e3 = Madres.ESQUEMAS.continua3;
