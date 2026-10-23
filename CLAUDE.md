@@ -36,6 +36,8 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
 - Carga concentrada Q<sub>k</sub> = 1,0 kN da categoria H verificada à parte (6.3.4.2(3)P), só no ELU.
 - Orografia: c<sub>0</sub> introduzido pelo utilizador (1,0 em terreno plano). A antiga opção "vale ou estuário → zona B" foi retirada porque não consta do AN (vinha do RSA).
 - Normas e catálogos de fabricantes ficam em `docs/normas/` e `docs/catalogos/`, fora do git. Não há AN português da EN 1993-1-3 (só a BS EN 1993-1-3:2006): usar os valores recomendados e assinalá-los.
+- Catálogos O Feliz conferidos (ver `docs/pendentes.md`, secção 3): no Superomega, usar os valores do PDF onde o Excel diverge (I<sub>z</sub> 120×1,5 e 120×2,0, I<sub>t</sub> 250×3,0); nas C e Z, aplicar a redução δ da EN 1993-1-3, 5.1(4), porque o catálogo despreza os cantos arredondados.
+- Proposta, ainda por confirmar na fase Superomega/C/Z: banzo livre das madres enformadas a frio (EN 1993-1-3, 10.1) com K = 0, sem contar com a rigidez do revestimento (lado da segurança, como nos IPE).
 - Madremax e Omegamax (Constálica): os catálogos só têm a secção bruta e as secções são de classe 4, por isso a app faz **pré-seleção** (flechas e tensões na secção bruta) e marca o resto como "não avaliado". Falta pedir à Constálica as propriedades efetivas ou tabelas de cargas.
 
 ## Próximos passos combinados

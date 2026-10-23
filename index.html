@@ -520,7 +520,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
         <p class="nota" id="m-zona-vento"></p>
         <label class="campo" for="m-c0"><span>Coeficiente de orografia c<sub>0</sub></span>
           <span class="entrada"><input id="m-c0" name="c0" type="text" inputmode="decimal" min="1" max="2" step="0.05" value="1,0"></span></label>
-        <p class="nota">c<sub>0</sub> = 1,0 em terreno plano: declive médio a barlavento inferior a 3° (NP EN 1991-1-4, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, calcule c<sub>0</sub> pelo Anexo A.3. Em vales onde o vento possa ser afunilado, é preciso um estudo específico (A.3(4) e NA–4.3.3(1)).</p>
+        <p class="nota">c<sub>0</sub> = 1,0 em terreno plano: declive médio a barlavento inferior a 3° (NP EN 1991-1-4, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, calcule c<sub>0</sub> pelo Anexo A.3. Em vales onde o vento possa ser afunilado, ou com orografia complexa, a norma remete para parecer técnico ou ensaio (A.3(4) e NA–4.3.3(1)): a app não trata esses casos, mas aceita aqui um c<sub>0</sub> que esteja justificado.</p>
       </fieldset>
 
       <label class="campo" for="m-aco" id="m-campo-aco"><span>Classe do aço (IPE)</span>
@@ -2174,7 +2174,7 @@ if (typeof module !== "undefined") module.exports = Madres;
     var d = r.d;
     return '<section class="cartao"><h2>Hipóteses</h2><ul class="hipoteses">' +
       (d.tipo === "IPE"
-        ? "<li>Madres de perfis IPE laminados, com o eixo forte normal à cobertura e o revestimento fixado ao banzo superior, que fica travado lateralmente.</li>" +
+        ? "<li>Madres de perfis IPE laminados, com o eixo forte normal à cobertura e o revestimento fixado ao banzo superior, que fica travado lateralmente. Esse travamento admite-se como na BB.2.1 da NP EN 1993-1-1: chapa trapezoidal ligada à madre em todas as nervuras, com rigidez de corte S que cumpra a expressão (BB.2). Com painel sandwich, ou com fixação pela crista, confirme essa rigidez com o fabricante do revestimento (ver também a EN 1993-1-3, 10.1.1(5)). Sem ela, o banzo superior comprimido sob a gravidade também tem de ser verificado ao bambeamento, o que a app não faz.</li>" +
           "<li>Bambeamento do banzo inferior verificado pelo caso geral da EC3 (6.3.2.2) entre travamentos (tirantes ou escoras), com z<sub>g</sub> = 0 e sem contar com a restrição do revestimento. São hipóteses do lado da segurança.</li>"
         : "<li>Madres " + d.tipo + " (" + OMEGAS[d.tipo].fabricante + ", " + OMEGAS[d.tipo].aco + ", f<sub>yb</sub> = " + OMEGAS[d.tipo].fyb + " MPa) com as propriedades da secção bruta do catálogo. Nas madres contínuas, a secção sobreposta resiste ao momento sobre os apoios" + (OMEGAS[d.tipo].seccoes[0].sobreposta ? "" : " (sem dados de sobreposição neste catálogo, usa-se a secção simples)") + ".</li>" +
           "<li>Flechas calculadas com o I<sub>y</sub> bruto da secção simples. A componente no plano da cobertura é resistida por flexão em torno de z (W<sub>z,min</sub>) entre travamentos.</li>" +
@@ -2184,7 +2184,8 @@ if (typeof module !== "undefined") module.exports = Madres;
       (d.tipo !== "IPE" && d.esquema !== "simples" ? "<li>Sobreposição sobre os apoios de pelo menos " + (d.esquema === "continua2" ? "0,10 L" : "0,05 L") + " para cada lado. Com sobreposições menores, a secção simples no fim da sobreposição tem de ser verificada à parte.</li>" : "") +
       "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
         ", interpolados para A = s × L. c<sub>pi</sub> = " + coef(d.cpiMax) + " e " + coef(d.cpiMin) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1.</li>" +
-      "<li>Orografia: c<sub>0</sub> = " + fmt(d.c0, 2) + (d.c0 === 1 ? ", válido em terreno plano (declive médio a barlavento inferior a 3°, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, q<sub>p</sub> pode aumentar muito: calcule c<sub>0</sub> pelo Anexo A.3." : ", introduzido pelo utilizador (Anexo A.3 ou estudo específico).") + "</li>" +
+      "<li>Orografia: c<sub>0</sub> = " + fmt(d.c0, 2) + (d.c0 === 1 ? ", válido em terreno plano (declive médio a barlavento inferior a 3°, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, q<sub>p</sub> pode aumentar muito: calcule c<sub>0</sub> pelo Anexo A.3." : ", introduzido pelo utilizador (Anexo A.3 ou estudo específico).") +
+        " Vales com afunilamento e orografia complexa, para os quais a norma remete para parecer técnico ou ensaio, ficam fora do âmbito da app.</li>" +
       "<li>Sobrecarga: Q<sub>k</sub> = " + fmt(Acoes.SOBRECARGA_H.Qk, 1) + " kN concentrada, verificada à parte (6.3.4.2(3)P), em qualquer ponto do vão e na direção da gravidade.</li>" +
       "<li>Alturas medidas do pavimento à face inferior da cobertura. Para o vento, z<sub>e</sub> = altura a meio vão + " + fmt(ESPESSURA_COBERTURA, 2) + " m, uma espessura do revestimento tomada por excesso.</li>" +
       "<li>Neve sem acumulações junto a platibandas, desníveis ou edifícios contíguos, e sem as situações acidentais de neve excecional (Quadro NA–A.1).</li>" +

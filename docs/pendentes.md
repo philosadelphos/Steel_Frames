@@ -64,7 +64,13 @@ Restantes parâmetros, conferidos em 23/10/2026:
 
 ### NP EN 1993-1-3 (perfis enformados a frio) — para as madres Superomega, C e Z
 
-Só está disponível a BS EN 1993-1-3:2006 (texto europeu, sem o Anexo Nacional português). Quando estas madres entrarem na app, e enquanto não houver o AN português, usam-se os valores recomendados, assinalados como tal (por exemplo, χ<sub>LT</sub> do banzo livre em 10.1.4.2(1), Nota, e γ<sub>M</sub> do capítulo 2).
+Só está disponível a BS EN 1993-1-3:2006 (texto europeu, sem o Anexo Nacional português); a NP EN 1993-1-3 não está disponível. Quando estas madres entrarem na app usam-se os valores recomendados, assinalados como tal (por exemplo, χ<sub>LT</sub> do banzo livre em 10.1.4.2(1), Nota, e γ<sub>M</sub> do capítulo 2).
+
+### NP EN 1993-1-1, Anexo BB (informativo): travamento pelo revestimento — `src/js/vista-madres.js`
+
+| Parâmetro | Valor usado | Referência | Conferido |
+|---|---|---|---|
+| Banzo superior das madres IPE travado pelo revestimento | admitido; a app só verifica o bambeamento do banzo inferior | BB.2.1: chapa trapezoidal ligada em todas as nervuras e rigidez S que cumpra a expressão (BB.2). Com painel sandwich ou fixação pela crista, confirmar com o fabricante (EN 1993-1-3, 10.1.1(5)) | ✔ (hipótese explicitada na app) |
 
 ## 2. Madremax e Omegamax: o que pedir à Constálica
 
@@ -76,15 +82,29 @@ Os catálogos só dão as propriedades da secção bruta. Como as secções são
 - o comprimento de sobreposição recomendado sobre os apoios;
 - a resistência das ligações M10 e ao esmagamento da alma nos apoios.
 
-## 3. Madres Z e C: o que procurar num catálogo
+## 3. Catálogos O Feliz (Superomega, C e Z): conferência dos dados
 
-Um catálogo útil para a app deve ter:
+Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálculo com as propriedades (`*_propr geometr.xlsx`) e desenhos (`SUPEROMEGA_pormenores.dxf`, `CZ_gama.dxf`). Conferência feita em 23/10/2026.
 
-- dimensões completas (h, b, c do reforço, t, raio) e classe do aço (S350GD, S420GD...);
-- propriedades brutas e **efetivas** (I<sub>eff</sub>, W<sub>eff,y</sub> para os dois sentidos da flexão), I<sub>t</sub>, I<sub>w</sub> e posição do centro de corte;
-- idealmente, **tabelas de carga** para gravidade e sucção, com e sem tirantes, simples e contínuas (com mangas ou sobreposição).
+**Superomega: 16 secções, S280GD e S350GD, com propriedades efetivas.**
+- A geometria das secções no DXF (contorno real, com os cantos arredondados) reproduz as propriedades brutas do catálogo depois de passar a t<sub>eff</sub>: A, I<sub>y</sub> e I<sub>z</sub> com diferenças até 0,4 %. O centro de gravidade difere cerca de 1 mm, porque o catálogo mede a cota à linha média e não à face exterior.
+- Erros nas folhas de cálculo; o PDF está certo e é coerente com a geometria:
+  - I<sub>z,bruta</sub> do 120×1,5 e do 120×2,0: o Excel tem 238,06 e 319,58 cm⁴, o PDF tem 156,18 e 209,68 cm⁴. As propriedades efetivas do próprio Excel (I<sub>z,eff</sub> = 153 e 208 cm⁴) só batem com os valores do PDF.
+  - I<sub>t</sub> do 250×3,0: o Excel tem 10 000,57, o PDF tem 5660,41 (×10⁻⁴ cm⁴), coerente com t³.
+- Nas folhas efetivas, A<sub>eff</sub> em compressão excede A em 0,2 a 0,4 % no 120×1,5 (S280GD) e nos 200×2,0 e 200×2,5. Quando entrar na app, A<sub>eff</sub> fica limitado a A.
+- Ligações (DXF "Situações de emenda"):
+  - tipo I, emenda simples entre apoios, com l = 200 mm;
+  - tipo II, sobreposição simples sobre o apoio, com l = b + 2l' e l' = e + 25 (20 ≤ e ≤ 70 mm, b ≥ 130 mm);
+  - tipo III, sobreposição longa sobre o apoio, com l ≥ 0,1 L + 0,1 L.
+  - Parafusos M10 8.8: 4 filas de 4 no Ω80, Ω120 e Ω160 e 4 filas de 6 no Ω200 e Ω250.
+  - Montagem nos apoios sempre pelas abas inferiores (viga de aço, betão ou madeira), sem esquadro.
 
-Fornecedores encontrados na pesquisa (catálogos ainda por confirmar): O Feliz (Madre Z, de Z140 a Z300) e 361 Metal (madres C e Z), em Portugal; Hiansa, em Espanha. Fabricantes como a Metsec, a Kingspan (Multibeam) e a Hadley publicam documentação técnica completa, com tabelas de carga segundo a EN 1993-1-3.
+**C e Z: 22 secções C (C140 a C300) e 19 Z (Z140 a Z300), S220GD a S350GD.**
+- As propriedades brutas do Excel batem, em todas as 41 secções (diferença máxima de 0,07 %), com um modelo de linha média de **cantos vivos**: h − t<sub>nom</sub>, b − t<sub>nom</sub>, a − t<sub>nom</sub>/2, com espessura t<sub>eff</sub>. O raio interior de 5 mm não é considerado.
+- A EN 1993-1-3, 5.1(3), só permite desprezar os cantos se r ≤ 5t e r ≤ 0,10 b<sub>p</sub> em todos os elementos. Nos reforços de 20 mm (b<sub>p</sub> ≈ 14 mm) a segunda condição não se cumpre. Além disso, nas propriedades de rigidez os cantos contam sempre. Com os cantos, A desce cerca de 3 % e I<sub>y</sub> e I<sub>z</sub> descem 4 a 7 %. Quando estas madres entrarem na app, aplica-se a redução δ da 5.1(4): A(1 − δ), I(1 − 2δ), I<sub>w</sub>(1 − 4δ), também às propriedades efetivas (5.1(5)).
+- O Z250 aparece nos quadros de furação do PDF, mas não tem propriedades em nenhuma das fontes.
+
+**A perguntar à O Feliz (dt@ofeliz.com):** confirmar os dois erros das folhas de cálculo do Superomega; se as propriedades das C e Z consideram os cantos; propriedades do Z250; rigidez e resistência das sobreposições tipo II e III (EN 1993-1-3, 10.1.3.4); recomendações de tirantes.
 
 ## 4. Ideias anotadas para mais tarde
 
