@@ -21,6 +21,7 @@
     <nav class="separadores" aria-label="Secções">
       <button type="button" class="separador" id="tab-identificar" data-vista="identificar" aria-selected="true">Identificar perfil</button>
       <button type="button" class="separador" id="tab-madres" data-vista="madres" aria-selected="false">Madres</button>
+      <button type="button" class="separador" id="tab-portico" data-vista="portico" aria-selected="false">Pórtico</button>
       <button type="button" class="separador" id="tab-catalogo" data-vista="catalogo" aria-selected="false">Catálogo</button>
     </nav>
   </div>
@@ -32,8 +33,16 @@
       <h1 class="titulo-painel">Medidas do perfil</h1>
       <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas.</p>
 
+      <label class="campo" for="in-forma"><span>Forma da secção</span>
+        <select id="in-forma" name="forma">
+          <option value="I" selected>I ou H laminado (IPE, HEA, HEB, HEM)</option>
+          <option value="omega">Ómega enformado a frio (Superomega®, O Feliz)</option>
+          <option value="C">C enformado a frio (O Feliz)</option>
+          <option value="Z">Z enformado a frio (O Feliz)</option>
+        </select></label>
+
       <figure class="esquema" aria-hidden="true">
-        <svg viewBox="0 0 160 150" role="img">
+        <svg viewBox="0 0 160 150" role="img" data-forma="I">
           <path class="esquema-perfil" d="M40 20h80v12H84v86h36v12H40v-12h36V32H40z"/>
           <g class="esquema-cota">
             <line x1="40" y1="10" x2="120" y2="10"/><line x1="40" y1="6" x2="40" y2="14"/><line x1="120" y1="6" x2="120" y2="14"/>
@@ -46,6 +55,41 @@
           <line class="esquema-guia" x1="121" y1="26" x2="130" y2="26"/>
           <line class="esquema-guia" x1="85" y1="76" x2="92" y2="76"/>
         </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="omega" hidden>
+          <path class="esquema-fino" d="M18 120l6-6h22l4-8 4-66 8-8h36l8 8 4 66 4 8h22l6 6"/>
+          <g class="esquema-cota">
+            <line x1="18" y1="134" x2="142" y2="134"/><line x1="18" y1="130" x2="18" y2="138"/><line x1="142" y1="130" x2="142" y2="138"/>
+            <line x1="8" y1="32" x2="8" y2="120"/><line x1="4" y1="32" x2="12" y2="32"/><line x1="4" y1="120" x2="12" y2="120"/>
+          </g>
+          <text x="80" y="147" class="esquema-txt">b</text>
+          <text x="2" y="80" class="esquema-txt">h</text>
+          <text x="104" y="22" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="96" y1="28" x2="102" y2="20"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="C" hidden>
+          <path class="esquema-fino" d="M116 44V22H54v106h62v-22"/>
+          <g class="esquema-cota">
+            <line x1="54" y1="10" x2="116" y2="10"/><line x1="54" y1="6" x2="54" y2="14"/><line x1="116" y1="6" x2="116" y2="14"/>
+            <line x1="40" y1="22" x2="40" y2="128"/><line x1="36" y1="22" x2="44" y2="22"/><line x1="36" y1="128" x2="44" y2="128"/>
+            <line x1="130" y1="22" x2="130" y2="44"/><line x1="126" y1="22" x2="134" y2="22"/><line x1="126" y1="44" x2="134" y2="44"/>
+          </g>
+          <text x="85" y="7" class="esquema-txt">b</text>
+          <text x="30" y="79" class="esquema-txt">h</text>
+          <text x="138" y="37" class="esquema-txt esquema-txt-s">a</text>
+          <text x="62" y="79" class="esquema-txt esquema-txt-s">t</text>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="Z" hidden>
+          <path class="esquema-fino" d="M128 44V22H80v106H32v-22"/>
+          <g class="esquema-cota">
+            <line x1="80" y1="10" x2="128" y2="10"/><line x1="80" y1="6" x2="80" y2="14"/><line x1="128" y1="6" x2="128" y2="14"/>
+            <line x1="18" y1="22" x2="18" y2="128"/><line x1="14" y1="22" x2="22" y2="22"/><line x1="14" y1="128" x2="22" y2="128"/>
+            <line x1="142" y1="22" x2="142" y2="44"/><line x1="138" y1="22" x2="146" y2="22"/><line x1="138" y1="44" x2="146" y2="44"/>
+          </g>
+          <text x="104" y="7" class="esquema-txt">b</text>
+          <text x="8" y="79" class="esquema-txt">h</text>
+          <text x="150" y="37" class="esquema-txt esquema-txt-s">a</text>
+          <text x="88" y="79" class="esquema-txt esquema-txt-s">t</text>
+        </svg>
       </figure>
 
       <div class="campos">
@@ -53,13 +97,18 @@
           <span class="entrada"><input id="in-h" name="h" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
         <label class="campo" for="in-b"><span>Largura <i>b</i></span>
           <span class="entrada"><input id="in-b" name="b" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
-        <label class="campo" for="in-tw"><span>Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
+        <label class="campo" for="in-tw" id="campo-tw"><span>Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
           <span class="entrada"><input id="in-tw" name="tw" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
-        <label class="campo" for="in-tf"><span>Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
+        <label class="campo" for="in-tf" id="campo-tf"><span>Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
           <span class="entrada"><input id="in-tf" name="tf" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+        <label class="campo" for="in-t" id="campo-t" hidden><span>Espessura <i>t</i> <small>opcional</small></span>
+          <span class="entrada"><input id="in-t" name="t" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+        <label class="campo" for="in-a" id="campo-a" hidden><span>Reforço <i>a</i> <small>opcional</small></span>
+          <span class="entrada"><input id="in-a" name="a" type="text" inputmode="decimal" min="0" step="1"><em>mm</em></span></label>
       </div>
+      <p class="nota" id="nota-forma" hidden></p>
 
-      <fieldset class="grupo">
+      <fieldset class="grupo" id="grupo-familias">
         <legend>Séries a considerar</legend>
         <div class="fichas" id="fichas-familias"></div>
       </fieldset>
@@ -169,7 +218,7 @@
       <fieldset class="grupo">
         <legend>Local</legend>
         <div class="campos">
-          <label class="campo" for="m-distrito"><span>Distrito</span>
+          <label class="campo" for="m-distrito"><span>Distrito (zona de neve)</span>
             <select id="m-distrito" name="distrito"></select></label>
           <label class="campo" for="m-concelho" id="m-campo-concelho"><span>Concelho</span>
             <select id="m-concelho" name="concelho"></select></label>
@@ -236,6 +285,70 @@
     <div class="resultado" id="resultado-madres" aria-live="polite"></div>
   </section>
 
+  <section class="vista vista-dupla" id="vista-portico" aria-labelledby="tab-portico" hidden>
+    <form class="painel-medidas painel-madres" id="form-portico" autocomplete="off">
+      <h1 class="titulo-painel">Pórtico de duas águas</h1>
+      <p class="nota">Pórtico interior com bases encastradas e sem pontes rolantes, verificado pela NP EN 1993-1-1. A geometria, o local e as cargas vêm do separador Madres.</p>
+      <p class="nota" id="p-resumo"></p>
+
+      <fieldset class="grupo">
+        <legend>Perfis</legend>
+        <div class="campos">
+          <label class="campo" for="p-pilares"><span>Pilares</span>
+            <select id="p-pilares" name="pilares">
+              <option value="HEA" selected>HEA</option>
+              <option value="HEB">HEB</option>
+              <option value="IPE">IPE</option>
+            </select></label>
+          <label class="campo" for="p-travessa"><span>Travessa</span>
+            <select id="p-travessa" name="travessa">
+              <option value="IPE" selected>IPE</option>
+              <option value="HEA">HEA</option>
+            </select></label>
+        </div>
+        <label class="campo" for="p-aco"><span>Classe do aço</span>
+          <select id="p-aco" name="aco">
+            <option value="S235">S235</option>
+            <option value="S275" selected>S275</option>
+            <option value="S355">S355</option>
+          </select></label>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Travamentos fora do plano</legend>
+        <label class="campo" for="p-escoras"><span>Escoras do banzo inferior da travessa</span>
+          <select id="p-escoras" name="escoras">
+            <option value="0">Sem escoras (só nos pórticos)</option>
+            <option value="1">Em todas as madres</option>
+            <option value="2" selected>De 2 em 2 madres</option>
+            <option value="3">De 3 em 3 madres</option>
+            <option value="4">De 4 em 4 madres</option>
+          </select></label>
+        <label class="campo" for="p-trav-pilar"><span>Travamentos intermédios dos pilares</span>
+          <select id="p-trav-pilar" name="travPilar">
+            <option value="0" selected>Nenhum (só na base e no beirado)</option>
+            <option value="1">A meia altura</option>
+            <option value="2">A terços da altura</option>
+          </select></label>
+        <p class="nota">Um travamento impede o deslocamento lateral dos dois banzos (escora ao banzo comprimido ou contraventamento). As madres travam o banzo superior da travessa.</p>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Vento</legend>
+        <label class="campo" for="p-posicao"><span>Pórtico analisado</span>
+          <select id="p-posicao" name="posicao">
+            <option value="empena" selected>2.º pórtico, junto à empena</option>
+            <option value="corrente">Pórtico corrente (a mais de e/2 da empena)</option>
+          </select></label>
+        <p class="nota">Junto à empena, a faixa do pórtico pode apanhar as zonas mais desfavoráveis da cobertura e das paredes (F, G, H; A, B).</p>
+      </fieldset>
+
+      <div class="acoes-form"><button type="button" class="botao-sec" id="repor-portico">Repor as opções</button><span class="nota">Os valores ficam guardados neste aparelho.</span></div>
+    </form>
+
+    <div class="resultado" id="resultado-portico" aria-live="polite"></div>
+  </section>
+
   <section class="vista" id="vista-catalogo" aria-labelledby="tab-catalogo" hidden>
     <div class="catalogo-topo">
       <h1 class="titulo-painel">Catálogo de perfis</h1>
@@ -260,7 +373,9 @@
 <script src="js/acoes.js"></script>
 <script src="js/madres.js"></script>
 <script src="js/enformados.js"></script>
+<script src="js/portico.js"></script>
 <script src="js/app.js"></script>
 <script src="js/vista-madres.js"></script>
+<script src="js/vista-portico.js"></script>
 </body>
 </html>

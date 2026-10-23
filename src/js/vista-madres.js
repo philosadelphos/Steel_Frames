@@ -594,6 +594,12 @@
       "</ul></section>";
   }
 
+  // O separador Pórtico usa a geometria, o local e as ações calculados aqui.
+  function publicar(r) {
+    window.SteelFrames.madres = r;
+    document.dispatchEvent(new CustomEvent("madres:calculadas"));
+  }
+
   function render() {
     var d = ler();
     d.alfa = inclinacao(d);
@@ -608,9 +614,11 @@
     $("m-zona-vento").innerHTML = "Zona de vento <b>" + zona + "</b> (v<sub>b,0</sub> = " + Acoes.VENTO_VB0[zona] + " m/s). A zona B aplica-se a menos de 5 km da costa ou acima de 600 m de altitude.";
     if (erros.length) {
       saida.innerHTML = '<section class="cartao"><h2>Dados por corrigir</h2><ul class="hipoteses">' + erros.map(function (e) { return "<li>" + e + "</li>"; }).join("") + "</ul></section>";
+      publicar(null);
       return;
     }
     var r = calcular(d);
+    publicar(r);
     var v = estado.escolhido && r.dim.lista.filter(function (x) { return x.perfil.nome === estado.escolhido; })[0] || r.dim.escolhido;
     saida.innerHTML = cartaoResultado(r, v) + cartaoEsquicos(r) + cartaoAcoes(r) + cartaoCombinacoes(r, v) + cartaoComparacao(r, v) + cartaoHipoteses(r);
   }

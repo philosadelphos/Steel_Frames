@@ -172,6 +172,25 @@ var Acoes = (function () {
     }
   };
 
+  // Paredes verticais (Quadro 7.1, cpe,10): A, B e C nas paredes paralelas ao vento; D (barlavento) e
+  // E (sotavento) dependem de h/d, com interpolação linear entre h/d = 0,25, 1 e 5.
+  var PAREDES_LATERAIS = { A: -1.2, B: -0.8, C: -0.5 };
+  function cpeParedes(hd) {
+    var D = hd >= 1 ? 0.8 : hd <= 0.25 ? 0.7 : 0.7 + 0.1 * (hd - 0.25) / 0.75;
+    var E = hd <= 0.25 ? -0.3 : hd <= 1 ? -0.3 - 0.2 * (hd - 0.25) / 0.75 : hd <= 5 ? -0.5 - 0.2 * (hd - 1) / 4 : -0.7;
+    return { D: D, E: E, A: PAREDES_LATERAIS.A, B: PAREDES_LATERAIS.B, C: PAREDES_LATERAIS.C };
+  }
+  // cpe,10 de uma zona da cobertura (áreas ≥ 10 m², como nos pórticos). direcao: 0 ou 90; sinal: "neg" ou "pos".
+  // Abaixo de 5° usa-se a cobertura em terraço (Quadro 7.2); devolve null se a zona não tiver valor desse sinal.
+  function cpeCobertura(alfa, direcao, zona, sinal) {
+    if (alfa < 5) {
+      var zt = zona === "J" ? "I" : zona;
+      return TERRACO[sinal] && TERRACO[sinal][zt] ? TERRACO[sinal][zt][0] : null;
+    }
+    var q = direcao === 90 ? DUAS_AGUAS_90 : DUAS_AGUAS_0;
+    return q[sinal] && q[sinal][zona] ? interpolarAlfa(q[sinal][zona], alfa)[0] : null;
+  }
+
   // Zonas que uma madre atravessa, conforme a sua posição na cobertura.
   var POSICOES = {
     corrente: { nome: "Zona corrente", zonas: ["H", "I"] },
@@ -315,7 +334,7 @@ var Acoes = (function () {
   return {
     NEVE_CZ: NEVE_CZ, NEVE_CE: NEVE_CE, VENTO_VB0: VENTO_VB0, TERRENO: TERRENO, POSICOES: POSICOES, SOBRECARGA_H: SOBRECARGA_H,
     NEVE_DISTRITOS: NEVE_DISTRITOS, NEVE_B3: NEVE_B3, concelhosDistrito: concelhosDistrito, zonaNeve: zonaNeve,
-    coeficienteOrografia: coeficienteOrografia,
+    coeficienteOrografia: coeficienteOrografia, cpeParedes: cpeParedes, cpeCobertura: cpeCobertura, psi0Neve: psi0Neve, GAMA: GAMA, PSI0: PSI0,
     mu1: mu1, neve: neve, pressaoPico: pressaoPico, coeficientesCobertura: coeficientesCobertura, vento: vento,
     cargasMadre: cargasMadre, combinacoes: combinacoes,
     _interpolarAlfa: interpolarAlfa, _cpeArea: cpeArea

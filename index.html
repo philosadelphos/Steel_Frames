@@ -129,6 +129,8 @@ button, input, select { font: inherit; color: inherit; }
 .esquema { margin: 0; padding: 8px; background: var(--superficie-2); border-radius: var(--raio); }
 .esquema svg { display: block; width: 100%; max-width: 220px; height: auto; margin-inline: auto; }
 .esquema-perfil { fill: var(--aco-claro); stroke: var(--aco); stroke-width: 1.5; }
+.esquema-fino { fill: none; stroke: var(--aco); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+.esquema svg[hidden] { display: none; }
 .esquema-cota line, .esquema-guia { stroke: var(--tinta-suave); stroke-width: 1; }
 .esquema-txt { fill: var(--tinta); font: italic 600 11px var(--f-texto); text-anchor: middle; }
 .esquema-txt-s { font-size: 10px; text-anchor: start; }
@@ -205,6 +207,7 @@ select {
 .desenho svg { display: block; width: 100%; height: auto; max-height: 360px; }
 .desenho figcaption { font-size: 0.78rem; color: var(--tinta-suave); text-align: center; margin-top: 4px; }
 .sec-forma { fill: var(--aco-claro); stroke: var(--aco); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.sec-fino { fill: none; stroke: var(--aco); stroke-linejoin: round; stroke-linecap: butt; }
 .sec-eixo { stroke: var(--primario); stroke-width: 1; stroke-dasharray: 8 3 2 3; vector-effect: non-scaling-stroke; fill: none; }
 .sec-cota { stroke: var(--tinta-suave); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; }
 .sec-txt { fill: var(--tinta); font-family: var(--f-dados); }
@@ -329,6 +332,8 @@ select {
 .esq-seta-w { stroke: var(--primario); }
 .esq-seta-w-cab { fill: var(--primario); }
 .esq-txt { fill: var(--tinta); font-family: var(--f-dados); stroke: var(--superficie); paint-order: stroke; stroke-linejoin: round; }
+.dm-max { fill: var(--primario); fill-opacity: 0.28; stroke: var(--primario); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.dm-min { fill: var(--aco); fill-opacity: 0.3; stroke: var(--aco); stroke-width: 1; vector-effect: non-scaling-stroke; }
 
 .acoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; }
 .acao h3, h3.sub {
@@ -345,8 +350,6 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
 .cartao .tabela-simples th:first-child { position: static; }
 .hipoteses { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; max-width: 75ch; }
 .verif-nao .verif-nome { color: var(--tinta-suave); }
-.tabela tbody tr.linha-omega { cursor: default; }
-.tabela tbody tr.linha-omega:hover td { color: inherit; }
 .tabela tbody tr.linha-omega td:first-child { font-family: var(--f-dados); font-weight: 500; font-size: 0.86rem; }
 @media (max-width: 400px) {
   .separador { padding: 6px 8px; font-size: 0.95rem; }
@@ -371,6 +374,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
     <nav class="separadores" aria-label="Secções">
       <button type="button" class="separador" id="tab-identificar" data-vista="identificar" aria-selected="true">Identificar perfil</button>
       <button type="button" class="separador" id="tab-madres" data-vista="madres" aria-selected="false">Madres</button>
+      <button type="button" class="separador" id="tab-portico" data-vista="portico" aria-selected="false">Pórtico</button>
       <button type="button" class="separador" id="tab-catalogo" data-vista="catalogo" aria-selected="false">Catálogo</button>
     </nav>
   </div>
@@ -382,8 +386,16 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
       <h1 class="titulo-painel">Medidas do perfil</h1>
       <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas.</p>
 
+      <label class="campo" for="in-forma"><span>Forma da secção</span>
+        <select id="in-forma" name="forma">
+          <option value="I" selected>I ou H laminado (IPE, HEA, HEB, HEM)</option>
+          <option value="omega">Ómega enformado a frio (Superomega®, O Feliz)</option>
+          <option value="C">C enformado a frio (O Feliz)</option>
+          <option value="Z">Z enformado a frio (O Feliz)</option>
+        </select></label>
+
       <figure class="esquema" aria-hidden="true">
-        <svg viewBox="0 0 160 150" role="img">
+        <svg viewBox="0 0 160 150" role="img" data-forma="I">
           <path class="esquema-perfil" d="M40 20h80v12H84v86h36v12H40v-12h36V32H40z"/>
           <g class="esquema-cota">
             <line x1="40" y1="10" x2="120" y2="10"/><line x1="40" y1="6" x2="40" y2="14"/><line x1="120" y1="6" x2="120" y2="14"/>
@@ -396,6 +408,41 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
           <line class="esquema-guia" x1="121" y1="26" x2="130" y2="26"/>
           <line class="esquema-guia" x1="85" y1="76" x2="92" y2="76"/>
         </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="omega" hidden>
+          <path class="esquema-fino" d="M18 120l6-6h22l4-8 4-66 8-8h36l8 8 4 66 4 8h22l6 6"/>
+          <g class="esquema-cota">
+            <line x1="18" y1="134" x2="142" y2="134"/><line x1="18" y1="130" x2="18" y2="138"/><line x1="142" y1="130" x2="142" y2="138"/>
+            <line x1="8" y1="32" x2="8" y2="120"/><line x1="4" y1="32" x2="12" y2="32"/><line x1="4" y1="120" x2="12" y2="120"/>
+          </g>
+          <text x="80" y="147" class="esquema-txt">b</text>
+          <text x="2" y="80" class="esquema-txt">h</text>
+          <text x="104" y="22" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="96" y1="28" x2="102" y2="20"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="C" hidden>
+          <path class="esquema-fino" d="M116 44V22H54v106h62v-22"/>
+          <g class="esquema-cota">
+            <line x1="54" y1="10" x2="116" y2="10"/><line x1="54" y1="6" x2="54" y2="14"/><line x1="116" y1="6" x2="116" y2="14"/>
+            <line x1="40" y1="22" x2="40" y2="128"/><line x1="36" y1="22" x2="44" y2="22"/><line x1="36" y1="128" x2="44" y2="128"/>
+            <line x1="130" y1="22" x2="130" y2="44"/><line x1="126" y1="22" x2="134" y2="22"/><line x1="126" y1="44" x2="134" y2="44"/>
+          </g>
+          <text x="85" y="7" class="esquema-txt">b</text>
+          <text x="30" y="79" class="esquema-txt">h</text>
+          <text x="138" y="37" class="esquema-txt esquema-txt-s">a</text>
+          <text x="62" y="79" class="esquema-txt esquema-txt-s">t</text>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="Z" hidden>
+          <path class="esquema-fino" d="M128 44V22H80v106H32v-22"/>
+          <g class="esquema-cota">
+            <line x1="80" y1="10" x2="128" y2="10"/><line x1="80" y1="6" x2="80" y2="14"/><line x1="128" y1="6" x2="128" y2="14"/>
+            <line x1="18" y1="22" x2="18" y2="128"/><line x1="14" y1="22" x2="22" y2="22"/><line x1="14" y1="128" x2="22" y2="128"/>
+            <line x1="142" y1="22" x2="142" y2="44"/><line x1="138" y1="22" x2="146" y2="22"/><line x1="138" y1="44" x2="146" y2="44"/>
+          </g>
+          <text x="104" y="7" class="esquema-txt">b</text>
+          <text x="8" y="79" class="esquema-txt">h</text>
+          <text x="150" y="37" class="esquema-txt esquema-txt-s">a</text>
+          <text x="88" y="79" class="esquema-txt esquema-txt-s">t</text>
+        </svg>
       </figure>
 
       <div class="campos">
@@ -403,13 +450,18 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
           <span class="entrada"><input id="in-h" name="h" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
         <label class="campo" for="in-b"><span>Largura <i>b</i></span>
           <span class="entrada"><input id="in-b" name="b" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
-        <label class="campo" for="in-tw"><span>Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
+        <label class="campo" for="in-tw" id="campo-tw"><span>Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
           <span class="entrada"><input id="in-tw" name="tw" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
-        <label class="campo" for="in-tf"><span>Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
+        <label class="campo" for="in-tf" id="campo-tf"><span>Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
           <span class="entrada"><input id="in-tf" name="tf" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+        <label class="campo" for="in-t" id="campo-t" hidden><span>Espessura <i>t</i> <small>opcional</small></span>
+          <span class="entrada"><input id="in-t" name="t" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
+        <label class="campo" for="in-a" id="campo-a" hidden><span>Reforço <i>a</i> <small>opcional</small></span>
+          <span class="entrada"><input id="in-a" name="a" type="text" inputmode="decimal" min="0" step="1"><em>mm</em></span></label>
       </div>
+      <p class="nota" id="nota-forma" hidden></p>
 
-      <fieldset class="grupo">
+      <fieldset class="grupo" id="grupo-familias">
         <legend>Séries a considerar</legend>
         <div class="fichas" id="fichas-familias"></div>
       </fieldset>
@@ -519,7 +571,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
       <fieldset class="grupo">
         <legend>Local</legend>
         <div class="campos">
-          <label class="campo" for="m-distrito"><span>Distrito</span>
+          <label class="campo" for="m-distrito"><span>Distrito (zona de neve)</span>
             <select id="m-distrito" name="distrito"></select></label>
           <label class="campo" for="m-concelho" id="m-campo-concelho"><span>Concelho</span>
             <select id="m-concelho" name="concelho"></select></label>
@@ -584,6 +636,70 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
     </form>
 
     <div class="resultado" id="resultado-madres" aria-live="polite"></div>
+  </section>
+
+  <section class="vista vista-dupla" id="vista-portico" aria-labelledby="tab-portico" hidden>
+    <form class="painel-medidas painel-madres" id="form-portico" autocomplete="off">
+      <h1 class="titulo-painel">Pórtico de duas águas</h1>
+      <p class="nota">Pórtico interior com bases encastradas e sem pontes rolantes, verificado pela NP EN 1993-1-1. A geometria, o local e as cargas vêm do separador Madres.</p>
+      <p class="nota" id="p-resumo"></p>
+
+      <fieldset class="grupo">
+        <legend>Perfis</legend>
+        <div class="campos">
+          <label class="campo" for="p-pilares"><span>Pilares</span>
+            <select id="p-pilares" name="pilares">
+              <option value="HEA" selected>HEA</option>
+              <option value="HEB">HEB</option>
+              <option value="IPE">IPE</option>
+            </select></label>
+          <label class="campo" for="p-travessa"><span>Travessa</span>
+            <select id="p-travessa" name="travessa">
+              <option value="IPE" selected>IPE</option>
+              <option value="HEA">HEA</option>
+            </select></label>
+        </div>
+        <label class="campo" for="p-aco"><span>Classe do aço</span>
+          <select id="p-aco" name="aco">
+            <option value="S235">S235</option>
+            <option value="S275" selected>S275</option>
+            <option value="S355">S355</option>
+          </select></label>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Travamentos fora do plano</legend>
+        <label class="campo" for="p-escoras"><span>Escoras do banzo inferior da travessa</span>
+          <select id="p-escoras" name="escoras">
+            <option value="0">Sem escoras (só nos pórticos)</option>
+            <option value="1">Em todas as madres</option>
+            <option value="2" selected>De 2 em 2 madres</option>
+            <option value="3">De 3 em 3 madres</option>
+            <option value="4">De 4 em 4 madres</option>
+          </select></label>
+        <label class="campo" for="p-trav-pilar"><span>Travamentos intermédios dos pilares</span>
+          <select id="p-trav-pilar" name="travPilar">
+            <option value="0" selected>Nenhum (só na base e no beirado)</option>
+            <option value="1">A meia altura</option>
+            <option value="2">A terços da altura</option>
+          </select></label>
+        <p class="nota">Um travamento impede o deslocamento lateral dos dois banzos (escora ao banzo comprimido ou contraventamento). As madres travam o banzo superior da travessa.</p>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Vento</legend>
+        <label class="campo" for="p-posicao"><span>Pórtico analisado</span>
+          <select id="p-posicao" name="posicao">
+            <option value="empena" selected>2.º pórtico, junto à empena</option>
+            <option value="corrente">Pórtico corrente (a mais de e/2 da empena)</option>
+          </select></label>
+        <p class="nota">Junto à empena, a faixa do pórtico pode apanhar as zonas mais desfavoráveis da cobertura e das paredes (F, G, H; A, B).</p>
+      </fieldset>
+
+      <div class="acoes-form"><button type="button" class="botao-sec" id="repor-portico">Repor as opções</button><span class="nota">Os valores ficam guardados neste aparelho.</span></div>
+    </form>
+
+    <div class="resultado" id="resultado-portico" aria-live="polite"></div>
   </section>
 
   <section class="vista" id="vista-catalogo" aria-labelledby="tab-catalogo" hidden>
@@ -887,11 +1003,12 @@ if (typeof module !== "undefined") module.exports = Seccao;
  *   Z:          [Aeff, Iy,eff, Wy,eff, Iz,eff, Wz,eff]  (eixos horizontal e vertical, como no catálogo)
  * Superomega, geometria da linha média por altura (desenho): sd (altura desenvolvida da alma), phi
  * (inclinação da alma, graus), r (raio interior aba/alma), bTopo (largura do banzo superior) e o banzo
- * livre por unidade de espessura [A/t (mm), Iz/t (mm³), distância à fibra extrema (mm)].
+ * livre por unidade de espessura [A/t (mm), Iz/t (mm³), distância à fibra extrema (mm)] e a linha média do
+ * desenho (linha, em mm), usada só para desenhar a secção.
  * Corrigidos com o catálogo em PDF: Iz do 120×1,5 e do 120×2,0 e It do 250×3,0.
  * As propriedades das C e Z foram calculadas pelo fabricante com cantos vivos (ver enformados.js).
  */
-var OFELIZ = {"superomega":{"geo":{"80":{"sd":88.26,"phi":70.6,"r":3.0,"bTopo":44.0,"livre":[56.097,10342.0,24.685]},"120":{"sd":130.38,"phi":73.3,"r":3.0,"bTopo":44.0,"livre":[64.117,12184.0,26.711]},"160":{"sd":170.4,"phi":76.4,"r":3.5,"bTopo":44.0,"livre":[72.035,13713.0,28.587]},"200":{"sd":213.01,"phi":76.0,"r":3.5,"bTopo":44.0,"livre":[81.996,15821.0,30.46]},"250":{"sd":263.05,"phi":77.9,"r":2.0,"bTopo":43.9,"livre":[91.97,18517.0,32.607]}},"seccoes":[
+var OFELIZ = {"superomega":{"geo":{"80":{"sd":88.26,"phi":70.6,"r":3.0,"bTopo":44.0,"livre":[56.097,10342.0,24.685],"linha":[[176.3,6.0],[171.6,1.2],[171.0,0.8],[170.4,0.6],[169.8,0.5],[139.7,0.5],[138.5,0.8],[137.5,1.7],[137.2,2.8],[135.0,34.2],[134.9,34.8],[134.6,35.3],[134.2,35.8],[130.1,39.9],[129.8,40.3],[129.6,40.8],[129.4,41.3],[125.1,66.0],[125.0,66.3],[124.9,66.5],[124.8,66.8],[121.2,72.9],[120.9,73.3],[120.6,73.6],[120.3,73.8],[110.9,79.2],[110.5,79.4],[110.1,79.5],[109.7,79.5],[67.0,79.5],[66.6,79.5],[66.2,79.4],[65.8,79.2],[56.4,73.8],[56.0,73.6],[55.7,73.3],[55.5,72.9],[51.9,66.8],[51.8,66.5],[51.7,66.3],[51.6,66.0],[47.3,41.3],[47.1,40.8],[46.9,40.3],[46.6,39.9],[42.4,35.8],[42.1,35.3],[41.8,34.8],[41.7,34.2],[39.5,2.8],[39.1,1.7],[38.2,0.8],[37.0,0.5],[6.9,0.5],[6.2,0.6],[5.6,0.8],[5.1,1.2],[0.4,6.0]]},"120":{"sd":130.38,"phi":73.3,"r":3.0,"bTopo":44.0,"livre":[64.117,12184.0,26.711],"linha":[[0.4,6.0],[5.1,1.2],[5.6,0.8],[6.2,0.6],[6.9,0.5],[37.0,0.5],[38.2,0.8],[39.1,1.7],[39.5,2.8],[41.7,34.2],[41.8,34.8],[42.1,35.3],[42.4,35.8],[46.5,39.8],[46.8,40.3],[47.1,40.8],[47.2,41.4],[49.5,74.2],[49.6,74.8],[49.8,75.3],[50.2,75.8],[54.3,79.9],[54.6,80.3],[54.9,80.8],[55.0,81.3],[59.4,106.0],[59.4,106.3],[59.5,106.5],[59.7,106.8],[63.3,112.9],[63.5,113.3],[63.8,113.6],[64.2,113.8],[73.5,119.2],[73.9,119.4],[74.3,119.5],[74.8,119.5],[117.4,119.5],[117.9,119.5],[118.3,119.4],[118.7,119.2],[128.0,113.8],[128.4,113.6],[128.7,113.3],[128.9,112.9],[132.5,106.8],[132.7,106.5],[132.8,106.3],[132.8,106.0],[137.2,81.3],[137.3,80.8],[137.6,80.3],[137.9,79.9],[142.0,75.8],[142.4,75.3],[142.6,74.8],[142.7,74.2],[145.0,41.4],[145.1,40.8],[145.4,40.3],[145.7,39.8],[149.8,35.8],[150.1,35.3],[150.4,34.8],[150.5,34.2],[152.7,2.8],[153.1,1.7],[154.0,0.8],[155.2,0.5],[185.3,0.5],[186.0,0.6],[186.6,0.8],[187.1,1.2],[191.8,6.0]]},"160":{"sd":170.4,"phi":76.4,"r":3.5,"bTopo":44.0,"livre":[72.035,13713.0,28.587],"linha":[[197.6,6.3],[192.9,1.6],[192.4,1.1],[191.7,0.8],[191.0,0.8],[161.2,0.8],[159.9,1.1],[158.9,2.0],[158.4,3.3],[156.3,34.3],[156.1,35.0],[155.9,35.6],[155.5,36.1],[151.6,40.0],[151.2,40.5],[150.9,41.1],[150.8,41.8],[145.7,114.3],[145.6,115.0],[145.3,115.6],[144.9,116.1],[140.9,120.1],[140.6,120.6],[140.3,121.1],[140.1,121.6],[135.8,146.2],[135.7,146.5],[135.6,146.8],[135.5,147.1],[132.0,153.1],[131.7,153.5],[131.3,153.8],[130.9,154.1],[121.7,159.4],[121.3,159.6],[120.8,159.7],[120.3,159.8],[77.8,159.8],[77.3,159.7],[76.9,159.6],[76.4,159.4],[67.2,154.1],[66.8,153.8],[66.5,153.5],[66.2,153.1],[62.7,147.1],[62.5,146.8],[62.4,146.5],[62.3,146.2],[58.0,121.6],[57.9,121.1],[57.6,120.6],[57.2,120.1],[53.2,116.1],[52.8,115.6],[52.6,115.0],[52.4,114.3],[47.4,41.8],[47.2,41.1],[47.0,40.5],[46.6,40.0],[42.7,36.1],[42.3,35.6],[42.0,35.0],[41.9,34.3],[39.7,3.3],[39.3,2.0],[38.3,1.1],[37.0,0.8],[7.2,0.8],[6.5,0.8],[5.8,1.1],[5.2,1.6],[0.5,6.3]]},"200":{"sd":213.01,"phi":76.0,"r":3.5,"bTopo":44.0,"livre":[81.996,15821.0,30.46],"linha":[[220.3,6.3],[215.6,1.6],[215.0,1.1],[214.4,0.8],[213.6,0.8],[183.9,0.8],[182.5,1.1],[181.5,2.0],[181.1,3.3],[178.9,34.3],[178.8,35.0],[178.5,35.6],[178.1,36.1],[174.2,40.0],[173.8,40.5],[173.6,41.1],[173.5,41.8],[168.3,115.3],[168.2,116.0],[167.9,116.6],[167.5,117.1],[163.5,121.1],[163.2,121.6],[162.9,122.1],[162.7,122.6],[157.1,154.5],[157.0,155.0],[156.7,155.5],[156.4,156.0],[152.2,160.1],[151.9,160.6],[151.6,161.1],[151.5,161.6],[147.1,186.2],[147.1,186.5],[147.0,186.8],[146.8,187.1],[143.3,193.1],[143.0,193.5],[142.7,193.8],[142.3,194.1],[133.0,199.4],[132.6,199.6],[132.2,199.7],[131.7,199.8],[89.1,199.8],[88.7,199.7],[88.2,199.6],[87.8,199.4],[78.5,194.1],[78.1,193.8],[77.8,193.5],[77.5,193.1],[74.0,187.1],[73.9,186.8],[73.7,186.5],[73.7,186.2],[69.3,161.6],[69.2,161.1],[68.9,160.6],[68.6,160.1],[64.5,156.0],[64.1,155.5],[63.8,155.0],[63.7,154.5],[58.1,122.6],[57.9,122.1],[57.7,121.6],[57.3,121.1],[53.3,117.1],[52.9,116.6],[52.6,116.0],[52.5,115.3],[47.4,41.8],[47.2,41.1],[47.0,40.5],[46.6,40.0],[42.7,36.1],[42.3,35.6],[42.0,35.0],[41.9,34.3],[39.7,3.3],[39.3,2.0],[38.3,1.1],[37.0,0.8],[7.2,0.8],[6.5,0.8],[5.8,1.1],[5.2,1.6],[0.5,6.2]]},"250":{"sd":263.05,"phi":77.9,"r":2.0,"bTopo":43.9,"livre":[91.97,18517.0,32.607],"linha":[[0.7,6.5],[5.3,1.9],[5.9,1.4],[6.7,1.1],[7.4,1.0],[36.9,1.0],[38.3,1.4],[39.4,2.4],[39.9,3.8],[42.1,34.5],[42.2,35.2],[42.5,35.8],[42.9,36.4],[46.7,40.2],[47.1,40.8],[47.4,41.4],[47.5,42.1],[56.2,165.5],[56.3,166.2],[56.6,166.8],[57.0,167.4],[60.9,171.3],[61.3,171.8],[61.6,172.3],[61.8,172.9],[67.4,204.7],[67.5,205.3],[67.8,205.8],[68.2,206.3],[72.2,210.3],[72.6,210.8],[72.9,211.3],[73.0,211.9],[77.3,236.4],[77.4,236.7],[77.5,237.1],[77.7,237.4],[81.2,243.3],[81.5,243.7],[81.8,244.1],[82.3,244.4],[91.4,249.6],[91.9,249.8],[92.4,250.0],[92.9,250.0],[135.3,250.0],[135.8,250.0],[136.3,249.8],[136.8,249.6],[145.9,244.4],[146.3,244.1],[146.7,243.7],[147.0,243.3],[150.5,237.4],[150.6,237.1],[150.7,236.7],[150.8,236.4],[155.1,211.9],[155.3,211.3],[155.6,210.8],[156.0,210.3],[160.0,206.3],[160.4,205.8],[160.6,205.3],[160.8,204.7],[166.4,172.9],[166.6,172.3],[166.8,171.8],[167.2,171.3],[171.1,167.4],[171.6,166.8],[171.9,166.2],[172.0,165.5],[180.6,42.1],[180.8,41.4],[181.0,40.8],[181.5,40.2],[185.3,36.4],[185.7,35.8],[186.0,35.2],[186.1,34.5],[188.3,3.8],[188.7,2.4],[189.8,1.4],[191.3,1.0],[220.7,1.0],[221.5,1.1],[222.2,1.4],[222.8,1.9],[227.5,6.5]]}},"seccoes":[
     {"nome":"Ω80×1,0","h":80,"b":176,"t":1,"teff":0.96,"G":2.3864,"A":2.9218,"Iy":28.024,"Iz":69.244,"Iw":223.08,"It":0.008976,"zcg":36.31,"zcc":99.176,"ef":{"S280GD":[2.7714,26.857,6.1563,27.187,6.4912,68.726,7.7815],"S350GD":[2.6992,26.345,5.9826,26.737,6.4506,68.315,7.7093]}},
     {"nome":"Ω80×1,2","h":80,"b":176,"t":1.2,"teff":1.16,"G":2.8637,"A":3.5305,"Iy":33.863,"Iz":83.67,"Iw":269.56,"It":0.015835,"zcg":36.31,"zcc":99.176,"ef":{"S280GD":[3.4672,33.86,7.9311,33.266,7.8803,83.019,9.3983],"S350GD":[3.3641,32.878,7.5853,32.782,7.8373,83.019,9.3983]}},
     {"nome":"Ω80×1,5","h":80,"b":176,"t":1.5,"teff":1.46,"G":3.5796,"A":4.4435,"Iy":42.62,"Iz":105.31,"Iw":339.27,"It":0.031573,"zcg":36.31,"zcc":99.176,"ef":{"S280GD":[4.4233,42.616,9.9822,42.433,9.9675,104.44,11.821],"S350GD":[4.3674,42.616,9.9822,41.903,9.9213,104.44,11.821]}},
@@ -1127,6 +1244,25 @@ var Acoes = (function () {
     }
   };
 
+  // Paredes verticais (Quadro 7.1, cpe,10): A, B e C nas paredes paralelas ao vento; D (barlavento) e
+  // E (sotavento) dependem de h/d, com interpolação linear entre h/d = 0,25, 1 e 5.
+  var PAREDES_LATERAIS = { A: -1.2, B: -0.8, C: -0.5 };
+  function cpeParedes(hd) {
+    var D = hd >= 1 ? 0.8 : hd <= 0.25 ? 0.7 : 0.7 + 0.1 * (hd - 0.25) / 0.75;
+    var E = hd <= 0.25 ? -0.3 : hd <= 1 ? -0.3 - 0.2 * (hd - 0.25) / 0.75 : hd <= 5 ? -0.5 - 0.2 * (hd - 1) / 4 : -0.7;
+    return { D: D, E: E, A: PAREDES_LATERAIS.A, B: PAREDES_LATERAIS.B, C: PAREDES_LATERAIS.C };
+  }
+  // cpe,10 de uma zona da cobertura (áreas ≥ 10 m², como nos pórticos). direcao: 0 ou 90; sinal: "neg" ou "pos".
+  // Abaixo de 5° usa-se a cobertura em terraço (Quadro 7.2); devolve null se a zona não tiver valor desse sinal.
+  function cpeCobertura(alfa, direcao, zona, sinal) {
+    if (alfa < 5) {
+      var zt = zona === "J" ? "I" : zona;
+      return TERRACO[sinal] && TERRACO[sinal][zt] ? TERRACO[sinal][zt][0] : null;
+    }
+    var q = direcao === 90 ? DUAS_AGUAS_90 : DUAS_AGUAS_0;
+    return q[sinal] && q[sinal][zona] ? interpolarAlfa(q[sinal][zona], alfa)[0] : null;
+  }
+
   // Zonas que uma madre atravessa, conforme a sua posição na cobertura.
   var POSICOES = {
     corrente: { nome: "Zona corrente", zonas: ["H", "I"] },
@@ -1270,7 +1406,7 @@ var Acoes = (function () {
   return {
     NEVE_CZ: NEVE_CZ, NEVE_CE: NEVE_CE, VENTO_VB0: VENTO_VB0, TERRENO: TERRENO, POSICOES: POSICOES, SOBRECARGA_H: SOBRECARGA_H,
     NEVE_DISTRITOS: NEVE_DISTRITOS, NEVE_B3: NEVE_B3, concelhosDistrito: concelhosDistrito, zonaNeve: zonaNeve,
-    coeficienteOrografia: coeficienteOrografia,
+    coeficienteOrografia: coeficienteOrografia, cpeParedes: cpeParedes, cpeCobertura: cpeCobertura, psi0Neve: psi0Neve, GAMA: GAMA, PSI0: PSI0,
     mu1: mu1, neve: neve, pressaoPico: pressaoPico, coeficientesCobertura: coeficientesCobertura, vento: vento,
     cargasMadre: cargasMadre, combinacoes: combinacoes,
     _interpolarAlfa: interpolarAlfa, _cpeArea: cpeArea
@@ -1834,7 +1970,634 @@ var Enformados = (function () {
 if (typeof module !== "undefined") module.exports = Enformados;
 </script>
 <script>
-/* Interface: identificação de perfis por medidas e catálogo. Depende de perfis.js e seccao.js. */
+/*
+ * Pórtico de duas águas com bases encastradas, sem pontes rolantes (Fase 3).
+ * Análise elástica de 1.ª ordem de barras no plano (método dos deslocamentos), com:
+ *  - imperfeições globais (NP EN 1993-1-1, 5.3.2) e αcr pela expressão (5.2) (5.2.1(4)B);
+ *  - efeitos de 2.ª ordem pela amplificação 1/(1 − 1/αcr) da parte antissimétrica (com deslocamento
+ *    lateral) de cada combinação, para 3 ≤ αcr < 10 (5.2.2(5)B);
+ *  - verificação das secções (6.2) e dos elementos (6.3.3, método 2 do Anexo B, normativo em Portugal),
+ *    com comprimentos de encurvadura no plano iguais aos comprimentos reais (5.2.2(7)b).
+ * Depende de seccao.js, madres.js (momento crítico e χLT) e acoes.js. Unidades: m, kN, kN·m.
+ */
+var Portico = (function () {
+  var E = 210000;   // MPa
+  var ALFA_CURVA = { a0: 0.13, a: 0.21, b: 0.34, c: 0.49, d: 0.76 };
+
+  // ----- Malha simétrica ao longo do pórtico: base E → beirado E → cumeeira → beirado D → base D -----
+  /*
+   * g: { W, hb, hc (m), nPilar, nTravessa, cortes: frações da projeção horizontal da meia travessa medidas
+   *      a partir do beirado (0) até à cumeeira (1), que têm de ser nós nas duas águas }
+   */
+  function unir(l) {
+    l = l.filter(function (x) { return x >= 0 && x <= 1; }).sort(function (a, b) { return a - b; });
+    return l.filter(function (x, i) { return i === 0 || x - l[i - 1] > 1e-6; });
+  }
+  function malha(g) {
+    var fp = [], ft = [], i;
+    for (i = 0; i <= g.nPilar; i++) fp.push(i / g.nPilar);
+    for (i = 0; i <= g.nTravessa; i++) ft.push(i / g.nTravessa);
+    fp = unir(fp.concat(g.cortesPilar || []));
+    ft = unir(ft.concat(g.cortes || []));
+    var nos = [], membroNo = [];
+    function no(x, y) { nos.push({ x: x, y: y }); return nos.length - 1; }
+    var seq = [];
+    fp.forEach(function (f) { seq.push(no(0, f * g.hb)); });                                           // pilar E
+    ft.slice(1).forEach(function (f) { seq.push(no(f * g.W / 2, g.hb + f * (g.hc - g.hb))); });          // travessa E
+    ft.slice(0, -1).reverse().forEach(function (f) { seq.push(no(g.W - f * g.W / 2, g.hb + f * (g.hc - g.hb))); }); // travessa D
+    fp.slice(0, -1).reverse().forEach(function (f) { seq.push(no(g.W, f * g.hb)); });                    // pilar D
+    var nP = fp.length - 1, nT = ft.length - 1;
+    var elementos = [];
+    for (i = 0; i < seq.length - 1; i++) {
+      var membro = i < nP ? "pilarE" : i < nP + nT ? "travE" : i < nP + 2 * nT ? "travD" : "pilarD";
+      var a = nos[seq[i]], b = nos[seq[i + 1]], L = Math.hypot(b.x - a.x, b.y - a.y);
+      elementos.push({ i: seq[i], j: seq[i + 1], membro: membro, L: L, c: (b.x - a.x) / L, s: (b.y - a.y) / L });
+    }
+    // Posição de cada elemento ao longo do seu membro (s0, s1), a partir do início do membro no percurso.
+    var acum = {};
+    elementos.forEach(function (e) {
+      e.s0 = acum[e.membro] || 0; e.s1 = e.s0 + e.L; acum[e.membro] = e.s1;
+    });
+    return {
+      nos: nos, elementos: elementos, base: [seq[0], seq[seq.length - 1]],
+      beirados: [seq[nP], seq[nP + 2 * nT]], cumeeira: seq[nP + nT],
+      comprimento: { pilar: g.hb, travessa: Math.hypot(g.W / 2, g.hc - g.hb) }, alfa: Math.atan2(g.hc - g.hb, g.W / 2)
+    };
+  }
+
+  // ----- Rigidez e solução (matriz em banda: só nós consecutivos estão ligados) -----
+  function rigidezLocal(EA, EI, L) {
+    var a = EA / L, b = 12 * EI / Math.pow(L, 3), c = 6 * EI / (L * L), d = 4 * EI / L, f = 2 * EI / L;
+    return [
+      [a, 0, 0, -a, 0, 0], [0, b, c, 0, -b, c], [0, c, d, 0, -c, f],
+      [-a, 0, 0, a, 0, 0], [0, -b, -c, 0, b, -c], [0, c, f, 0, -c, d]
+    ];
+  }
+  function paraLocal(e, v) {   // vetor global de 6 → local
+    return [e.c * v[0] + e.s * v[1], -e.s * v[0] + e.c * v[1], v[2], e.c * v[3] + e.s * v[4], -e.s * v[3] + e.c * v[4], v[5]];
+  }
+  function paraGlobal(e, v) {
+    return [e.c * v[0] - e.s * v[1], e.s * v[0] + e.c * v[1], v[2], e.c * v[3] - e.s * v[4], e.s * v[3] + e.c * v[4], v[5]];
+  }
+
+  /*
+   * Prepara o modelo para um par de secções: rigidez global fatorizada (Gauss em banda).
+   * sec: { pilar: {A (cm²), Iy (cm⁴)}, travessa: {...} }
+   */
+  function modelo(m, sec) {
+    var nn = m.nos.length, n = 3 * nn, bw = 5;
+    m.elementos.forEach(function (e) {
+      var s = e.membro.indexOf("pilar") === 0 ? sec.pilar : sec.travessa;
+      e.k = rigidezLocal(E * s.A * 1e2 / 1e3, E * s.Iy * 1e4 / 1e9, e.L);   // kN e m
+    });
+    // Matriz em banda K[i][d], d = j − i + bw (|j − i| ≤ bw)
+    var K = []; for (var i = 0; i < n; i++) K.push(new Float64Array(2 * bw + 1));
+    m.elementos.forEach(function (e) {
+      var T = [[e.c, e.s, 0], [-e.s, e.c, 0], [0, 0, 1]];
+      var dofs = [3 * e.i, 3 * e.i + 1, 3 * e.i + 2, 3 * e.j, 3 * e.j + 1, 3 * e.j + 2];
+      // kg = Tᵀ k T (blocos 3×3)
+      for (var a = 0; a < 6; a++) for (var b = 0; b < 6; b++) {
+        var v = 0;
+        for (var p = 0; p < 3; p++) for (var q = 0; q < 3; q++) {
+          v += T[p][a % 3] * e.k[3 * Math.floor(a / 3) + p][3 * Math.floor(b / 3) + q] * T[q][b % 3];
+        }
+        K[dofs[a]][dofs[b] - dofs[a] + bw] += v;
+      }
+    });
+    // Apoios encastrados: graus de liberdade das duas bases fixos (linha e coluna anuladas, diagonal 1).
+    var fixos = {};
+    m.base.forEach(function (b) { for (var k = 0; k < 3; k++) fixos[3 * b + k] = true; });
+    Object.keys(fixos).forEach(function (d) {
+      d = +d;
+      for (var o = -bw; o <= bw; o++) {
+        var j = d + o; if (j < 0 || j >= n) continue;
+        K[d][o + bw] = 0; K[j][-o + bw] = 0;
+      }
+      K[d][bw] = 1;
+    });
+    // Eliminação de Gauss em banda (simétrica e definida positiva: sem pivotagem)
+    for (var k = 0; k < n; k++) {
+      for (var r = k + 1; r <= Math.min(n - 1, k + bw); r++) {
+        var f = K[r][k - r + bw] / K[k][bw];
+        if (!f) continue;
+        for (var c = k; c <= Math.min(n - 1, k + bw); c++) K[r][c - r + bw] -= f * K[k][c - k + bw];
+        K[r][k - r + bw] = f;   // guarda o multiplicador
+      }
+    }
+    return { m: m, K: K, n: n, bw: bw, fixos: fixos };
+  }
+
+  /*
+   * Resolve um caso de carga. carga: { q: Float64Array(2·nElementos) com (qx, qy) globais por metro de
+   * elemento, F: Float64Array(3·nNós) com forças e momentos nodais }.
+   * Devolve deslocamentos, esforços nas estações (início, meio e fim de cada elemento) e reações.
+   */
+  function resolver(mod, carga) {
+    var m = mod.m, n = mod.n, bw = mod.bw, K = mod.K;
+    var F = new Float64Array(n), eq = [];
+    if (carga.F) for (var i = 0; i < n; i++) F[i] = carga.F[i];
+    m.elementos.forEach(function (e, k) {
+      var qx = carga.q[2 * k], qy = carga.q[2 * k + 1];
+      var wx = e.c * qx + e.s * qy, wy = -e.s * qx + e.c * qy, L = e.L;
+      var pl = [wx * L / 2, wy * L / 2, wy * L * L / 12, wx * L / 2, wy * L / 2, -wy * L * L / 12];
+      eq.push({ pl: pl, wx: wx, wy: wy });
+      var pg = paraGlobal(e, pl);
+      [3 * e.i, 3 * e.i + 1, 3 * e.i + 2, 3 * e.j, 3 * e.j + 1, 3 * e.j + 2].forEach(function (d, a) { F[d] += pg[a]; });
+    });
+    Object.keys(mod.fixos).forEach(function (d) { F[+d] = 0; });
+    // Substituição progressiva e regressiva
+    var u = new Float64Array(F);
+    for (var k = 0; k < n; k++) for (var r = k + 1; r <= Math.min(n - 1, k + bw); r++) u[r] -= K[r][k - r + bw] * u[k];
+    for (var k2 = n - 1; k2 >= 0; k2--) {
+      var s = u[k2];
+      for (var c = k2 + 1; c <= Math.min(n - 1, k2 + bw); c++) s -= K[k2][c - k2 + bw] * u[c];
+      u[k2] = s / K[k2][bw];
+    }
+    // Esforços: f = k·u_local − p_eq (forças nas extremidades sobre o elemento, eixos locais)
+    var ne = m.elementos.length, N = new Float64Array(3 * ne), V = new Float64Array(3 * ne), M = new Float64Array(3 * ne);
+    var R = new Float64Array(6);
+    m.elementos.forEach(function (e, k) {
+      var ug = [u[3 * e.i], u[3 * e.i + 1], u[3 * e.i + 2], u[3 * e.j], u[3 * e.j + 1], u[3 * e.j + 2]];
+      var ul = paraLocal(e, ug), f = [];
+      for (var a = 0; a < 6; a++) {
+        var v = -eq[k].pl[a];
+        for (var b = 0; b < 6; b++) v += e.k[a][b] * ul[b];
+        f.push(v);
+      }
+      var wx = eq[k].wx, wy = eq[k].wy;
+      [0, 0.5, 1].forEach(function (t, p) {
+        var x = t * e.L;
+        N[3 * k + p] = -(f[0] + wx * x);                          // tração positiva
+        V[3 * k + p] = f[1] + wy * x;
+        M[3 * k + p] = -f[2] + f[1] * x + wy * x * x / 2;         // positivo: tração na face interior
+      });
+      // Reações: forças que os apoios exercem nas extremidades ligadas às bases
+      var fg = paraGlobal(e, f);
+      if (e.i === m.base[0]) { R[0] = fg[0]; R[1] = fg[1]; R[2] = fg[2]; }
+      if (e.j === m.base[1]) { R[3] = fg[3]; R[4] = fg[4]; R[5] = fg[5]; }
+    });
+    return { u: u, N: N, V: V, M: M, R: R };
+  }
+
+  // Combinação linear de resultados: termos [[coeficiente, resultado], ...]
+  function combinar(termos) {
+    var r0 = termos[0][1], out = {};
+    ["u", "N", "V", "M", "R"].forEach(function (k) {
+      var a = new Float64Array(r0[k].length);
+      termos.forEach(function (t) { var x = t[1][k]; for (var i = 0; i < a.length; i++) a[i] += t[0] * x[i]; });
+      out[k] = a;
+    });
+    return out;
+  }
+
+  /*
+   * Parte simétrica e antissimétrica de um resultado (malha simétrica): a estação i corresponde à
+   * estação n − 1 − i. M e N são simétricos sob carga simétrica; V e as rotações e deslocamentos
+   * horizontais mudam de sinal. Devolve sim + k·anti, com as reações recombinadas da mesma forma.
+   */
+  function amplificar(r, k, m) {
+    if (k === 1) return r;
+    var out = {};
+    function lado(arr, sinal) {
+      var n = arr.length, a = new Float64Array(n);
+      for (var i = 0; i < n; i++) {
+        var esp = sinal * arr[n - 1 - i];
+        a[i] = (arr[i] + esp) / 2 + k * (arr[i] - esp) / 2;
+      }
+      return a;
+    }
+    out.N = lado(r.N, 1); out.M = lado(r.M, 1); out.V = lado(r.V, -1);
+    // Deslocamentos: nó i ↔ nó espelho na sequência do percurso (os nós estão por essa ordem)
+    var nn = r.u.length / 3, u = new Float64Array(r.u.length);
+    for (var i = 0; i < nn; i++) {
+      var j = nn - 1 - i;
+      var sx = (r.u[3 * i] - r.u[3 * j]) / 2, ax = (r.u[3 * i] + r.u[3 * j]) / 2;      // ux: simétrico se ux_i = −ux_j
+      var sy = (r.u[3 * i + 1] + r.u[3 * j + 1]) / 2, ay = (r.u[3 * i + 1] - r.u[3 * j + 1]) / 2;
+      var sr = (r.u[3 * i + 2] - r.u[3 * j + 2]) / 2, ar = (r.u[3 * i + 2] + r.u[3 * j + 2]) / 2;
+      u[3 * i] = sx + k * ax; u[3 * i + 1] = sy + k * ay; u[3 * i + 2] = sr + k * ar;
+    }
+    out.u = u;
+    // Reações [Rx, Ry, M] E e D: espelho troca os apoios, Rx e M mudam de sinal.
+    var R = r.R, Rm = [-R[3], R[4], -R[5], -R[0], R[1], -R[2]], Ro = new Float64Array(6);
+    for (var q = 0; q < 6; q++) Ro[q] = (R[q] + Rm[q]) / 2 + k * (R[q] - Rm[q]) / 2;
+    out.R = Ro;
+    return out;
+  }
+
+  // ----- Ações no pórtico -----
+  /*
+   * Zonas do vento ao longo da cobertura (Figura 7.8) e nas paredes (Figura 7.5) para o pórtico analisado.
+   * v: { W, C (comprimento), h (altura de referência), L (espaçamento), alfa (graus), posicao: "empena" | "corrente" }
+   */
+  function zonasVento(v) {
+    var e0 = Math.min(v.C, 2 * v.h), e90 = Math.min(v.W, 2 * v.h), meia = v.W / 2;
+    // θ = 0° (vento da esquerda): x medido em planta a partir do beirado de barlavento
+    var z0;
+    if (v.alfa < 5) {
+      z0 = { esq: [[0, e0 / 10, "G"], [e0 / 10, e0 / 2, "H"], [e0 / 2, Infinity, "I"]], plano: true };
+    } else {
+      var faixaF = v.posicao === "empena" && v.L / 2 < e0 / 4;    // a faixa do pórtico toca os cantos F
+      z0 = { barlavento: [[0, e0 / 10, faixaF ? "F" : "G"], [e0 / 10, Infinity, "H"]],
+        sotavento: [[0, e0 / 10, "J"], [e0 / 10, Infinity, "I"]] };    // sotavento: a partir da cumeeira
+    }
+    // θ = 90°: zona da cobertura e das paredes laterais pela distância à empena de barlavento
+    var x0 = v.posicao === "empena" ? v.L / 2 : Infinity;
+    var z90 = x0 < e90 / 10 ? "FG" : x0 < e90 / 2 ? "H" : "I";
+    var parede90 = x0 < e90 / 5 ? "A" : (x0 < e90 || e90 >= v.C) ? "B" : "C";
+    return { e0: e0, e90: e90, meia: meia, z0: z0, z90: z90, parede90: parede90 };
+  }
+
+  // Frações (a partir do beirado, na projeção horizontal da meia travessa) onde mudam as zonas.
+  function cortesVento(zv) {
+    var c = [], meia = zv.meia;
+    if (zv.z0.plano) {
+      [zv.e0 / 10, zv.e0 / 2].forEach(function (x) { c.push(x / meia, (zv.meia * 2 - x) / meia); });
+    } else {
+      c.push(zv.e0 / 10 / meia, 1 - zv.e0 / 10 / meia);
+    }
+    if (zv.z90 === "FG") c.push(zv.e90 / 4 / meia);
+    return c.filter(function (f) { return f > 0 && f < 1; });
+  }
+
+  /*
+   * Casos de carga elementares (valores característicos), em kN/m por metro de elemento.
+   * a: { L, gRev, gInst, gMadres (kN/m² de cobertura), qk, s (neve com μ1, kN/m² em projeção),
+   *      qp, cpe paredes {D, E, A, B, C}, cpi [máx, mín], alfa (graus), zonas (zonasVento) }
+   * pp: pesos próprios { pilar, travessa } em kN/m
+   */
+  function casosCarga(m, a, pp) {
+    var ne = m.elementos.length, nn = m.nos.length, al = m.alfa, cosA = Math.cos(al), senA = Math.sin(al);
+    function novo() { return { q: new Float64Array(2 * ne), F: new Float64Array(3 * nn) }; }
+    function porMembro(f) {   // f(elemento, xm horizontal a partir do próprio beirado) → [qx, qy]
+      var c = novo();
+      m.elementos.forEach(function (e, k) {
+        var xm;
+        if (e.membro === "travE") xm = (e.s0 + e.s1) / 2 * cosA;
+        else if (e.membro === "travD") xm = (m.comprimento.travessa - (e.s0 + e.s1) / 2) * cosA;
+        var v = f(e, xm);
+        if (v) { c.q[2 * k] = v[0]; c.q[2 * k + 1] = v[1]; }
+      });
+      return c;
+    }
+    var trav = function (e) { return e.membro === "travE" || e.membro === "travD"; };
+    var casos = {};
+    // Pesos próprios dos elementos (verticais, por metro de elemento)
+    casos.Gp = porMembro(function (e) { return [0, -(trav(e) ? pp.travessa : pp.pilar)]; });
+    // Revestimento e madres; instalações (por m² de cobertura, ao longo da travessa)
+    casos.Gr = porMembro(function (e) { return trav(e) ? [0, -(a.gRev + a.gMadres) * a.L] : null; });
+    casos.Gi = porMembro(function (e) { return trav(e) ? [0, -a.gInst * a.L] : null; });
+    // Sobrecarga e neve: por m² em projeção horizontal → por metro de travessa × cos α
+    function projecao(vE, vD) {
+      return porMembro(function (e) {
+        if (e.membro === "travE") return [0, -vE * a.L * cosA];
+        if (e.membro === "travD") return [0, -vD * a.L * cosA];
+        return null;
+      });
+    }
+    casos.Qa = projecao(a.qk, a.qk); casos.Qe = projecao(a.qk, 0); casos.Qd = projecao(0, a.qk);
+    casos.Si = projecao(a.s, a.s); casos.Sii = projecao(0.5 * a.s, a.s); casos.Siii = projecao(a.s, 0.5 * a.s);
+    // Carga horizontal unitária (1 kN no total, metade em cada beirado): imperfeições e αcr
+    var H = novo();
+    m.beirados.forEach(function (b) { H.F[3 * b] = 0.5; });
+    casos.H = H;
+    // Vento: pressão resultante p = qp (cpe − cpi), positiva contra a superfície
+    var zv = a.zonas, vento = [];
+    function pressaoTrav(e, p) {   // força por metro de travessa, normal à água
+      if (e.membro === "travE") return [p * a.L * senA, -p * a.L * cosA];
+      return [-p * a.L * senA, -p * a.L * cosA];
+    }
+    function zonaEm(lista, x) { for (var i = 0; i < lista.length; i++) if (x < lista[i][1]) return lista[i][2]; return lista[lista.length - 1][2]; }
+    function cpe(dir, zona, sinal) {
+      var v = Acoes.cpeCobertura(a.alfa, dir, zona, sinal);
+      return v === null ? Acoes.cpeCobertura(a.alfa, dir, zona, "neg") : v;
+    }
+    var sinais = zv.z0.plano ? [["neg", "neg"], ["neg", "pos"]] : [["neg", "neg"], ["neg", "pos"], ["pos", "neg"], ["pos", "pos"]];
+    a.cpi.forEach(function (cpi) {
+      sinais.forEach(function (sg) {
+        var c = porMembro(function (e, x) {
+          if (e.membro === "pilarE") return [a.qp * (a.cpe.D - cpi) * a.L, 0];
+          if (e.membro === "pilarD") return [-a.qp * (a.cpe.E - cpi) * a.L, 0];
+          var zona;
+          if (zv.z0.plano) {
+            var xg = e.membro === "travE" ? x : 2 * zv.meia - x;          // a partir do beirado de barlavento
+            zona = zonaEm(zv.z0.esq, xg);
+            return pressaoTrav(e, a.qp * (cpe(0, zona, zona === "I" ? sg[1] : sg[0]) - cpi));
+          }
+          if (e.membro === "travE") { zona = zonaEm(zv.z0.barlavento, x); return pressaoTrav(e, a.qp * (cpe(0, zona, sg[0]) - cpi)); }
+          zona = zonaEm(zv.z0.sotavento, zv.meia - x);
+          return pressaoTrav(e, a.qp * (cpe(0, zona, sg[1]) - cpi));
+        });
+        c.nome = "W 0° (" + (sg[0] === "neg" ? "−" : "+") + "/" + (sg[1] === "neg" ? "−" : "+") + "), c<sub>pi</sub> " + (cpi > 0 ? "+" : "") + cpi.toFixed(1).replace(".", ",").replace("-", "−");
+        vento.push(c);
+      });
+      var c90 = porMembro(function (e, x) {
+        var p = a.qp * (a.cpe[zv.parede90] - cpi);
+        if (e.membro === "pilarE") return [p * a.L, 0];
+        if (e.membro === "pilarD") return [-p * a.L, 0];
+        var zona = zv.z90 === "FG" ? (x < zv.e90 / 4 ? "F" : "G") : zv.z90;
+        return pressaoTrav(e, a.qp * (cpe(90, zona, "neg") - cpi));
+      });
+      c90.nome = "W 90°, c<sub>pi</sub> " + (cpi > 0 ? "+" : "") + cpi.toFixed(1).replace(".", ",").replace("-", "−");
+      vento.push(c90);
+    });
+    casos.W = vento;
+    return casos;
+  }
+
+  // ----- Combinações (NP EN 1990, 6.10 e características) -----
+  /*
+   * Lista de combinações como termos sobre os casos elementares. Cada combinação:
+   * { nome, termos: [[coef, chave]], vento: true/false }. As chaves de vento são "W0".."W9".
+   */
+  function combinacoes(nVento, altitude) {
+    var g = Acoes.GAMA, psiW = Acoes.PSI0.W, psiS = Acoes.psi0Neve(altitude);
+    var Gdesf = [[g.Gsup, "Gp"], [g.Gsup, "Gr"], [g.Gsup, "Gi"]], Gfav = [[g.Ginf, "Gp"], [g.Ginf, "Gr"]];
+    var Gk = [[1, "Gp"], [1, "Gr"], [1, "Gi"]], GkFav = [[1, "Gp"], [1, "Gr"]];
+    var Qs = [["Qa", "Q (todas as águas)"], ["Qe", "Q (água esquerda)"], ["Qd", "Q (água direita)"]];
+    var Ss = [["Si", "S (i)"], ["Sii", "S (ii)"], ["Siii", "S (iii)"]];
+    var Ws = []; for (var i = 0; i < nVento; i++) Ws.push("W" + i);
+    var elu = [], els = [];
+    Qs.forEach(function (q) {
+      elu.push({ nome: "1,35 G + 1,5 " + q[1], termos: Gdesf.concat([[g.Q, q[0]]]), variavel: [[g.Q, q[0]]] });
+      els.push({ nome: "G + " + q[1], termos: Gk.concat([[1, q[0]]]), variavel: [[1, q[0]]] });
+    });
+    Ss.forEach(function (s) {
+      elu.push({ nome: "1,35 G + 1,5 " + s[1], termos: Gdesf.concat([[g.Q, s[0]]]), variavel: [[g.Q, s[0]]] });
+      els.push({ nome: "G + " + s[1], termos: Gk.concat([[1, s[0]]]), variavel: [[1, s[0]]] });
+      Ws.forEach(function (w) {
+        elu.push({ nome: "1,35 G + 1,5 " + s[1] + " + 1,5 × " + String(psiW).replace(".", ",") + " " + w, termos: Gdesf.concat([[g.Q, s[0]], [g.Q * psiW, w]]), variavel: [[g.Q, s[0]], [g.Q * psiW, w]], w: w });
+        els.push({ nome: "G + " + s[1] + " + " + String(psiW).replace(".", ",") + " " + w, termos: Gk.concat([[1, s[0]], [psiW, w]]), variavel: [[1, s[0]], [psiW, w]], w: w });
+      });
+    });
+    Ws.forEach(function (w) {
+      elu.push({ nome: "1,35 G + 1,5 " + w, termos: Gdesf.concat([[g.Q, w]]), variavel: [[g.Q, w]], w: w });
+      elu.push({ nome: "1,0 G + 1,5 " + w, termos: Gfav.concat([[g.Q, w]]), variavel: [[g.Q, w]], w: w });
+      els.push({ nome: "G + " + w, termos: Gk.concat([[1, w]]), variavel: [[1, w]], w: w });
+      els.push({ nome: "G (sem instalações) + " + w, termos: GkFav.concat([[1, w]]), variavel: [[1, w]], w: w });
+      Ss.forEach(function (s) {
+        elu.push({ nome: "1,35 G + 1,5 " + w + " + 1,5 × " + String(psiS).replace(".", ",") + " " + s[1], termos: Gdesf.concat([[g.Q, w], [g.Q * psiS, s[0]]]), variavel: [[g.Q, w], [g.Q * psiS, s[0]]], w: w });
+        els.push({ nome: "G + " + w + " + " + String(psiS).replace(".", ",") + " " + s[1], termos: Gk.concat([[1, w], [psiS, s[0]]]), variavel: [[1, w], [psiS, s[0]]], w: w });
+      });
+    });
+    return { elu: elu, els: els };
+  }
+
+  // ----- Verificação das secções e dos elementos (NP EN 1993-1-1) -----
+  function chiFlexao(lambda, curva) {
+    if (lambda <= 0.2) return 1;
+    var a = ALFA_CURVA[curva], phi = 0.5 * (1 + a * (lambda - 0.2) + lambda * lambda);
+    return Math.min(1, 1 / (phi + Math.sqrt(phi * phi - lambda * lambda)));
+  }
+  // Quadro 6.2, perfis I laminados (S235 a S420)
+  function curvas(p) {
+    if (p.h / p.b > 1.2) return p.tf <= 40 ? { y: "a", z: "b" } : { y: "b", z: "c" };
+    return p.tf <= 100 ? { y: "b", z: "c" } : { y: "d", z: "d" };
+  }
+
+  // Classe da secção sob compressão C (kN, ≥ 0) e momento M (kN·m) (Quadro 5.2; alma com α e ψ).
+  function classe(p, pr, fy, C, M) {
+    var cl = Seccao.classificar(p, fy), eps = cl.eps;
+    var c = p.h - 2 * p.tf - 2 * p.r, tw = p.tw;
+    var alfa = Math.min(1, 0.5 + C * 1e3 / (2 * c * tw * fy));
+    var r = c / tw, alma;
+    if (alfa <= 0) alma = 1;
+    else if (alfa > 0.5) alma = r <= 396 * eps / (13 * alfa - 1) ? 1 : r <= 456 * eps / (13 * alfa - 1) ? 2 : 3;
+    else alma = r <= 36 * eps / alfa ? 1 : r <= 41.5 * eps / alfa ? 2 : 3;
+    if (alma === 3) {
+      var s1 = C * 1e3 / (pr.A * 1e2) + Math.abs(M) * 1e6 / (pr.Wely * 1e3), s2 = C * 1e3 / (pr.A * 1e2) - Math.abs(M) * 1e6 / (pr.Wely * 1e3);
+      var psi = s2 / s1;
+      var lim = psi > -1 ? 42 * eps / (0.67 + 0.33 * psi) : 62 * eps * (1 - psi) * Math.sqrt(-psi);
+      alma = r <= lim ? 3 : 4;
+    }
+    return Math.max(cl.banzo.classe, alma);
+  }
+
+  // Resistência da secção (6.2): utilização para N, V e M em conjunto (6.2.8 e 6.2.9).
+  function verificarSeccao(p, pr, fy, N, V, M) {
+    var C = Math.max(0, -N), cls = classe(p, pr, fy, C, M);
+    var A = pr.A * 1e2, Npl = A * fy / 1e3, Vpl = pr.Avz * 1e2 * fy / Math.sqrt(3) / 1e3;
+    var hw = p.h - 2 * p.tf, rho = Math.abs(V) > 0.5 * Vpl ? Math.pow(2 * Math.abs(V) / Vpl - 1, 2) : 0;
+    var uV = Math.abs(V) / Vpl, u;
+    if (cls <= 2) {
+      var Mpl = (pr.Wply * 1e3 - rho * Math.pow(hw * p.tw, 2) / (4 * p.tw)) * fy / 1e6;
+      var nN = Math.abs(N) / Npl, a = Math.min((A - 2 * p.b * p.tf) / A, 0.5);
+      var semReducao = Math.abs(N) <= 0.25 * Npl && Math.abs(N) <= 0.5 * hw * p.tw * fy / 1e3;
+      var MN = semReducao ? Mpl : Math.min(Mpl, Mpl * (1 - nN) / (1 - 0.5 * a));
+      u = Math.max(nN, MN > 0 ? Math.abs(M) / MN : Infinity, uV);
+    } else if (cls === 3) {
+      var fr = fy * (1 - rho);
+      u = Math.max((Math.abs(N) * 1e3 / A + Math.abs(M) * 1e6 / (pr.Wely * 1e3)) / fr, uV);
+    } else {
+      u = Infinity;
+    }
+    return { u: u, classe: cls, N: N, V: V, M: M };
+  }
+
+  /*
+   * Encurvadura de um troço entre travamentos (6.3.3, método 2, com Cmy = CmLT = 1,0 do lado da segurança).
+   * t: { C (compressão máx., kN), M (|M| máx.), Lcry, Lcrz, LcrLT, C1, classe }
+   */
+  function verificarEstabilidade(p, pr, fy, t) {
+    var A = pr.A * 1e2, NRk = A * fy / 1e3;
+    var W = t.classe <= 2 ? pr.Wply : pr.Wely, MRk = W * 1e3 * fy / 1e6;
+    var l1 = Math.PI * Math.sqrt(E / fy), cv = curvas(p);
+    var ly = t.Lcry * 1000 / (pr.iy * 10) / l1, lz = t.Lcrz * 1000 / (pr.iz * 10) / l1;
+    var chiY = chiFlexao(ly, cv.y), chiZ = chiFlexao(lz, cv.z);
+    var Mcr = Madres.momentoCritico(p, pr, t.LcrLT, t.C1);
+    var lt = Madres.chiLT(p, W, fy, Mcr);
+    var ny = t.C / (chiY * NRk), nz = t.C / (chiZ * NRk), Cm = 1.0;
+    var kyy, kzy;
+    if (t.classe <= 2) {
+      kyy = Math.min(Cm * (1 + (ly - 0.2) * ny), Cm * (1 + 0.8 * ny));
+      kzy = lz < 0.4 ? Math.min(0.6 + lz, 1 - 0.1 * lz * nz / (Cm - 0.25))
+        : Math.max(1 - 0.1 * lz * nz / (Cm - 0.25), 1 - 0.1 * nz / (Cm - 0.25));
+    } else {
+      kyy = Math.min(Cm * (1 + 0.6 * ly * ny), Cm * (1 + 0.6 * ny));
+      kzy = Math.max(1 - 0.05 * lz * nz / (Cm - 0.25), 1 - 0.05 * nz / (Cm - 0.25));
+    }
+    var mb = t.M / (lt.chi * MRk);
+    var u61 = ny + kyy * mb, u62 = nz + kzy * mb;
+    return { u: Math.max(u61, u62), u61: u61, u62: u62, chiY: chiY, chiZ: chiZ, chiLT: lt.chi, lambdaY: ly, lambdaZ: lz, lambdaLT: lt.lambda, Mcr: Mcr, kyy: kyy, kzy: kzy };
+  }
+
+  // C1 para um troço: fórmula em ψ quando o diagrama é praticamente linear; senão 1,0.
+  function fatorC1(Ms) {
+    var M1 = Ms[0], M2 = Ms[Ms.length - 1], n = Ms.length;
+    var mx = Math.max(Math.abs(M1), Math.abs(M2));
+    if (mx < 1e-9) return 1;
+    for (var i = 0; i < n; i++) {
+      var lin = M1 + (M2 - M1) * i / (n - 1);
+      if (Math.abs(Ms[i] - lin) > 0.05 * mx) return 1;
+    }
+    var psi = Math.abs(M1) >= Math.abs(M2) ? M2 / M1 : M1 / M2;
+    return Math.min(1.88 - 1.40 * psi + 0.52 * psi * psi, 2.7);
+  }
+
+  /*
+   * Verifica o pórtico para um par de perfis.
+   * dados: { g (geometria), acoes (para casosCarga), altitude, travamentos: { pilar: n (0, 1, 2),
+   *          travessaEscoras: k (0 = sem escoras; senão de k em k madres), espacamentoMadres (m) } }
+   */
+  function verificar(dados, perfilPilar, perfilTravessa, aco) {
+    var g = dados.g, pp = Seccao.propriedades(perfilPilar), pt = Seccao.propriedades(perfilTravessa);
+    var fyP = Seccao.tensoes(aco, perfilPilar.tf).fy, fyT = Seccao.tensoes(aco, perfilTravessa.tf).fy;
+    var zv = dados.acoes.zonas;
+    var nP = dados.travamentos.pilar;
+    var cortesP = []; for (var i = 1; i <= nP; i++) cortesP.push(i / (nP + 1));
+    var m = malha({ W: g.W, hb: g.hb, hc: g.hc, nPilar: 8, nTravessa: 16, cortes: cortesVento(zv), cortesPilar: cortesP });
+    var mod = modelo(m, { pilar: pp, travessa: pt });
+    var casos = casosCarga(m, dados.acoes, { pilar: pp.G * 9.81 / 1000, travessa: pt.G * 9.81 / 1000 });
+    var res = {};
+    ["Gp", "Gr", "Gi", "Qa", "Qe", "Qd", "Si", "Sii", "Siii", "H"].forEach(function (k) { res[k] = resolver(mod, casos[k]); });
+    casos.W.forEach(function (c, k) { res["W" + k] = resolver(mod, c); });
+    var comb = combinacoes(casos.W.length, dados.altitude);
+
+    // αcr (5.2): deslocamento do beirado com 1 kN horizontal no total
+    var dH = Math.max(Math.abs(res.H.u[3 * m.beirados[0]]), Math.abs(res.H.u[3 * m.beirados[1]]));
+    var phi = 1 / 200 * Math.min(1, Math.max(2 / 3, 2 / Math.sqrt(g.hb))) * Math.sqrt(0.5 * (1 + 1 / 2));
+
+    // Troços entre travamentos de cada membro (posições ao longo do membro, no sentido do percurso)
+    var Lp = m.comprimento.pilar, Lt = m.comprimento.travessa;
+    var restrP = [0, Lp]; cortesP.forEach(function (f) { restrP.push(f * Lp); });
+    var madres = [], s = dados.travamentos.espacamentoMadres;
+    for (var x = 0; x < Lt - s * 0.25; x += s) madres.push(x);
+    madres.push(Lt);
+    var k = dados.travamentos.travessaEscoras, restrT = [0, Lt];
+    if (k > 0) madres.forEach(function (xm, idx) { if (idx % k === 0) restrT.push(xm); });
+    function ordenar(l) { return l.slice().sort(function (a, b) { return a - b; }).filter(function (v, i, a2) { return i === 0 || v - a2[i - 1] > 1e-6; }); }
+    restrP = ordenar(restrP); restrT = ordenar(restrT);
+    var membros = {
+      pilarE: { perfil: perfilPilar, pr: pp, fy: fyP, L: Lp, restr: restrP, inverso: false },
+      travE: { perfil: perfilTravessa, pr: pt, fy: fyT, L: Lt, restr: restrT, inverso: false },
+      travD: { perfil: perfilTravessa, pr: pt, fy: fyT, L: Lt, restr: restrT, inverso: true },
+      pilarD: { perfil: perfilPilar, pr: pp, fy: fyP, L: Lp, restr: restrP, inverso: true }
+    };
+    // Estações de cada membro: índice e posição (medida a partir do beirado na travessa D e da base no pilar D)
+    Object.keys(membros).forEach(function (id) { membros[id].est = []; });
+    m.elementos.forEach(function (e, ke) {
+      [0, 0.5, 1].forEach(function (t, q) {
+        var sp = e.s0 + t * e.L, mb = membros[e.membro];
+        mb.est.push({ i: 3 * ke + q, s: mb.inverso ? mb.L - sp : sp });
+      });
+    });
+
+    var pior = {
+      pilarSeccao: { u: 0 }, pilarEstab: { u: 0 }, travSeccao: { u: 0 }, travEstab: { u: 0 },
+      alfaCr: { u: 0 }, deslH: { u: 0 }, flecha: { u: 0 }, flechaVar: { u: 0 }
+    };
+    function registar(ch, u, extra) { if (u > pior[ch].u || !pior[ch].comb) pior[ch] = Object.assign({ u: u }, extra); }
+    var envM = { max: new Float64Array(3 * m.elementos.length).fill(-Infinity), min: new Float64Array(3 * m.elementos.length).fill(Infinity) };
+    var envR = { max: new Float64Array(6).fill(-Infinity), min: new Float64Array(6).fill(Infinity) };
+    var alfaMin = Infinity, axialSignificativo = false;
+    var NcrTrav = Math.PI * Math.PI * E * pt.Iy * 1e4 / Math.pow(2 * Lt * 1000, 2) / 1000;   // travessa completa
+
+    comb.elu.forEach(function (c) {
+      var r1 = combinar(c.termos.map(function (t) { return [t[0], res[t[1]]]; }));
+      var V = r1.R[1] + r1.R[4];
+      var alfaCr = V > 1e-6 ? g.hb / (V * dH) : Infinity;
+      alfaMin = Math.min(alfaMin, alfaCr);
+      var kAmp = alfaCr >= 10 ? 1 : alfaCr >= 3 ? 1 / (1 - 1 / alfaCr) : NaN;
+      // Utilização 3/αcr: acima de 1, a amplificação de 5.2.2(5)B deixa de ser válida (é preciso uma análise de 2.ª ordem).
+      registar("alfaCr", 3 / alfaCr, { comb: c.nome, alfaCr: alfaCr, k: isNaN(kAmp) ? null : kAmp });
+      if (isNaN(kAmp)) kAmp = 1.5;
+      // Imperfeição global: φ·V em forças horizontais nos beirados (no sentido do vento, se houver)
+      var r2 = combinar([[1, r1], [phi * Math.max(V, 0), res.H]]);
+      var r = amplificar(r2, kAmp, m);
+      for (var q = 0; q < r.M.length; q++) { envM.max[q] = Math.max(envM.max[q], r.M[q]); envM.min[q] = Math.min(envM.min[q], r.M[q]); }
+      for (var q2 = 0; q2 < 6; q2++) { envR.max[q2] = Math.max(envR.max[q2], r.R[q2]); envR.min[q2] = Math.min(envR.min[q2], r.R[q2]); }
+
+      Object.keys(membros).forEach(function (id) {
+        var mb = membros[id], pilar = id.indexOf("pilar") === 0;
+        // Secções
+        mb.est.forEach(function (st) {
+          var vs = verificarSeccao(mb.perfil, mb.pr, mb.fy, r.N[st.i], r.V[st.i], r.M[st.i]);
+          registar(pilar ? "pilarSeccao" : "travSeccao", vs.u, { comb: c.nome, membro: id, s: st.s, N: vs.N, V: vs.V, M: vs.M, classe: vs.classe });
+          if (!pilar && -r.N[st.i] > 0.09 * NcrTrav) axialSignificativo = true;
+        });
+        // Troços entre travamentos
+        for (var t = 0; t < mb.restr.length - 1; t++) {
+          var a0 = mb.restr[t] - 1e-9, a1 = mb.restr[t + 1] + 1e-9;
+          var ests = mb.est.filter(function (st) { return st.s >= a0 && st.s <= a1; }).sort(function (x, y) { return x.s - y.s; });
+          if (!ests.length) continue;
+          var C = 0, Mmax = 0, Mz = 0, Ms = [];
+          ests.forEach(function (st) {
+            C = Math.max(C, -r.N[st.i]);
+            if (Math.abs(r.M[st.i]) > Math.abs(Mmax)) Mmax = r.M[st.i];
+            Ms.push(r.M[st.i]);
+          });
+          var Lseg = mb.restr[t + 1] - mb.restr[t];
+          // Banzo comprimido: M < 0 comprime o banzo interior (inferior na travessa). Na travessa com M > 0
+          // comprime-se o banzo superior, travado pelas madres.
+          var LcrLT = !pilar && Mmax > 0 ? Math.min(Lseg, s) : Lseg;
+          var cls = classe(mb.perfil, mb.pr, mb.fy, C, Mmax);
+          if (cls === 4) { registar(pilar ? "pilarEstab" : "travEstab", Infinity, { comb: c.nome, membro: id, classe: 4 }); continue; }
+          var ve = verificarEstabilidade(mb.perfil, mb.pr, mb.fy, { C: C, M: Math.abs(Mmax), Lcry: mb.L, Lcrz: Lseg, LcrLT: LcrLT, C1: fatorC1(Ms), classe: cls });
+          registar(pilar ? "pilarEstab" : "travEstab", ve.u, Object.assign({ comb: c.nome, membro: id, troco: [mb.restr[t], mb.restr[t + 1]], C: C, M: Mmax, Lcrz: Lseg, LcrLT: LcrLT, classe: cls }, ve));
+        }
+      });
+    });
+
+    // Estados limites de utilização (sem amplificação): beirado h/150, cumeeira vão/200 e vão/250.
+    var limH = g.hb / 150, limV = g.W / 200, limV2 = g.W / 250;
+    comb.els.forEach(function (c) {
+      var r = combinar(c.termos.map(function (t) { return [t[0], res[t[1]]]; }));
+      var rv = combinar(c.variavel.map(function (t) { return [t[0], res[t[1]]]; }));
+      var ux = Math.max(Math.abs(r.u[3 * m.beirados[0]]), Math.abs(r.u[3 * m.beirados[1]]));
+      registar("deslH", ux / limH, { comb: c.nome, d: ux * 1000, lim: limH * 1000 });
+      function flecha(rr) { return -(rr.u[3 * m.cumeeira + 1] - (rr.u[3 * m.beirados[0] + 1] + rr.u[3 * m.beirados[1] + 1]) / 2); }
+      var f = Math.abs(flecha(r)), f2 = Math.abs(flecha(rv));
+      registar("flecha", f / limV, { comb: c.nome, d: f * 1000, lim: limV * 1000 });
+      registar("flechaVar", f2 / limV2, { comb: c.nome, d: f2 * 1000, lim: limV2 * 1000 });
+    });
+
+    var chaves = ["pilarSeccao", "pilarEstab", "travSeccao", "travEstab", "alfaCr", "deslH", "flecha", "flechaVar"];
+    var uMax = Math.max.apply(null, chaves.map(function (kk) { return pior[kk].u; }));
+    var peso = 2 * Lp * pp.G + 2 * Lt * pt.G;   // kg por pórtico
+    // Reações características por caso elementar (para as fundações)
+    var reacoes = { G: combinar([[1, res.Gp], [1, res.Gr], [1, res.Gi]]).R, Q: res.Qa.R, S: res.Si.R, Sii: res.Sii.R, Siii: res.Siii.R };
+    casos.W.forEach(function (c, kk) { reacoes["W" + kk] = res["W" + kk].R; });
+    return {
+      aco: aco, pilar: { perfil: perfilPilar, props: pp, fy: fyP }, travessa: { perfil: perfilTravessa, props: pt, fy: fyT },
+      malha: m, verificacoes: pior, uMax: uMax, ok: uMax <= 1, peso: peso,
+      alfaCrMin: alfaMin, axialSignificativo: axialSignificativo, phi: phi, envM: envM, envR: envR,
+      reacoes: reacoes, nomesVento: casos.W.map(function (c) { return c.nome; }), combinacoes: comb
+    };
+  }
+
+  /*
+   * Escolhe o par de perfis mais leve que verifica, percorrendo os pares por peso crescente.
+   * Devolve também os pares vizinhos analisados, para comparação.
+   */
+  function dimensionar(dados, pilares, travessas, aco) {
+    var g = dados.g, Lt = Math.hypot(g.W / 2, g.hc - g.hb), pares = [];
+    pilares.forEach(function (pc) {
+      var gp = Seccao.propriedades(pc).G;
+      travessas.forEach(function (tr) { pares.push({ pc: pc, tr: tr, peso: 2 * g.hb * gp + 2 * Lt * Seccao.propriedades(tr).G }); });
+    });
+    pares.sort(function (a, b) { return a.peso - b.peso; });
+    var analisados = [], escolhido = null;
+    for (var i = 0; i < pares.length; i++) {
+      var r = verificar(dados, pares[i].pc, pares[i].tr, aco);
+      analisados.push(r);
+      if (r.ok && !escolhido) escolhido = r;
+      if (escolhido && analisados.length >= analisados.indexOf(escolhido) + 6) break;
+      if (!escolhido && analisados.length >= 400) break;
+    }
+    return { escolhido: escolhido, analisados: analisados };
+  }
+
+  return {
+    E: E, malha: malha, modelo: modelo, resolver: resolver, combinar: combinar, amplificar: amplificar,
+    zonasVento: zonasVento, cortesVento: cortesVento, casosCarga: casosCarga, combinacoes: combinacoes,
+    chiFlexao: chiFlexao, curvas: curvas, classe: classe, verificarSeccao: verificarSeccao,
+    verificarEstabilidade: verificarEstabilidade, fatorC1: fatorC1, verificar: verificar, dimensionar: dimensionar
+  };
+})();
+
+if (typeof module !== "undefined") module.exports = Portico;
+</script>
+<script>
+/* Interface: identificação de perfis por medidas e catálogo. Depende de perfis.js, seccao.js e enformados.js. */
 (function () {
   var FAMILIAS = Object.keys(PERFIS);
   var TODOS = Seccao.todos();
@@ -1842,6 +2605,7 @@ if (typeof module !== "undefined") module.exports = Enformados;
 
   var estado = {
     familias: FAMILIAS.slice(),
+    forma: "I",             // I ou H laminado, ou enformado a frio: "omega", "C", "Z"
     aco: "S355",
     escolhido: null,        // perfil escolhido à mão na lista de candidatos
     familiaCatalogo: "IPE"
@@ -1906,7 +2670,43 @@ if (typeof module !== "undefined") module.exports = Enformados;
       var v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(txt) ? parseFloat(txt) : NaN;
       return isFinite(v) && v > 0 ? v : null;
     }
-    return { h: num("h"), b: num("b"), tw: num("tw"), tf: num("tf") };
+    return { h: num("h"), b: num("b"), tw: num("tw"), tf: num("tf"), t: num("t"), a: num("a") };
+  }
+
+  // ----- Perfis enformados a frio (O Feliz) -----
+  var FAMILIA_FORMA = { omega: "Superomega", C: "C", Z: "Z" };
+  function acosForma(forma) {
+    return forma === "I" ? Object.keys(Seccao.ACOS) : Enformados.FAMILIAS[FAMILIA_FORMA[forma]].acos;
+  }
+  // Mostra os campos, o esboço e as classes de aço da forma escolhida.
+  function atualizarForma(forma, aco) {
+    estado.forma = forma;
+    var lista = acosForma(forma), padrao = forma === "I" ? "S355" : "S350GD";
+    estado.aco = lista.indexOf(aco) >= 0 ? aco : padrao;
+    $("in-aco").innerHTML = lista.map(function (a) {
+      return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + (Seccao.ACOS[a] ? " · " + Seccao.ACOS[a].norma : " · EN 10346") + "</option>";
+    }).join("");
+    var enf = forma !== "I";
+    $("campo-tw").hidden = enf; $("campo-tf").hidden = enf; $("grupo-familias").hidden = enf;
+    $("campo-t").hidden = !enf; $("campo-a").hidden = !(forma === "C" || forma === "Z");
+    Array.prototype.forEach.call(document.querySelectorAll(".esquema svg[data-forma]"), function (svg) {
+      svg.hidden = svg.getAttribute("data-forma") !== forma;
+    });
+    $("nota-forma").hidden = !enf;
+    $("nota-forma").innerHTML = forma === "omega"
+      ? "Meça a altura total h e a largura total b, nas pontas das abas inferiores."
+      : "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.";
+  }
+
+  // Desvio relativo médio quadrático, como nos laminados: espessura e reforço pesam metade.
+  function procurarEnformado(m) {
+    var fam = FAMILIA_FORMA[estado.forma];
+    return Enformados.seccoes(fam).map(function (s) {
+      var soma = Math.pow((m.h - s.h) / s.h, 2) + Math.pow((m.b - s.b) / s.b, 2), peso = 2;
+      if (m.t) { soma += 0.5 * Math.pow((m.t - s.t) / s.t, 2); peso += 0.5; }
+      if (m.a && s.a) { soma += 0.5 * Math.pow((m.a - s.a) / s.a, 2); peso += 0.5; }
+      return { perfil: s, familia: fam, desvio: Math.sqrt(soma / peso) };
+    }).sort(function (a, b) { return a.desvio - b.desvio || a.perfil.G - b.perfil.G; });
   }
 
   // Desvio relativo médio quadrático; as espessuras pesam metade (medição menos fiável).
@@ -1969,6 +2769,114 @@ if (typeof module !== "undefined") module.exports = Enformados;
       '</svg>';
   }
 
+  // Secção enformada à escala: linha média com a espessura nominal (unidades do SVG = mm).
+  function desenhoEnformado(fam, s) {
+    var pts;
+    if (fam === "Superomega") {
+      var geo = OFELIZ.superomega.geo[s.h], xs = geo.linha.map(function (q) { return q[0]; }), ys = geo.linha.map(function (q) { return q[1]; });
+      var cx = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2, cy = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+      pts = geo.linha.map(function (q) { return [q[0] - cx, cy - q[1]]; });
+    } else {
+      var hm = s.h - s.t, bm = s.b - s.t, am = s.a - s.t / 2;
+      pts = fam === "C"
+        ? [[bm / 2, -hm / 2 + am], [bm / 2, -hm / 2], [-bm / 2, -hm / 2], [-bm / 2, hm / 2], [bm / 2, hm / 2], [bm / 2, hm / 2 - am]]
+        : [[bm, -hm / 2 + am], [bm, -hm / 2], [0, -hm / 2], [0, hm / 2], [-bm, hm / 2], [-bm, hm / 2 - am]];
+    }
+    var x0 = Math.min.apply(null, pts.map(function (q) { return q[0]; })), x1 = Math.max.apply(null, pts.map(function (q) { return q[0]; }));
+    var y0 = Math.min.apply(null, pts.map(function (q) { return q[1]; })), y1 = Math.max.apply(null, pts.map(function (q) { return q[1]; }));
+    var B = x1 - x0, H = y1 - y0, M = Math.max(B, H), fs = M * 0.05, tr = fs * 0.35;
+    var esp = Math.max(s.t, M * 0.012);
+    var d = pts.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(2) + " " + q[1].toFixed(2); }).join("");
+    var cb = y0 - M * 0.16, ch = x0 - M * 0.16;
+    function traco(x, y) { return "M" + (x - tr) + " " + (y + tr) + "L" + (x + tr) + " " + (y - tr); }
+    var cotas = "M" + x0 + " " + (y0 - M * 0.03) + "V" + (cb - M * 0.03) + "M" + x1 + " " + (y0 - M * 0.03) + "V" + (cb - M * 0.03) +
+      "M" + x0 + " " + cb + "H" + x1 + "M" + (x0 - M * 0.03) + " " + y0 + "H" + (ch - M * 0.03) + "M" + (x0 - M * 0.03) + " " + y1 + "H" + (ch - M * 0.03) +
+      "M" + ch + " " + y0 + "V" + y1 + traco(x0, cb) + traco(x1, cb) + traco(ch, y0) + traco(ch, y1);
+    var vb = [x0 - M * 0.27, y0 - M * 0.27, B + M * 0.54, H + M * 0.4];
+    return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Secção ' + s.nome + ' à escala">' +
+      '<path class="sec-fino" stroke-width="' + esp.toFixed(2) + '" d="' + d + '"/>' +
+      '<path class="sec-cota" d="' + cotas + '"/>' +
+      '<text class="sec-txt" x="' + ((x0 + x1) / 2) + '" y="' + (cb - fs * 0.45) + '" font-size="' + fs + '" text-anchor="middle">' + fmt(s.b, 0) + "</text>" +
+      '<text class="sec-txt" font-size="' + fs + '" text-anchor="middle" transform="translate(' + (ch - fs * 0.45) + " " + ((y0 + y1) / 2) + ') rotate(-90)">' + fmt(s.h, 0) + "</text>" +
+      "</svg>";
+  }
+
+  function blocoPropriedadesEnformado(fam, s, aco) {
+    var e = s.ef[aco], so = fam === "Superomega";
+    return '<div class="grupos-props">' +
+      '<div class="grupo-props"><h3>Geometria</h3><dl class="lista-props">' +
+        linhaProp("h", s.h, "mm", 0) + linhaProp("b", s.b, "mm", 0) + (so ? "" : linhaProp("a", s.a, "mm", 0)) +
+        linhaProp("t", s.t, "mm", 2) + linhaProp("t<sub>eff</sub>", s.teff, "mm", 2) + linhaProp("A", s.A, "cm²") + linhaProp("G", s.G, "kg/m", 2) + "</dl></div>" +
+      '<div class="grupo-props"><h3>Secção bruta</h3><dl class="lista-props">' +
+        linhaProp("I<sub>y</sub>", s.Iy, "cm⁴") + linhaProp("I<sub>z</sub>", s.Iz, "cm⁴") +
+        linhaProp("I<sub>t</sub>", s.It, "cm⁴", 4) + linhaProp("I<sub>w</sub>", s.Iw, "cm⁶") + "</dl></div>" +
+      '<div class="grupo-props"><h3>Secção efetiva · ' + aco + '</h3><dl class="lista-props">' +
+        linhaProp("A<sub>eff</sub>", e[0], "cm²") +
+        (so ? linhaProp("W<sub>eff,y+</sub>", e[2], "cm³") + linhaProp("W<sub>eff,y−</sub>", e[4], "cm³") + linhaProp("I<sub>eff,y</sub>", Math.min(e[1], e[3]), "cm⁴") + linhaProp("W<sub>eff,z</sub>", e[6], "cm³")
+          : linhaProp("W<sub>eff,y</sub>", e[2], "cm³") + linhaProp("I<sub>eff,y</sub>", e[1], "cm⁴") +
+            linhaProp("W<sub>eff,z</sub>", fam === "C" ? Math.min(e[4], e[6]) : e[4], "cm³")) +
+        "</dl></div>" +
+      "</div>";
+  }
+
+  // Resistências da secção pela EN 1993-1-3 (6.1), com as propriedades de cálculo da app.
+  function blocoEC3Enformado(fam, s, aco) {
+    var p = Enformados.propriedades(fam, s, aco), fy = p.fy;
+    function item(titulo, v, un, nota) {
+      return '<div class="ec3-item"><h3>' + titulo + '</h3><div class="valor-grande">' + fmt(v, v < 10 ? 2 : 1) + " <small>" + un + "</small></div><p>" + nota + "</p></div>";
+    }
+    var vr = Enformados.corteResistente(p, Enformados.FAMILIAS[fam].esquadro);
+    return '<section class="cartao"><h2>Resistência da secção · ' + aco + "</h2>" +
+      '<div class="ec3">' +
+        '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>yb</sub> = ' + fy + " <small>MPa</small></div><p>EN 10346, chapa galvanizada; t<sub>eff</sub> = " + fmt(s.teff, 2) + " mm (sem o revestimento de zinco)</p></div>" +
+        item("Compressão <span class=\"sym\">N<sub>c,Rd</sub></span>", p.Aeff * 1e2 * fy / 1e3, "kN", "A<sub>eff</sub> · f<sub>yb</sub> / γ<sub>M0</sub>, sem encurvadura (6.1.3)") +
+        item("Flexão <span class=\"sym\">M<sub>c,y,Rd</sub></span>", p.Wpos * fy / 1e3, "kN·m", (fam === "Superomega" ? "banzo superior comprimido; com o inferior: " + fmt(p.Wneg * fy / 1e3, 2) + " kN·m. " : "") + "W<sub>eff,y</sub> · f<sub>yb</sub> / γ<sub>M0</sub> (6.1.4)") +
+        item("Flexão <span class=\"sym\">M<sub>c,z,Rd</sub></span>", p.Wz * fy / 1e3, "kN·m", "W<sub>eff,z</sub> · f<sub>yb</sub> / γ<sub>M0</sub>, o menor dos dois sentidos") +
+        item("Corte <span class=\"sym\">V<sub>b,Rd</sub></span>", vr.VbRd, "kN", "6.1.5, λ̄<sub>w</sub> = " + fmt(vr.lambda, 2) + (Enformados.FAMILIAS[fam].esquadro ? ", alma com esquadro no apoio" : ", alma sem reforço no apoio") + ", com a altura desenvolvida da alma") +
+      "</div>" +
+      '<p class="nota">γ<sub>M0</sub> = 1,0 (valor recomendado da EN 1993-1-3; não há Anexo Nacional português).' +
+        (p.delta ? " Propriedades do fabricante reduzidas pelos cantos arredondados: δ = " + fmt(p.delta, 4) + " (5.1(4))." : "") +
+        " Sem encurvadura global: para madres, ver o separador Madres.</p>" +
+      "</section>";
+  }
+
+  function renderEnformado(m) {
+    var lista = procurarEnformado(m), melhor = lista[0];
+    var atual = estado.escolhido && lista.filter(function (c) { return c.perfil.nome === estado.escolhido; })[0] || melhor;
+    var s = atual.perfil, fam = atual.familia, av = avaliar(atual.desvio);
+    var desvios = '<div class="desvios">' +
+      "<span>h <b>" + fmt(s.h, 0) + "</b> (" + fmtDelta(m.h - s.h) + " mm)</span>" +
+      "<span>b <b>" + fmt(s.b, 0) + "</b> (" + fmtDelta(m.b - s.b) + " mm)</span>" +
+      (m.t ? "<span>t <b>" + fmt(s.t, 1) + "</b> (" + fmtDelta(m.t - s.t) + " mm)</span>" : "") +
+      (m.a && s.a ? "<span>a <b>" + fmt(s.a, 0) + "</b> (" + fmtDelta(m.a - s.a) + " mm)</span>" : "") +
+      "</div>";
+    var mesmas = lista.filter(function (c) { return c.perfil.h === s.h && c.perfil.b === s.b; });
+    var alerta = !m.t && mesmas.length > 1
+      ? '<p class="alerta">Há ' + mesmas.length + " espessuras com " + fmt(s.h, 0) + " × " + fmt(s.b, 0) + " mm (" + mesmas.map(function (c) { return fmt(c.perfil.t, 1); }).join(", ") + " mm). Meça a espessura t para escolher.</p>"
+      : "";
+    var candidatos = lista.slice(0, 6).map(function (c) {
+      var q = c.perfil, prox = Math.max(0, 1 - c.desvio / 0.15);
+      return '<li><button type="button" class="candidato" data-nome="' + q.nome + '" aria-current="' + (q === s) + '">' +
+        '<span class="candidato-nome">' + q.nome + "</span>" +
+        '<span class="candidato-dims">' + fmt(q.h, 0) + " × " + fmt(q.b, 0) + (q.a ? " · a " + fmt(q.a, 0) : "") + " · t " + fmt(q.t, 1) + " · " + fmt(q.G, 2) + " kg/m</span>" +
+        '<span class="barra" title="Desvio médio ' + fmt(c.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span>' +
+        "</button></li>";
+    }).join("");
+    resultado.innerHTML =
+      '<section class="cartao">' +
+        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + s.nome + "</h2>" +
+          '<span class="familia-perfil">' + Enformados.FAMILIAS[fam].descricao + "</span>" +
+          '<span class="selo ' + av.cls + '">' + av.txt + "</span></div>" +
+        desvios + alerta +
+        '<div class="corpo-resultado">' +
+          '<figure class="desenho">' + desenhoEnformado(fam, s) + "<figcaption>Secção à escala (linha média), dimensões nominais em mm</figcaption></figure>" +
+          blocoPropriedadesEnformado(fam, s, estado.aco) +
+        "</div>" +
+      "</section>" +
+      blocoEC3Enformado(fam, s, estado.aco) +
+      '<section class="cartao"><h2>Secções mais próximas</h2><ul class="candidatos">' + candidatos + "</ul></section>";
+  }
+
   // ----- Resultado -----
   function linhaProp(simbolo, valor, unidade, casas) {
     return "<dt>" + simbolo + "</dt><dd>" + fmt(valor, casas) + '</dd><dd class="un">' + unidade + "</dd>";
@@ -2023,6 +2931,7 @@ if (typeof module !== "undefined") module.exports = Enformados;
       resultado.innerHTML = '<section class="cartao"><p class="nota">Introduza a altura e a largura do perfil para ver as séries que correspondem.</p></section>';
       return;
     }
+    if (estado.forma !== "I") { renderEnformado(m); return; }
     if (!estado.familias.length) {
       resultado.innerHTML = '<section class="cartao"><p class="nota">Selecione pelo menos uma série de perfis.</p></section>';
       return;
@@ -2091,7 +3000,7 @@ if (typeof module !== "undefined") module.exports = Enformados;
       var ef = s.ef.S350GD;
       var v = [fmt(s.h, 0), fmt(s.b, 0)].concat(so ? [] : [fmt(s.a, 0)]).concat([fmt(s.t, 1), fmt(s.teff, 2), fmt(s.G, 2), fmt(s.A, 2),
         fmt(s.Iy), fmt(s.Iz), fmt(s.It, 4), fmt(s.Iw)]).concat(so ? [fmt(ef[2], 2), fmt(ef[4], 2)] : [fmt(ef[2], 2)]);
-      return '<tr class="linha-omega"><td>' + s.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
+      return '<tr class="linha-omega" data-nome="' + s.nome + '" data-familia="' + fam + '" tabindex="0"><td>' + s.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
     }).join("");
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
   }
@@ -2099,7 +3008,6 @@ if (typeof module !== "undefined") module.exports = Enformados;
   function renderCatalogo() {
     var fam = estado.familiaCatalogo;
     var ofeliz = FAMILIAS_OFELIZ.indexOf(fam) >= 0;
-    $("catalogo-ajuda").hidden = ofeliz;
     if (ofeliz) { renderCatalogoOFeliz(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
     var colunas = [
@@ -2120,10 +3028,26 @@ if (typeof module !== "undefined") module.exports = Enformados;
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
   }
 
-  function abrirNoIdentificador(nome) {
+  function abrirNoIdentificador(nome, familia) {
+    function v(x) { return String(x).replace(".", ","); }
+    if (FAMILIAS_OFELIZ.indexOf(familia) >= 0) {
+      var s = Enformados.seccoes(familia).filter(function (q) { return q.nome === nome; })[0];
+      if (!s) return;
+      var forma = familia === "Superomega" ? "omega" : familia;
+      form.elements.forma.value = forma;
+      atualizarForma(forma, estado.aco);
+      form.elements.h.value = v(s.h); form.elements.b.value = v(s.b); form.elements.t.value = v(s.t);
+      form.elements.a.value = s.a ? v(s.a) : "";
+      estado.escolhido = nome;
+      $("nota-exemplo").hidden = true;
+      mostrar("identificar");
+      render();
+      window.scrollTo(0, 0);
+      return;
+    }
     var p = TODOS.filter(function (q) { return q.nome === nome; })[0];
     if (!p) return;
-    function v(x) { return String(x).replace(".", ","); }
+    if (estado.forma !== "I") { form.elements.forma.value = "I"; atualizarForma("I", estado.aco); }
     form.elements.h.value = v(p.h); form.elements.b.value = v(p.b);
     form.elements.tw.value = v(p.tw); form.elements.tf.value = v(p.tf);
     if (estado.familias.indexOf(p.familia) === -1) {
@@ -2139,7 +3063,7 @@ if (typeof module !== "undefined") module.exports = Enformados;
 
   // ----- Vistas -----
   function mostrar(vista) {
-    ["identificar", "madres", "catalogo"].forEach(function (v) {
+    ["identificar", "madres", "portico", "catalogo"].forEach(function (v) {
       $("vista-" + v).hidden = v !== vista;
       $("tab-" + v).setAttribute("aria-selected", String(v === vista));
     });
@@ -2155,9 +3079,7 @@ if (typeof module !== "undefined") module.exports = Enformados;
     $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_OFELIZ).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
     }).join("");
-    $("in-aco").innerHTML = Object.keys(Seccao.ACOS).map(function (a) {
-      return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + " · " + Seccao.ACOS[a].norma + "</option>";
-    }).join("");
+    atualizarForma("I", estado.aco);
 
     form.elements.h.value = EXEMPLO.h;
     form.elements.b.value = EXEMPLO.b;
@@ -2165,7 +3087,8 @@ if (typeof module !== "undefined") module.exports = Enformados;
     var guardado = Memoria.ler("identificar");
     function aplicar(v, familias) {
       Memoria.paraFormulario(form, v);
-      estado.aco = form.elements.aco.value;
+      // A lista das classes de aço depende da forma guardada.
+      atualizarForma(form.elements.forma.value, v.aco);
       estado.familias = FAMILIAS.filter(function (f) { return !familias || familias.indexOf(f) !== -1; });
       Array.prototype.forEach.call(form.querySelectorAll("#fichas-familias input"), function (i) {
         i.checked = estado.familias.indexOf(i.value) !== -1;
@@ -2187,6 +3110,7 @@ if (typeof module !== "undefined") module.exports = Enformados;
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
       if (e.target.name === "aco") estado.aco = e.target.value;
+      else if (e.target.name === "forma") { atualizarForma(e.target.value, estado.aco); estado.escolhido = null; }
       else if (e.target.type === "checkbox") {
         estado.familias = Array.prototype.filter.call(form.querySelectorAll("#fichas-familias input"), function (i) { return i.checked; })
           .map(function (i) { return i.value; });
@@ -2213,11 +3137,11 @@ if (typeof module !== "undefined") module.exports = Enformados;
     var tabela = $("tabela-catalogo");
     tabela.addEventListener("click", function (e) {
       var tr = e.target.closest("tr[data-nome]");
-      if (tr) abrirNoIdentificador(tr.getAttribute("data-nome"));
+      if (tr) abrirNoIdentificador(tr.getAttribute("data-nome"), tr.getAttribute("data-familia"));
     });
     tabela.addEventListener("keydown", function (e) {
       var tr = e.target.closest("tr[data-nome]");
-      if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrirNoIdentificador(tr.getAttribute("data-nome")); }
+      if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrirNoIdentificador(tr.getAttribute("data-nome"), tr.getAttribute("data-familia")); }
     });
 
     Array.prototype.forEach.call(document.querySelectorAll(".separador"), function (b) {
@@ -2227,9 +3151,9 @@ if (typeof module !== "undefined") module.exports = Enformados;
     renderCatalogo();
     render();
     // Abre a vista do endereço; sem endereço (por exemplo, pelo ícone do ecrã principal), a última usada.
-    var vista = location.hash === "#catalogo" || location.hash === "#madres" || location.hash === "#identificar"
-      ? location.hash.slice(1) : Memoria.ler("vista");
-    if (vista === "catalogo" || vista === "madres") mostrar(vista);
+    var VISTAS = ["identificar", "madres", "portico", "catalogo"];
+    var vista = VISTAS.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : Memoria.ler("vista");
+    if (VISTAS.indexOf(vista) > 0) mostrar(vista);
   }
 
   iniciar();
@@ -2833,6 +3757,12 @@ if (typeof module !== "undefined") module.exports = Enformados;
       "</ul></section>";
   }
 
+  // O separador Pórtico usa a geometria, o local e as ações calculados aqui.
+  function publicar(r) {
+    window.SteelFrames.madres = r;
+    document.dispatchEvent(new CustomEvent("madres:calculadas"));
+  }
+
   function render() {
     var d = ler();
     d.alfa = inclinacao(d);
@@ -2847,9 +3777,11 @@ if (typeof module !== "undefined") module.exports = Enformados;
     $("m-zona-vento").innerHTML = "Zona de vento <b>" + zona + "</b> (v<sub>b,0</sub> = " + Acoes.VENTO_VB0[zona] + " m/s). A zona B aplica-se a menos de 5 km da costa ou acima de 600 m de altitude.";
     if (erros.length) {
       saida.innerHTML = '<section class="cartao"><h2>Dados por corrigir</h2><ul class="hipoteses">' + erros.map(function (e) { return "<li>" + e + "</li>"; }).join("") + "</ul></section>";
+      publicar(null);
       return;
     }
     var r = calcular(d);
+    publicar(r);
     var v = estado.escolhido && r.dim.lista.filter(function (x) { return x.perfil.nome === estado.escolhido; })[0] || r.dim.escolhido;
     saida.innerHTML = cartaoResultado(r, v) + cartaoEsquicos(r) + cartaoAcoes(r) + cartaoCombinacoes(r, v) + cartaoComparacao(r, v) + cartaoHipoteses(r);
   }
@@ -2916,6 +3848,281 @@ if (typeof module !== "undefined") module.exports = Enformados;
       }
     });
     render();
+  }
+
+  iniciar();
+})();
+</script>
+<script>
+/* Vista "Pórtico": pórtico de duas águas com bases encastradas. Depende de portico.js e do separador Madres. */
+(function () {
+  var fmt = window.SteelFrames.fmt, Memoria = window.SteelFrames.Memoria;
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("form-portico"), saida = $("resultado-portico");
+  var TODOS = Seccao.todos();
+  // Gamas consideradas: pilares e travessa entre 140 e 600 mm de altura.
+  function serie(fam) { return TODOS.filter(function (p) { return p.familia === fam && p.h >= 140 && p.h <= 600; }); }
+
+  var estado = { escolhido: null, desatualizado: true, temporizador: null, resultado: null, dados: null };
+
+  function ler() {
+    return {
+      pilares: form.elements.pilares.value, travessa: form.elements.travessa.value, aco: form.elements.aco.value,
+      escoras: parseInt(form.elements.escoras.value, 10), travPilar: parseInt(form.elements.travPilar.value, 10),
+      posicao: form.elements.posicao.value
+    };
+  }
+
+  // Dados do pórtico a partir do resultado do separador Madres.
+  function dadosPortico(r, o) {
+    var dm = r.d, madre = r.dim.escolhido;
+    var gMadres = madre ? madre.props.G * 9.81 / 1000 / dm.s : 0.10;
+    var zonas = Portico.zonasVento({ W: dm.largura, C: dm.comprimento, h: r.ze, L: dm.L, alfa: dm.alfa, posicao: o.posicao });
+    return {
+      g: { W: dm.largura, hb: dm.beirado, hc: dm.meio }, altitude: dm.altitude,
+      travamentos: { pilar: o.travPilar, travessaEscoras: o.escoras, espacamentoMadres: dm.s },
+      acoes: {
+        L: dm.L, gRev: dm.gRev, gInst: dm.gInst, gMadres: gMadres, qk: dm.qk, s: r.neve.s, qp: r.vento.pico.qp,
+        cpe: Acoes.cpeParedes(r.ze / dm.largura), cpi: [dm.cpiMax, dm.cpiMin], alfa: dm.alfa, zonas: zonas
+      },
+      madre: madre ? madre.perfil.nome : null, madres: r
+    };
+  }
+
+  // ----- Apresentação -----
+  function barra(u) {
+    var cls = u > 1 ? "mau" : u > 0.9 ? "aviso" : "ok";
+    return '<span class="util util-' + cls + '"><span style="width:' + Math.min(100, u * 100).toFixed(0) + '%"></span></span>';
+  }
+  // Nomes das combinações com os casos de vento por extenso.
+  function nomeComb(v, nome) {
+    return (nome || "").replace(/W(\d+)/g, function (_, i) { return v.nomesVento[+i] || "W"; });
+  }
+  var MEMBROS = { pilarE: "pilar esquerdo", pilarD: "pilar direito", travE: "travessa esquerda", travD: "travessa direita" };
+  var DO_MEMBRO = { pilarE: "do pilar esquerdo", pilarD: "do pilar direito", travE: "da travessa esquerda", travD: "da travessa direita" };
+  function kNm(x) { return fmt(Math.abs(x), 1); }
+  function esforcos(x) {
+    return "N<sub>Ed</sub> = " + fmt(Math.abs(x.N), 1) + " kN (" + (x.N < 0 ? "compressão" : "tração") + "), V<sub>Ed</sub> = " + fmt(Math.abs(x.V), 1) +
+      " kN, M<sub>Ed</sub> = " + kNm(x.M) + " kN·m · classe " + x.classe + " · " + MEMBROS[x.membro];
+  }
+  function estabilidade(x) {
+    if (x.classe === 4) return "Secção de classe 4 sob a compressão e a flexão do troço: fora do âmbito desta verificação · " + MEMBROS[x.membro];
+    return "Troço " + fmt(x.troco[0], 2) + "–" + fmt(x.troco[1], 2) + " m " + DO_MEMBRO[x.membro] + ": N<sub>Ed</sub> = " + fmt(x.C, 1) +
+      " kN, M<sub>Ed</sub> = " + kNm(x.M) + " kN·m · χ<sub>y</sub> = " + fmt(x.chiY, 3) + ", χ<sub>z</sub> = " + fmt(x.chiZ, 3) +
+      " (L<sub>cr,z</sub> = " + fmt(x.Lcrz, 2) + " m), χ<sub>LT</sub> = " + fmt(x.chiLT, 3) + " (L<sub>cr</sub> = " + fmt(x.LcrLT, 2) + " m) · (6.61) " +
+      fmt(x.u61 * 100, 0) + " %, (6.62) " + fmt(x.u62 * 100, 0) + " %";
+  }
+  var VERIF = {
+    pilarSeccao: { nome: "Pilares · secção (6.2)", det: esforcos },
+    pilarEstab: { nome: "Pilares · encurvadura e bambeamento (6.3.3)", det: estabilidade },
+    travSeccao: { nome: "Travessa · secção (6.2)", det: esforcos },
+    travEstab: { nome: "Travessa · encurvadura e bambeamento (6.3.3)", det: estabilidade },
+    alfaCr: { nome: "Estabilidade global (α<sub>cr</sub> ≥ 3)", det: function (x) {
+      return "α<sub>cr</sub> = " + fmt(x.alfaCr, 1) + (x.alfaCr >= 10 ? ": análise de 1.ª ordem (5.2.1(3))" : x.k ? ": amplificação " + fmt(x.k, 3) + " (5.2.2(5)B)" : ": é precisa uma análise de 2.ª ordem rigorosa");
+    } },
+    deslH: { nome: "Deslocamento horizontal do beirado", det: function (x) { return fmt(x.d, 1) + " mm ≤ h/150 = " + fmt(x.lim, 1) + " mm"; } },
+    flecha: { nome: "Flecha na cumeeira", det: function (x) { return fmt(x.d, 1) + " mm ≤ vão/200 = " + fmt(x.lim, 1) + " mm"; } },
+    flechaVar: { nome: "Flecha das ações variáveis", det: function (x) { return fmt(x.d, 1) + " mm ≤ vão/250 = " + fmt(x.lim, 1) + " mm"; } }
+  };
+
+  function cartaoResultado(v, dados, lista) {
+    if (!v) {
+      return '<section class="cartao"><h2>Resultado</h2><p class="alerta">Nenhum par de perfis das séries escolhidas verifica estas condições. Acrescente travamentos, escolha perfis mais robustos (HEB nos pilares) ou um aço de classe superior.</p></section>';
+    }
+    var linhas = Object.keys(VERIF).map(function (k) {
+      var x = v.verificacoes[k];
+      return '<li class="verif"><span class="verif-nome">' + VERIF[k].nome + '</span><span class="verif-u">' + (isFinite(x.u) ? fmt(x.u * 100, 0) + " %" : "—") + "</span>" + barra(isFinite(x.u) ? x.u : 2) +
+        '<span class="verif-det">' + VERIF[k].det(x) + " · " + nomeComb(v, x.comb) + "</span></li>";
+    }).join("");
+    var cond = Object.keys(VERIF).reduce(function (a, b) { return v.verificacoes[a].u >= v.verificacoes[b].u ? a : b; });
+    var selo = v.ok ? '<span class="selo selo-ok">Verifica · ' + fmt(v.uMax * 100, 0) + " %</span>" : '<span class="selo selo-mau">Não verifica · ' + (isFinite(v.uMax) ? fmt(v.uMax * 100, 0) + " %" : "classe 4") + "</span>";
+    var g = dados.g, area = g.W * dados.acoes.L;
+    var manual = estado.escolhido && lista.escolhido && v !== lista.escolhido;
+    return '<section class="cartao">' +
+      '<div class="cabeca-resultado"><h2 class="nome-perfil">' + v.pilar.perfil.nome + " + " + v.travessa.perfil.nome + "</h2>" +
+        '<span class="familia-perfil">pilares + travessa · ' + v.aco + " · f<sub>y</sub> = " + v.pilar.fy + " / " + v.travessa.fy + " MPa</span>" + selo + "</div>" +
+      (manual ? '<p class="alerta">Par escolhido à mão. O mais leve que verifica é ' + lista.escolhido.pilar.perfil.nome + " + " + lista.escolhido.travessa.perfil.nome + ".</p>" : "") +
+      (v.axialSignificativo ? '<p class="alerta">A compressão na travessa é significativa (5.2.1(4)B, Nota 2B): a expressão (5.2) de α<sub>cr</sub> deixa de ser fiável. Confirme com uma análise de 2.ª ordem.</p>' : "") +
+      '<div class="numeros">' +
+        '<div><span class="valor-grande">' + fmt(v.peso, 0) + ' <small>kg</small></span><p>por pórtico (pilares e travessa)</p></div>' +
+        '<div><span class="valor-grande">' + fmt(v.peso / area, 1) + ' <small>kg/m²</small></span><p>de cobertura, só no pórtico</p></div>' +
+        '<div><span class="valor-grande">' + (isFinite(v.uMax) ? fmt(v.uMax * 100, 0) : "—") + ' <small>%</small></span><p>condiciona: ' + VERIF[cond].nome.replace(/<[^>]+>/g, "").toLowerCase() + "</p></div>" +
+      "</div>" +
+      '<ul class="verifs">' + linhas + "</ul>" +
+      '<p class="nota">α<sub>cr</sub> mínimo = ' + fmt(v.alfaCrMin, 1) + " · imperfeição global φ = 1/" + fmt(1 / v.phi, 0) + " (5.3.2) · " +
+        "comprimentos de encurvadura no plano iguais aos comprimentos reais (5.2.2(7)b): pilar " + fmt(g.hb, 2) + " m, travessa " + fmt(v.malha.comprimento.travessa, 2) + " m.</p>" +
+      "</section>";
+  }
+
+  // Diagrama da envolvente dos momentos (ELU), desenhado do lado das fibras traccionadas.
+  function cartaoDiagrama(v, dados) {
+    var m = v.malha, g = dados.g, W = g.W, H = g.hc;
+    // Envolvente simetrizada: o vento atua dos dois lados e os elementos de cada par são iguais.
+    var n = v.envM.max.length, env = { max: new Float64Array(n), min: new Float64Array(n) }, maxAbs = 0;
+    for (var i = 0; i < n; i++) {
+      env.max[i] = Math.max(v.envM.max[i], v.envM.max[n - 1 - i]);
+      env.min[i] = Math.min(v.envM.min[i], v.envM.min[n - 1 - i]);
+      maxAbs = Math.max(maxAbs, Math.abs(env.max[i]), Math.abs(env.min[i]));
+    }
+    var esc = maxAbs > 0 ? 0.16 * W / maxAbs : 0;
+    function Y(y) { return H - y; }
+    var poligonos = { max: "", min: "" };
+    var porMembro = {};
+    m.elementos.forEach(function (e, k) {
+      var a = m.nos[e.i], b = m.nos[e.j], nx = e.s, ny = -e.c;    // normal para o lado interior
+      [0, 0.5, 1].forEach(function (t, q) {
+        var x = a.x + t * (b.x - a.x), y = a.y + t * (b.y - a.y);
+        (porMembro[e.membro] = porMembro[e.membro] || []).push({ x: x, y: y, nx: nx, ny: ny, max: env.max[3 * k + q], min: env.min[3 * k + q] });
+      });
+    });
+    Object.keys(porMembro).forEach(function (id) {
+      var pts = porMembro[id];
+      ["max", "min"].forEach(function (lado) {
+        var ida = pts.map(function (p) { return (p.x + p.nx * p[lado] * esc).toFixed(3) + "," + Y(p.y + p.ny * p[lado] * esc).toFixed(3); });
+        var volta = pts.slice().reverse().map(function (p) { return p.x.toFixed(3) + "," + Y(p.y).toFixed(3); });
+        poligonos[lado] += '<polygon class="dm-' + lado + '" points="' + ida.concat(volta).join(" ") + '"/>';
+      });
+    });
+    var estrutura = "M0 " + Y(0) + "V" + Y(g.hb) + "L" + W / 2 + " " + Y(g.hc) + "L" + W + " " + Y(g.hb) + "V" + Y(0);
+    var fs = Math.max(W, H) * 0.035;
+    function rotulo(x, y, txt, ancora) { return '<text class="esq-txt" x="' + x + '" y="' + Y(y) + '" font-size="' + fs + '" stroke-width="' + fs * 0.28 + '" text-anchor="' + (ancora || "middle") + '">' + txt + "</text>"; }
+    // Valores nos pontos principais (pilar esquerdo; o direito é simétrico na envolvente)
+    var nE = m.elementos.length, kBase = 0, kBeirado = m.elementos.map(function (e) { return e.membro; }).lastIndexOf("pilarE"), kCum = m.elementos.map(function (e) { return e.membro; }).lastIndexOf("travE");
+    function par(idx) { return fmt(env.min[idx], 0) + " / +" + fmt(Math.max(0, env.max[idx]), 0); }
+    var txt = rotulo(-fs * 0.6, 0, par(3 * kBase), "end") + rotulo(-fs * 0.6, g.hb, par(3 * kBeirado + 2), "end") + rotulo(W / 2, g.hc + fs * 1.4, par(3 * kCum + 2));
+    var pad = 0.22 * W;
+    var vb = [-pad - fs * 4, -fs * 3, W + 2 * pad + fs * 4, H + fs * 3 + pad * 0.6];
+    return '<section class="cartao"><h2>Momentos fletores · envolvente ELU</h2>' +
+      '<figure class="esquico"><svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Envolvente dos momentos fletores no pórtico">' +
+        poligonos.max + poligonos.min + '<path class="esq-estrutura" d="' + estrutura + '"/>' +
+        '<line class="esq-solo" x1="' + (-pad) + '" y1="' + Y(0) + '" x2="' + (W + pad) + '" y2="' + Y(0) + '"/>' + txt +
+      "</svg><figcaption>Desenhados do lado das fibras traccionadas: a cor quente é a envolvente dos momentos que traccionam a face interior; a fria, a dos que traccionam a face exterior. Envolvente com o vento a soprar dos dois lados. Valores em kN·m (mínimo / máximo) na base, no beirado e na cumeeira.</figcaption></figure>" +
+      "</section>";
+  }
+
+  function cartaoAcoes(v, dados) {
+    var a = dados.acoes, z = a.zonas, cosA = Math.cos(a.alfa * Math.PI / 180);
+    var pp = v.travessa.props.G * 9.81 / 1000, pc = v.pilar.props.G * 9.81 / 1000;
+    var li = function (t) { return "<li>" + t + "</li>"; };
+    return '<section class="cartao"><h2>Ações no pórtico (por metro, largura de influência L = ' + fmt(a.L, 2) + " m)</h2><ul class=\"hipoteses\">" +
+      li("Permanentes: revestimento " + fmt(a.gRev, 2) + " + madres " + fmt(a.gMadres, 3) + (dados.madre ? " (" + dados.madre + ")" : " (valor por omissão)") + " + instalações " + fmt(a.gInst, 2) +
+        " kN/m² → " + fmt((a.gRev + a.gMadres + a.gInst) * a.L, 2) + " kN/m de travessa; pesos próprios " + fmt(pp, 2) + " kN/m (travessa) e " + fmt(pc, 2) + " kN/m (pilares).") +
+      li("Sobrecarga q<sub>k</sub> = " + fmt(a.qk, 2) + " kN/m² em projeção horizontal → " + fmt(a.qk * a.L * cosA, 2) + " kN/m de travessa, em todas as águas ou só numa.") +
+      li("Neve s = " + fmt(a.s, 3) + " kN/m² → " + fmt(a.s * a.L * cosA, 2) + " kN/m de travessa: casos (i), (ii) e (iii) da Figura 5.3 (meia carga numa das águas).") +
+      li("Vento: q<sub>p</sub> = " + fmt(a.qp, 3) + " kN/m², c<sub>pi</sub> = " + a.cpi.map(function (c) { return fmt(c, 1); }).join(" e ") +
+        ". Paredes (Quadro 7.1, h/d = " + fmt(dados.madres.ze / dados.g.W, 2) + "): D = +" + fmt(a.cpe.D, 2) + ", E = " + fmt(a.cpe.E, 2) +
+        "; a 90°, zona " + z.parede90 + " (" + fmt(a.cpe[z.parede90], 1) + "). Cobertura: e = " + fmt(z.e0, 1) + " m a 0° e " + fmt(z.e90, 1) + " m a 90°; " +
+        (z.z0.plano ? "terraço (G, H, I)" : "a 0°, zona " + z.z0.barlavento[0][2] + " até e/10 do beirado e H na água de barlavento, J até e/10 da cumeeira e I na de sotavento") +
+        "; a 90°, zona " + (z.z90 === "FG" ? "F e G" : z.z90) + ". Casos: " + v.nomesVento.join("; ") + ".") +
+      li("Combinações: " + v.combinacoes.elu.length + " de ELU (NP EN 1990, 6.10) e " + v.combinacoes.els.length + " características. A sobrecarga não se combina com a neve nem com o vento.") +
+      "</ul></section>";
+  }
+
+  function cartaoReacoes(v) {
+    function linha(nome, R) {
+      return "<tr><th scope=\"row\">" + nome + "</th>" + [0, 1, 2, 3, 4, 5].map(function (i) { return "<td>" + fmt(R[i], 1) + "</td>"; }).join("") + "</tr>";
+    }
+    var rr = v.reacoes;
+    var corpo = linha("G (permanentes)", rr.G) + linha("Q (sobrecarga)", rr.Q) + linha("S (i)", rr.S) + linha("S (ii)", rr.Sii) + linha("S (iii)", rr.Siii) +
+      v.nomesVento.map(function (n, i) { return linha(n, rr["W" + i]); }).join("") +
+      linha("ELU máximo", v.envR.max) + linha("ELU mínimo", v.envR.min);
+    return '<section class="cartao"><h2>Reações nas bases</h2>' +
+      '<div class="tabela-rolo"><table class="tabela tabela-simples"><thead><tr><th scope="col">Ação (característica)</th>' +
+      '<th scope="col">H<sub>E</sub><span class="un">kN</span></th><th scope="col">V<sub>E</sub><span class="un">kN</span></th><th scope="col">M<sub>E</sub><span class="un">kN·m</span></th>' +
+      '<th scope="col">H<sub>D</sub><span class="un">kN</span></th><th scope="col">V<sub>D</sub><span class="un">kN</span></th><th scope="col">M<sub>D</sub><span class="un">kN·m</span></th></tr></thead><tbody>' +
+      corpo + "</tbody></table></div>" +
+      '<p class="nota">Forças dos apoios sobre o pórtico: H positivo para a direita, V positivo para cima, M positivo no sentido anti-horário. Vento a soprar da esquerda; com vento da direita, os valores trocam entre os apoios (com H e M de sinal contrário). As linhas de ELU são a envolvente das combinações, já com imperfeições e efeitos de 2.ª ordem.</p></section>';
+  }
+
+  function cartaoComparacao(lista, v) {
+    var itens = lista.analisados.slice().sort(function (a, b) { return a.peso - b.peso; }).slice(0, 12).map(function (x) {
+      var cond = Object.keys(VERIF).reduce(function (a, b) { return x.verificacoes[a].u >= x.verificacoes[b].u ? a : b; });
+      var nome = x.pilar.perfil.nome + " + " + x.travessa.perfil.nome;
+      return '<li><button type="button" class="candidato candidato-portico" data-nome="' + nome + '" aria-current="' + (x === v) + '">' +
+        '<span class="candidato-nome">' + nome + "</span>" +
+        '<span class="candidato-dims">' + fmt(x.peso, 0) + " kg · " + (x.ok ? "verifica" : "não verifica") + " · " + VERIF[cond].nome.replace(/<[^>]+>/g, "").toLowerCase() + "</span>" +
+        '<span class="candidato-u">' + (isFinite(x.uMax) ? (x.uMax > 9.99 ? ">999%" : fmt(x.uMax * 100, 0) + " %") : "—") + "</span>" + barra(isFinite(x.uMax) ? x.uMax : 2) + "</button></li>";
+    }).join("");
+    return '<section class="cartao"><h2>Pares comparados (por peso)</h2><ul class="candidatos">' + itens + "</ul></section>";
+  }
+
+  function cartaoHipoteses(v, dados) {
+    var li = function (t) { return "<li>" + t + "</li>"; };
+    return '<section class="cartao"><h2>Hipóteses</h2><ul class="hipoteses">' +
+      li("Pórtico plano de duas águas, simétrico, com bases encastradas e ligações rígidas, sem cutelos nem pontes rolantes. Alturas e vão do separador Madres, tomadas como as do eixo das barras (ligeiramente por excesso).") +
+      li("Análise elástica de 1.ª ordem (barras com deformação axial e por flexão). α<sub>cr</sub> pela expressão (5.2) com cargas horizontais nos beirados; para 3 ≤ α<sub>cr</sub> < 10, a parte com deslocamento lateral (antissimétrica) de cada combinação é amplificada por 1/(1 − 1/α<sub>cr</sub>) (5.2.2(5)B). Imperfeição global φ = φ<sub>0</sub> α<sub>h</sub> α<sub>m</sub> com h = altura no pilar e m = 2 (5.3.2), em todas as combinações.") +
+      li("Secções verificadas pela 6.2 (classe com a compressão e a flexão, interação N-V-M). Elementos pela 6.3.3 com o método 2 do Anexo B (normativo em Portugal), C<sub>my</sub> = C<sub>mLT</sub> = 1,0 (o máximo do Quadro B.3, do lado da segurança), curvas do Quadro 6.2 e χ<sub>LT</sub> pelo caso geral (6.3.2.2; com o Anexo Nacional, o 6.3.2.3 dá o mesmo).") +
+      li("Fora do plano: troços entre travamentos (escoras da travessa de " + (dados.travamentos.travessaEscoras ? dados.travamentos.travessaEscoras + " em " + dados.travamentos.travessaEscoras + " madres" : "pórtico a pórtico") +
+        "; pilares " + ["sem travamentos intermédios", "travados a meia altura", "travados a terços"][dados.travamentos.pilar] + "). Na travessa com o banzo superior comprimido, o bambeamento é entre madres. M<sub>cr</sub> com z<sub>g</sub> = 0 e C<sub>1</sub> pela razão ψ dos momentos quando o diagrama do troço é praticamente linear; senão C<sub>1</sub> = 1,0.") +
+      li("Vento no " + (form.elements.posicao.value === "empena" ? "2.º pórtico, junto à empena" : "pórtico corrente") + ", com as zonas que a faixa de influência atravessa; c<sub>pe,10</sub>, sem o fator 0,85 de falta de correlação entre barlavento e sotavento (7.2.2(3), do lado da segurança). Vento de um só lado: pilares e travessas iguais cobrem o lado contrário.") +
+      li("Estados limites de utilização com as combinações características, sem amplificação: beirado h/150 (NA–7.2.2(1)B, pórticos sem aparelhos de elevação) e cumeeira vão/200 e vão/250 (Quadro NA.I).") +
+      li("Não incluídos: ligações (nós pilar–travessa, cumeeira e bases), placas de base e fundações, cutelos, pórticos de empena, contraventamentos e o peso do revestimento das fachadas.") +
+      "</ul></section>";
+  }
+
+  // ----- Cálculo -----
+  function calcular() {
+    estado.desatualizado = false;
+    var r = window.SteelFrames.madres;
+    if (!r) {
+      saida.innerHTML = '<section class="cartao"><h2>Dados por corrigir</h2><p class="nota">Corrija primeiro os dados no separador Madres: o pórtico usa a mesma geometria, o mesmo local e as mesmas cargas.</p></section>';
+      return;
+    }
+    var o = ler(), dados = dadosPortico(r, o);
+    var dm = r.d;
+    $("p-resumo").innerHTML = "Do separador Madres: vão " + fmt(dm.largura, 1) + " m, alturas " + fmt(dm.beirado, 2) + " / " + fmt(dm.meio, 2) + " m (α = " + fmt(dm.alfa, 1) + "°), pórticos a " + fmt(dm.L, 2) +
+      " m, madres " + (dados.madre || "—") + " a " + fmt(dm.s, 2) + " m, zona de neve " + dm.zonaNeve + ", vento zona " + r.zonaVento + ".";
+    var lista = Portico.dimensionar(dados, serie(o.pilares), serie(o.travessa), o.aco);
+    estado.resultado = lista; estado.dados = dados;
+    mostrar();
+  }
+
+  function mostrar() {
+    var lista = estado.resultado, dados = estado.dados;
+    if (!lista) return;
+    var v = estado.escolhido && lista.analisados.filter(function (x) { return x.pilar.perfil.nome + " + " + x.travessa.perfil.nome === estado.escolhido; })[0] || lista.escolhido;
+    var mostrado = v || lista.analisados.slice().sort(function (a, b) { return a.uMax - b.uMax; })[0];
+    saida.innerHTML = cartaoResultado(v, dados, lista) +
+      (mostrado ? cartaoDiagrama(mostrado, dados) + cartaoAcoes(mostrado, dados) + cartaoReacoes(mostrado) : "") +
+      cartaoComparacao(lista, v) + (mostrado ? cartaoHipoteses(mostrado, dados) : "");
+  }
+
+  // O cálculo leva cerca de um segundo: só se faz com o separador visível e depois de uma pausa.
+  function agendar() {
+    estado.desatualizado = true;
+    if ($("vista-portico").hidden) return;
+    clearTimeout(estado.temporizador);
+    saida.innerHTML = '<section class="cartao"><p class="nota">A calcular o pórtico…</p></section>';
+    estado.temporizador = setTimeout(calcular, 250);
+  }
+
+  function iniciar() {
+    var padrao = Memoria.doFormulario(form);
+    var guardado = Memoria.ler("portico");
+    if (guardado) Memoria.paraFormulario(form, guardado);
+    $("repor-portico").addEventListener("click", function () {
+      Memoria.paraFormulario(form, padrao);
+      Memoria.apagar("portico");
+      estado.escolhido = null;
+      agendar();
+    });
+    form.addEventListener("submit", function (e) { e.preventDefault(); });
+    form.addEventListener("input", function () {
+      estado.escolhido = null;
+      Memoria.gravar("portico", Memoria.doFormulario(form));
+      agendar();
+    });
+    document.addEventListener("madres:calculadas", function () { estado.escolhido = null; agendar(); });
+    $("tab-portico").addEventListener("click", function () { if (estado.desatualizado) agendar(); });
+    saida.addEventListener("click", function (e) {
+      var b = e.target.closest(".candidato-portico");
+      if (!b) return;
+      estado.escolhido = b.getAttribute("data-nome");
+      mostrar();
+      var titulo = saida.querySelector(".nome-perfil");
+      if (titulo) { titulo.setAttribute("tabindex", "-1"); titulo.focus({ preventScroll: true }); window.scrollTo(0, saida.getBoundingClientRect().top + window.scrollY - 70); }
+    });
+    agendar();
   }
 
   iniciar();

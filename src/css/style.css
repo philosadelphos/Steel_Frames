@@ -116,6 +116,8 @@ button, input, select { font: inherit; color: inherit; }
 .esquema { margin: 0; padding: 8px; background: var(--superficie-2); border-radius: var(--raio); }
 .esquema svg { display: block; width: 100%; max-width: 220px; height: auto; margin-inline: auto; }
 .esquema-perfil { fill: var(--aco-claro); stroke: var(--aco); stroke-width: 1.5; }
+.esquema-fino { fill: none; stroke: var(--aco); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+.esquema svg[hidden] { display: none; }
 .esquema-cota line, .esquema-guia { stroke: var(--tinta-suave); stroke-width: 1; }
 .esquema-txt { fill: var(--tinta); font: italic 600 11px var(--f-texto); text-anchor: middle; }
 .esquema-txt-s { font-size: 10px; text-anchor: start; }
@@ -192,6 +194,7 @@ select {
 .desenho svg { display: block; width: 100%; height: auto; max-height: 360px; }
 .desenho figcaption { font-size: 0.78rem; color: var(--tinta-suave); text-align: center; margin-top: 4px; }
 .sec-forma { fill: var(--aco-claro); stroke: var(--aco); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.sec-fino { fill: none; stroke: var(--aco); stroke-linejoin: round; stroke-linecap: butt; }
 .sec-eixo { stroke: var(--primario); stroke-width: 1; stroke-dasharray: 8 3 2 3; vector-effect: non-scaling-stroke; fill: none; }
 .sec-cota { stroke: var(--tinta-suave); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; }
 .sec-txt { fill: var(--tinta); font-family: var(--f-dados); }
@@ -316,6 +319,8 @@ select {
 .esq-seta-w { stroke: var(--primario); }
 .esq-seta-w-cab { fill: var(--primario); }
 .esq-txt { fill: var(--tinta); font-family: var(--f-dados); stroke: var(--superficie); paint-order: stroke; stroke-linejoin: round; }
+.dm-max { fill: var(--primario); fill-opacity: 0.28; stroke: var(--primario); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.dm-min { fill: var(--aco); fill-opacity: 0.3; stroke: var(--aco); stroke-width: 1; vector-effect: non-scaling-stroke; }
 
 .acoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; }
 .acao h3, h3.sub {
@@ -332,8 +337,6 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
 .cartao .tabela-simples th:first-child { position: static; }
 .hipoteses { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; max-width: 75ch; }
 .verif-nao .verif-nome { color: var(--tinta-suave); }
-.tabela tbody tr.linha-omega { cursor: default; }
-.tabela tbody tr.linha-omega:hover td { color: inherit; }
 .tabela tbody tr.linha-omega td:first-child { font-family: var(--f-dados); font-weight: 500; font-size: 0.86rem; }
 @media (max-width: 400px) {
   .separador { padding: 6px 8px; font-size: 0.95rem; }

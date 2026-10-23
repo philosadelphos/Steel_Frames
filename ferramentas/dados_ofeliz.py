@@ -57,11 +57,11 @@ def arco(p1, p2, b, n=16):
     return [(cx + rr * math.cos(a1 + th * k / n), cy + rr * math.sin(a1 + th * k / n)) for k in range(1, n)], rr
 
 
-def discretizar(v):
+def discretizar(v, n=16):
     pts = []
     for i in range(len(v) - 1):
         pts.append(v[i][:2])
-        pts += arco(v[i][:2], v[i + 1][:2], v[i][2])[0]
+        pts += arco(v[i][:2], v[i + 1][:2], v[i][2], n)[0]
     pts.append(v[-1][:2])
     return pts
 
@@ -140,6 +140,8 @@ def geometria_superomega():
             r=round(ci["r"], 2),                                            # raio interior aba/alma
             bTopo=round(2 * abs(cs["pm"][0] - xs_c), 1),                    # banzo superior entre cantos
             livre=[r(Af), r(Izf), r(max(xf - min(xs_l), max(xs_l) - xf) + td / 2)],
+            # Linha média para o desenho (mm, origem no canto inferior esquerdo do contorno; arcos com 3 troços)
+            linha=[[round(x, 1), round(y, 1)] for x, y in discretizar(med, 3)],
         )
     return geo
 
@@ -193,7 +195,8 @@ def main():
  *   Z:          [Aeff, Iy,eff, Wy,eff, Iz,eff, Wz,eff]  (eixos horizontal e vertical, como no catálogo)
  * Superomega, geometria da linha média por altura (desenho): sd (altura desenvolvida da alma), phi
  * (inclinação da alma, graus), r (raio interior aba/alma), bTopo (largura do banzo superior) e o banzo
- * livre por unidade de espessura [A/t (mm), Iz/t (mm³), distância à fibra extrema (mm)].
+ * livre por unidade de espessura [A/t (mm), Iz/t (mm³), distância à fibra extrema (mm)] e a linha média do
+ * desenho (linha, em mm), usada só para desenhar a secção.
  * Corrigidos com o catálogo em PDF: Iz do 120×1,5 e do 120×2,0 e It do 250×3,0.
  * As propriedades das C e Z foram calculadas pelo fabricante com cantos vivos (ver enformados.js).
  */

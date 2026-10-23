@@ -114,7 +114,19 @@ Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálcul
 
 **A perguntar à O Feliz (dt@ofeliz.com):** confirmar os dois erros das folhas de cálculo do Superomega; se as propriedades das C e Z consideram os cantos; propriedades do Z250; rigidez e resistência das sobreposições tipo II e III (EN 1993-1-3, 10.1.3.4); recomendações de tirantes.
 
-## 4. Ideias anotadas para mais tarde
+## 4. Pórtico de duas águas (Fase 3): simplificações a rever
+
+- Alturas e vão do separador Madres (à face inferior da cobertura) tomados como os do eixo das barras.
+- C<sub>my</sub> = C<sub>mLT</sub> = 1,0 no método 2 (o máximo do Quadro B.3); C<sub>1</sub> = 1,0 quando o diagrama do troço não é linear. Podem ser refinados com o Quadro B.3 e os valores de C<sub>1</sub> por diagrama.
+- Fora do plano, os travamentos contam como pontos com os dois banzos fixos; a travessa com o banzo superior comprimido bambeia entre madres. Não se usa o Anexo BB.3 (troços com travamento num só banzo).
+- Vento só da esquerda: os dois pilares e as duas águas da travessa têm o mesmo perfil, por isso cobrem o lado contrário. Sem o fator 0,85 de falta de correlação (7.2.2(3)).
+- Não incluídos: cutelos, ligações, placas de base, fundações, pórticos de empena, contraventamentos, peso das fachadas e pontes rolantes.
+
+## 5. Perfis U
+
+Os U laminados a quente (UPN, de banzos inclinados, e UPE, de banzos paralelos, da EN 10365) são outra série: a C enformada da O Feliz tem reforços nos banzos e não os substitui. Podem entrar no identificador com uma tabela de dimensões fiável (catálogo do fornecedor ou EN 10365).
+
+## 6. Ideias anotadas para mais tarde
 
 - Verificar o vão do painel sandwich (espaçamento entre madres) com as tabelas de cálculo direto do catálogo O Feliz Painel (cargas características por espessura, vão simples ou múltiplo, ascendentes e descendentes). O catálogo não dá a rigidez C<sub>D</sub> da ligação painel–madre: pedir à O Feliz.
 - Coberturas de uma água (Quadros 7.3a e 7.3b da NP EN 1991-1-4).
@@ -122,4 +134,4 @@ Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálcul
 - Madres que servem de escoras do contraventamento (esforço axial com flexão, EN 1993-1-3, 10.1.4.2 e 6.2).
 - Coberturas em terraço com platibanda ou bordos arredondados (restantes linhas do Quadro 7.2).
 - Situação acidental de neve excecional e acumulação de neve junto a platibandas e desníveis.
-- Fase 3: pórtico de duas águas com bases encastradas.
+- Pórtico: cutelos, bases rotuladas, ligações e placas de base, pórticos de empena.

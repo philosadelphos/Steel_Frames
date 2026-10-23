@@ -13,10 +13,11 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
   node testes/verificar.js           # propriedades dos perfis contra catálogo
   node testes/madres.js              # ações e madres IPE
   node testes/enformados.js          # madres enformadas a frio e dados O Feliz
+  node testes/portico.js             # pórtico de duas águas (Fase 3)
   ```
-- O CI (`.github/workflows/verificar.yml`) corre os três testes e `node ferramentas/construir.js --verificar`, que falha se o `index.html` não tiver sido gerado de novo.
+- O CI (`.github/workflows/verificar.yml`) corre os quatro testes e `node ferramentas/construir.js --verificar`, que falha se o `index.html` não tiver sido gerado de novo.
 - Fluxo de trabalho: ramo novo a partir da `main` → commits → Pull Request → o utilizador faz merge → o Pages atualiza sozinho.
-- `src/js/`: `perfis.js` (dimensões EN 10365), `seccao.js` (propriedades e EC3), `ofeliz.js` (dados O Feliz, gerado por `ferramentas/dados_ofeliz.py`), `acoes.js` (neve, vento, combinações), `madres.js` (madres IPE), `enformados.js` (madres enformadas a frio, EN 1993-1-3), `app.js` (Identificar e Catálogo, memória dos formulários), `vista-madres.js` (separador Madres).
+- `src/js/`: `perfis.js` (dimensões EN 10365), `seccao.js` (propriedades e EC3), `ofeliz.js` (dados O Feliz, gerado por `ferramentas/dados_ofeliz.py`), `acoes.js` (neve, vento, combinações), `madres.js` (madres IPE), `enformados.js` (madres enformadas a frio, EN 1993-1-3), `portico.js` (pórtico de duas águas), `app.js` (Identificar, com I/H laminados e ómega/C/Z enformados, e Catálogo; memória dos formulários), `vista-madres.js` (separador Madres; publica o resultado em `SteelFrames.madres` e no evento `madres:calculadas`), `vista-portico.js` (separador Pórtico).
 
 ## Convenções da interface
 
@@ -47,7 +48,9 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
   - Superomega apoiado pelas abas: esmagamento da alma pela 6.1.7.3 (aproximação, as dobras não cumprem a 6.1.7.4) e 6.1.11; C e Z com esquadro: sem esmagamento (10.1.3.2(2));
   - corte pela (6.10a) com a altura desenvolvida; M + V pela (6.27) com M<sub>f,Rd</sub> = 0; flechas com I<sub>eff</sub> mínimo.
 
+- Fase 3, pórtico (`portico.js`): malha simétrica, análise elástica 2D em banda; α<sub>cr</sub> pela (5.2) com 1 kN horizontal nos beirados; amplificação 1/(1 − 1/α<sub>cr</sub>) só da parte antissimétrica de cada combinação (5.2.2(5)B); imperfeição φ com h = altura no pilar e m = 2; 6.2 com classe sob N + M; 6.3.3 método 2 com C<sub>m</sub> = 1,0 e L<sub>cr,y</sub> = comprimento real (5.2.2(7)b); vento de um só lado (pares iguais cobrem o outro), zonas reais pela posição do pórtico; ELS h/150 e vão/200, vão/250. Escolhe o par pilar/travessa mais leve percorrendo os pares por peso.
+
 ## Próximos passos combinados
 
-1. **Fase 3: pórtico de duas águas com bases encastradas** (pavilhões industriais, Portugal continental, sem pontes rolantes na primeira versão): esforços na travessa e nos pilares, flexão composta com encurvadura e bambeamento (EC3 6.3.3), deslocamentos. Reutilizar as ações de `acoes.js`.
+1. Fase 3, 2.ª iteração: cutelos nos nós pilar–travessa, bases rotuladas, ligações e placas de base, pórticos de empena.
 2. Ideias anotadas em `docs/pendentes.md`.
