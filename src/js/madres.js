@@ -9,23 +9,31 @@ var Madres = (function () {
   // Coeficientes de esforços e flecha para carga uniforme q em vãos iguais L.
   // mVao, mApoio: q·L²; v: q·L; flecha: q·L⁴/(E·I). Os coeficientes "Q" são a envolvente com a
   // sobrecarga de cobertura nos vãos mais desfavoráveis (ação livre, NP EN 1991-1-1 6.2.1(1)).
+  // Os coeficientes "P" são a envolvente para uma carga concentrada P em qualquer ponto (M: P·L, V: P),
+  // obtida pela equação dos três momentos para 2 a 10 vãos (a partir de 3 vãos os valores estabilizam).
   var ESQUEMAS = {
     simples: { nome: "Simplesmente apoiada", mVao: 1 / 8, mApoio: 0, v: 0.5, flecha: 5 / 384,
-      mVaoQ: 1 / 8, mApoioQ: 0, vQ: 0.5, flechaQ: 5 / 384 },
+      mVaoQ: 1 / 8, mApoioQ: 0, vQ: 0.5, flechaQ: 5 / 384, mVaoP: 0.25, mApoioP: 0, vP: 1 },
     continua2: { nome: "Contínua, 2 vãos", mVao: 9 / 128, mApoio: 1 / 8, v: 0.625, flecha: 1 / 185,
-      mVaoQ: 0.0957, mApoioQ: 1 / 8, vQ: 0.625, flechaQ: 0.00915 },
+      mVaoQ: 0.0957, mApoioQ: 1 / 8, vQ: 0.625, flechaQ: 0.00915, mVaoP: 0.208, mApoioP: 0.097, vP: 1 },
     continua3: { nome: "Contínua, 3 ou mais vãos", mVao: 0.080, mApoio: 0.107, v: 0.607, flecha: 0.0069,
-      mVaoQ: 0.101, mApoioQ: 0.1205, vQ: 0.62, flechaQ: 0.0099 }
+      mVaoQ: 0.101, mApoioQ: 0.1205, vQ: 0.62, flechaQ: 0.0099, mVaoP: 0.205, mApoioP: 0.104, vP: 1 }
   };
 
-  // Esforços com a parte qnQ (sobrecarga) em alternância e o resto da carga em todos os vãos.
-  function esforcos(e, qn, qnQ, L) {
-    var qRest = qn - qnQ;
+  // Esforços com a parte qnQ (sobrecarga) em alternância, o resto da carga em todos os vãos e,
+  // se existir, a carga concentrada Pn na posição mais desfavorável (soma de envolventes).
+  function esforcos(e, qn, qnQ, L, Pn) {
+    var qRest = qn - qnQ, P = Pn || 0;
     return {
-      mVao: (e.mVao * qRest + e.mVaoQ * qnQ) * L * L,
-      mApoio: (e.mApoio * qRest + e.mApoioQ * qnQ) * L * L,
-      V: Math.abs(e.v * qRest + e.vQ * qnQ) * L
+      mVao: (e.mVao * qRest + e.mVaoQ * qnQ) * L * L + e.mVaoP * P * L,
+      mApoio: (e.mApoio * qRest + e.mApoioQ * qnQ) * L * L + e.mApoioP * P * L,
+      V: Math.abs(e.v * qRest + e.vQ * qnQ) * L + e.vP * Math.abs(P)
     };
+  }
+
+  // Momento em torno do eixo fraco entre travamentos, pela componente no plano da cobertura.
+  function momentoPlano(qt, Pt, Lseg) {
+    return Math.abs(qt) * Lseg * Lseg / 8 + Math.abs(Pt || 0) * Lseg / 4;
   }
   function coefFlecha(e, q, qQ) { return e.flecha * Math.abs(q - qQ) + e.flechaQ * Math.abs(qQ); }
 
@@ -64,8 +72,9 @@ var Madres = (function () {
 
   /*
    * Verifica um perfil para um conjunto de combinações.
-   * cfg: { L, esquema, tirantes (0, 1 ou 2), fy, combELU: [{id, qn, qt}], combELS: [{id, qn, qnVar}] }
+   * cfg: { L, esquema, tirantes (0, 1 ou 2), fy, combELU: [{id, qn, qt, Pn, Pt}], combELS: [{id, qn, qnVar}] }
    * qn: componente normal à cobertura (positiva para baixo); qt: componente no plano da cobertura.
+   * Pn, Pt: componentes de uma carga concentrada (kN), só na combinação da carga Q_k.
    */
   function verificar(p, props, cfg) {
     var e = ESQUEMAS[cfg.esquema];
@@ -91,10 +100,10 @@ var Madres = (function () {
 
     cfg.combELU.forEach(function (c) {
       var qn = c.qn + (c.gMadre || 0) * cfg.cosAlfa, qt = c.qt + (c.gMadre || 0) * cfg.senAlfa;
-      var es = esforcos(e, qn, c.qnQ || 0, L);
+      var es = esforcos(e, qn, c.qnQ || 0, L, c.Pn);
       var mVao = es.mVao;                        // > 0: banzo superior comprimido no vão
       var mApoio = es.mApoio;                    // > 0: banzo inferior comprimido sobre os apoios
-      var Mz = Math.abs(qt) * Lseg * Lseg / 8;
+      var Mz = momentoPlano(qt, c.Pt, Lseg);
       var V = es.V;
 
       // Resistência da secção à flexão desviada (6.2.9, α = 2 e β = 1 para classes 1 e 2).
@@ -127,11 +136,13 @@ var Madres = (function () {
   }
 
   // Ordena os perfis por peso e devolve a verificação de cada um e o mais leve que verifica.
+  // Com cfg.aco, fy de cada perfil sai da espessura do banzo (norma de produto); senão usa-se cfg.fy.
   function dimensionar(perfis, cfg) {
     var lista = perfis.map(function (p) {
       var props = Seccao.propriedades(p);
       var gMadre = props.G * 9.81 / 1000; // kN/m
       var c = Object.assign({}, cfg, {
+        fy: cfg.aco ? Seccao.tensoes(cfg.aco, p.tf).fy : cfg.fy,
         combELU: cfg.combELU.map(function (x) { return Object.assign({}, x, { gMadre: gMadre * x.gamaG }); }),
         combELS: cfg.combELS.map(function (x) { return Object.assign({}, x, { gMadre: gMadre }); })
       });
@@ -162,9 +173,9 @@ var Madres = (function () {
     }
     cfg.combELU.forEach(function (c) {
       var qn = c.qn + gMadre * c.gamaG * cfg.cosAlfa, qt = c.qt + gMadre * c.gamaG * cfg.senAlfa;
-      var es = esforcos(e, qn, c.qnQ || 0, L);
+      var es = esforcos(e, qn, c.qnQ || 0, L, c.Pn);
       var mVao = Math.abs(es.mVao), mApoio = Math.abs(es.mApoio);
-      var Mz = Math.abs(qt) * Lseg * Lseg / 8;
+      var Mz = momentoPlano(qt, c.Pt, Lseg);
       var sVao = mVao * 1e3 / sim.Wy + Mz * 1e3 / sim.Wz;   // MPa (kN·m e cm³)
       var sApoio = mApoio * 1e3 / sob.Wy;
       var s = Math.max(sVao, sApoio);

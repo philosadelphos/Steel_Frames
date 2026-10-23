@@ -170,7 +170,7 @@
     return '<section class="cartao"><h2>Verificação da secção · ' + estado.aco + "</h2>" +
       '<div class="ec3">' +
         '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>y</sub> = ' + tens.fy + " <small>MPa</small></div>" +
-          "<p>f<sub>u</sub> = " + tens.fu + " MPa · t<sub>f</sub> " + (p.tf <= 40 ? "≤ 40" : "> 40") + " mm · ε = " + fmt(cl.eps, 3) + "</p></div>" +
+          "<p>f<sub>u</sub> = " + tens.fu + " MPa · t<sub>f</sub> = " + fmt(p.tf, 1) + " mm (" + (tens.escalao[0] ? tens.escalao[0] + " < " : "") + "t ≤ " + tens.escalao[1] + ", " + Seccao.ACOS[estado.aco].norma + ") · ε = " + fmt(cl.eps, 3) + "</p></div>" +
         '<div class="ec3-item"><h3>Classe à flexão</h3><div class="valor-grande">' + classe(cl.flexao) + "</div>" +
           "<p>Banzo c/t = " + fmt(cl.banzo.c_t, 1) + " · Alma c/t = " + fmt(cl.alma.c_t, 1) + "</p></div>" +
         '<div class="ec3-item"><h3>Classe à compressão</h3><div class="valor-grande">' + classe(cl.compressao) + "</div>" +

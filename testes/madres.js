@@ -158,5 +158,42 @@ perto("ELU 1,0 Grev + 1,5 Ws (sem instalações)", cws.qn, 0.2 - 1.5 * 1.6);
 perto("cpi personalizado: sucção com cpi = +0,6", Acoes.vento("A", "II", 10, 15, "corrente", 20, [0.6, -0.3]).succao.w,
   Acoes.pressaoPico("A", "II", 10).qp * (-0.6 - 0.6), 1e-9);
 
+// Orografia: qp = ½ρ vb² (cr² c0² + 7 kI kr cr c0), expressões (4.3), (4.7) e (4.8) com vm = c0 cr vb.
+var p1 = Acoes.pressaoPico("A", "III", 9), p12 = Acoes.pressaoPico("A", "III", 9, 1.2);
+perto("c0 = 1 por omissão", p1.qp, Acoes.pressaoPico("A", "III", 9, 1).qp, 1e-12);
+perto("qp com c0 = 1,2", p12.qp, 0.5 * 1.25 * 27 * 27 * (p1.cr * p1.cr * 1.44 + 7 * p1.kr * p1.cr * 1.2) / 1000, 1e-9);
+perto("Iv com c0 = 1,2 é Iv(c0 = 1) / 1,2", p12.Iv, p1.Iv / 1.2, 1e-12);
+perto("c0 passa por Acoes.vento", Acoes.vento("A", "III", 9, 15, "corrente", 20, null, 1.2).pico.qp, p12.qp, 1e-12);
+
+// Carga concentrada Q_k = 1,0 kN (Quadro NA–6.10), verificada à parte (6.3.4.2(3)P): só no ELU.
+var kq = Acoes.cargasMadre({ espacamento: 2, alfa: 10, gRev: 0.1, gInst: 0.1, qH: 0.4, s: 0.2, wPressao: 0.3, wSuccao: -0.8 });
+var cq = Acoes.combinacoes(kq, 100);
+var cqp = cq.elu.filter(function (x) { return x.id === "QP"; })[0];
+perto("Q_k: componente normal 1,5 × 1,0 × cos 10°", cqp.Pn, 1.5 * Math.cos(10 * Math.PI / 180), 1e-12);
+perto("Q_k: permanentes com 1,35", cqp.qn, 1.35 * kq.G.n, 1e-12);
+igual("Q_k não entra nas combinações ELS", cq.els.some(function (x) { return x.id === "QP"; }), false);
+igual("Q_k não se soma a q_k (sem parte distribuída variável)", cqp.qnQ, 0);
+perto("simplesmente apoiada: M = PL/4", Madres.esforcos(Madres.ESQUEMAS.simples, 0, 0, 6, 2).mVao, 3, 1e-12);
+perto("simplesmente apoiada: V = P", Madres.esforcos(Madres.ESQUEMAS.simples, 0, 0, 6, 2).V, 2, 1e-12);
+// Envolventes da equação dos três momentos (2 vãos: 0,2074 PL no vão, 0,0962 PL no apoio; 3 a 10 vãos: 0,2049 e 0,1031).
+igual("2 vãos: coeficiente do vão por excesso", Madres.ESQUEMAS.continua2.mVaoP >= 0.2074, true);
+igual("2 vãos: coeficiente do apoio por excesso", Madres.ESQUEMAS.continua2.mApoioP >= 0.0962, true);
+igual("3+ vãos: coeficiente do vão por excesso", Madres.ESQUEMAS.continua3.mVaoP >= 0.2049, true);
+igual("3+ vãos: coeficiente do apoio por excesso", Madres.ESQUEMAS.continua3.mApoioP >= 0.1031, true);
+var vp = Madres.verificar(ipe120, pr120, {
+  L: 5, esquema: "simples", tirantes: 1, fy: 275, cosAlfa: 1, senAlfa: 0,
+  combELU: [{ id: "QP", qn: 0, qt: 0, Pn: 1.5, Pt: 0.4 }], combELS: []
+});
+perto("Q_k: My = 1,5 × 5 / 4 no IPE", vp.verificacoes.seccao.My, 1.875, 1e-12);
+perto("Q_k: Mz = Pt × Lseg / 4 entre tirantes", vp.verificacoes.seccao.Mz, 0.4 * 2.5 / 4, 1e-12);
+
+// fy de cada IPE pela espessura do banzo quando se indica a classe do aço.
+var dimAco = Madres.dimensionar(Seccao.todos().filter(function (x) { return x.nome === "IPE 600" || x.nome === "IPE 200"; }), {
+  L: 6, esquema: "simples", tirantes: 0, aco: "S355", cosAlfa: 1, senAlfa: 0,
+  combELU: [{ id: "d", qn: 1, qt: 0, gamaG: 1.35 }], combELS: []
+});
+var ipe600 = dimAco.lista.filter(function (x) { return x.perfil.nome === "IPE 600"; })[0];
+perto("IPE 600 (tf = 19 mm) em S355: fy = 345 MPa", ipe600.McyRd * 1e6 / (ipe600.props.Wply * 1e3), 345, 1e-9);
+
 console.log("\n" + (total - falhas) + "/" + total + " verificações");
 process.exit(falhas ? 1 : 0);

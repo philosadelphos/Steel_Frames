@@ -36,17 +36,19 @@ var Acoes = (function () {
   // 7.2.9(6): edifícios sem face dominante (por exemplo, portões fechados ou resistentes ao vento).
   var CPI = [0.2, -0.3];
 
-  // Pressão dinâmica de pico qp(ze) com c0 = 1, kI = 1, cdir = cseason = 1.
-  function pressaoPico(zona, categoria, ze) {
+  // Pressão dinâmica de pico qp(ze) (4.3 a 4.5) com kI = 1 e cdir = cseason = 1.
+  // c0: coeficiente de orografia (4.3.3), 1 em terreno plano; entra em vm(z) e em Iv(z) = kI / (c0 ln(z/z0)).
+  function pressaoPico(zona, categoria, ze, c0) {
     var t = TERRENO[categoria];
     var vb = VENTO_VB0[zona];
+    var co = c0 || 1;
     var z = Math.max(ze, t.zmin);
     var kr = 0.19 * Math.pow(t.z0 / 0.05, 0.07);
     var cr = kr * Math.log(z / t.z0);
-    var Iv = 1 / Math.log(z / t.z0);
-    var vm = cr * vb;
+    var Iv = 1 / (co * Math.log(z / t.z0));
+    var vm = cr * co * vb;
     var qp = (1 + 7 * Iv) * 0.5 * RHO * vm * vm / 1000;
-    return { vb: vb, qb: 0.5 * RHO * vb * vb / 1000, z0: t.z0, zmin: t.zmin, z: z, kr: kr, cr: cr, Iv: Iv, vm: vm, qp: qp };
+    return { vb: vb, qb: 0.5 * RHO * vb * vb / 1000, z0: t.z0, zmin: t.zmin, z: z, kr: kr, cr: cr, c0: co, Iv: Iv, vm: vm, qp: qp };
   }
 
   /*
@@ -140,8 +142,8 @@ var Acoes = (function () {
   }
 
   // Pressão resultante na cobertura (kN/m², positiva para baixo) nos dois casos extremos.
-  function vento(zona, categoria, ze, alfa, posicao, area, cpi) {
-    var pico = pressaoPico(zona, categoria, ze);
+  function vento(zona, categoria, ze, alfa, posicao, area, cpi, c0) {
+    var pico = pressaoPico(zona, categoria, ze, c0);
     var c = coeficientesCobertura(alfa, posicao, area);
     var lista = cpi || CPI;
     var cpiMax = Math.max.apply(null, lista), cpiMin = Math.min.apply(null, lista);
@@ -155,21 +157,28 @@ var Acoes = (function () {
     };
   }
 
+  // ----- Sobrecarga em coberturas da categoria H (Quadro NA–6.10 da NP EN 1991-1-1) -----
+  // q_k e Q_k não atuam em simultâneo: Q_k verifica-se à parte (6.3.4.2(3)P).
+  var SOBRECARGA_H = { qk: 0.4, Qk: 1.0 };
+
   // ----- Cargas por metro de madre -----
   /*
    * c: { espacamento (m, medido na pendente), alfa, gRev, gInst (kN/m² de cobertura),
-   *      qH, s (kN/m² em projeção horizontal), wPressao, wSuccao (kN/m², normais à cobertura) }
-   * Devolve, para cada ação, as componentes normal (n, positiva para baixo) e tangencial (t) em kN/m.
+   *      qH, s (kN/m² em projeção horizontal), wPressao, wSuccao (kN/m², normais à cobertura), QkH (kN) }
+   * Devolve, para cada ação, as componentes normal (n, positiva para baixo) e tangencial (t) em kN/m;
+   * QP é a carga concentrada Q_k, em kN.
    */
   function cargasMadre(c) {
     var a = c.alfa * Math.PI / 180, cos = Math.cos(a), sen = Math.sin(a), e = c.espacamento;
     function porSuperficie(v) { return { n: v * e * cos, t: v * e * sen }; }
     function porProjecao(v) { return { n: v * e * cos * cos, t: v * e * cos * sen }; }
+    var Qk = c.QkH === undefined ? SOBRECARGA_H.Qk : c.QkH;
     return {
       G: porSuperficie(c.gRev + c.gInst),
       // Contra a sucção só conta o revestimento: as instalações podem não existir ou ser retiradas.
       Gfav: porSuperficie(c.gRev),
       Q: porProjecao(c.qH),
+      QP: { n: Qk * cos, t: Qk * sen },
       S: porProjecao(c.s),
       Wp: { n: c.wPressao * e, t: 0 },
       Ws: { n: c.wSuccao * e, t: 0 }
@@ -183,8 +192,9 @@ var Acoes = (function () {
 
   /*
    * A sobrecarga de cobertura (categoria H) não se combina com a neve nem com o vento
-   * (NP EN 1991-1-1, 3.3.2(1)). Cada combinação: { id, nome, gamaG, qn, qt } (ELU)
+   * (NP EN 1991-1-1, 3.3.2(1)). Cada combinação: { id, nome, gamaG, qn, qt, Pn, Pt } (ELU)
    * ou { id, nome, qn, qnVar } (ELS característica). gamaG multiplica o peso próprio da madre.
+   * A carga concentrada Q_k é uma verificação local: entra só no ELU, numa combinação própria.
    */
   function combinacoes(k, altitude) {
     var psiS = psi0Neve(altitude), psiW = PSI0.W;
@@ -201,13 +211,16 @@ var Acoes = (function () {
       { id: "Q", nome: "Sobrecarga de cobertura", gG: GAMA.Gsup, G: k.G, var: [[1, k.Q]], qQ: k.Q.n },
       { id: "S", nome: "Neve (base) + vento em pressão", gG: GAMA.Gsup, G: k.G, var: [[1, k.S], [psiW, k.Wp]], qQ: 0 },
       { id: "Wp", nome: "Vento em pressão (base) + neve", gG: GAMA.Gsup, G: k.G, var: [[1, k.Wp], [psiS, k.S]], qQ: 0 },
-      { id: "Ws", nome: "Vento em sucção (base)", gG: GAMA.Ginf, G: k.Gfav, var: [[1, k.Ws]], qQ: 0 }
+      { id: "Ws", nome: "Vento em sucção (base)", gG: GAMA.Ginf, G: k.Gfav, var: [[1, k.Ws]], qQ: 0 },
+      { id: "QP", nome: "Carga concentrada de cobertura", gG: GAMA.Gsup, G: k.G, var: [], qQ: 0, P: k.QP, soELU: true }
     ];
     var elu = defs.map(function (d) {
       var r = soma(d.gG, d.var.map(function (x) { return [GAMA.Q * x[0], x[1]]; }), d.G);
-      return { id: d.id, nome: d.nome, gamaG: d.gG, qn: r.n, qt: r.t, qnQ: GAMA.Q * d.qQ };
+      var c = { id: d.id, nome: d.nome, gamaG: d.gG, qn: r.n, qt: r.t, qnQ: GAMA.Q * d.qQ };
+      if (d.P) { c.Pn = GAMA.Q * d.P.n; c.Pt = GAMA.Q * d.P.t; }
+      return c;
     });
-    var els = defs.map(function (d) {
+    var els = defs.filter(function (d) { return !d.soELU; }).map(function (d) {
       var r = soma(1, d.var, d.G);
       return { id: d.id, nome: d.nome, gamaG: 1, qn: r.n, qt: r.t, qnVar: variavel(d.var), qnQ: d.qQ };
     });
@@ -215,7 +228,7 @@ var Acoes = (function () {
   }
 
   return {
-    NEVE_CZ: NEVE_CZ, NEVE_CE: NEVE_CE, VENTO_VB0: VENTO_VB0, TERRENO: TERRENO, POSICOES: POSICOES,
+    NEVE_CZ: NEVE_CZ, NEVE_CE: NEVE_CE, VENTO_VB0: VENTO_VB0, TERRENO: TERRENO, POSICOES: POSICOES, SOBRECARGA_H: SOBRECARGA_H,
     mu1: mu1, neve: neve, pressaoPico: pressaoPico, coeficientesCobertura: coeficientesCobertura, vento: vento,
     cargasMadre: cargasMadre, combinacoes: combinacoes,
     _interpolarAlfa: interpolarAlfa, _cpeArea: cpeArea

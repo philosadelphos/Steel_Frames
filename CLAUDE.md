@@ -26,12 +26,16 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
 
 ## Decisões de engenharia já tomadas (não reverter sem falar com o utilizador)
 
-- Valores dos Anexos Nacionais e o que falta conferir: ver `docs/pendentes.md`.
+- Valores dos Anexos Nacionais conferidos em 23/10/2026 com o texto das NP EN 1990, 1991-1-1, 1991-1-3, 1991-1-4 e 1993-1-1: ver `docs/pendentes.md`.
 - **Não reproduzir no repositório quadros das normas** (pedido do utilizador): os valores podem estar no código para o cálculo, mas não em tabelas ou documentos. Os c<sub>pe</sub> dos Quadros 7.2, 7.4a e 7.4b da NP EN 1991-1-4 já foram conferidos com a norma.
 - Geometria do pavilhão: altura no pilar e altura a meio vão, **medidas do pavimento à face inferior da cobertura**; a inclinação é calculada. z<sub>e</sub> = altura a meio vão + 0,15 m (espessura da cobertura por excesso).
 - Sobrecarga de cobertura (categoria H): 0,4 kN/m² em projeção horizontal, sem combinar com neve ou vento, e **em alternância de vãos** nas madres contínuas.
 - Na sucção do vento, só o revestimento e a madre contam como carga permanente favorável (as instalações não).
-- Bambeamento pelo **caso geral EC3 6.3.2.2** (curvas a/b para perfis laminados), porque não foi confirmado se o Anexo Nacional adota o 6.3.2.3. z<sub>g</sub> = 0, L<sub>cr</sub> entre travamentos do banzo inferior, sem contar com a restrição do revestimento.
+- Bambeamento pelo **caso geral EC3 6.3.2.2** (curvas a/b para perfis laminados). O NA–6.3.2.3(1) adota λ<sub>LT,0</sub> = 0,2 e β = 1, com que o 6.3.2.3 dá o mesmo χ<sub>LT</sub>: não vale a pena mudar. z<sub>g</sub> = 0, L<sub>cr</sub> entre travamentos do banzo inferior, sem contar com a restrição do revestimento.
+- f<sub>y</sub> e f<sub>u</sub> pela **norma de produto** (EN 10025-2/-3, escalões t ≤ 16 / 40 / 63 / 80 mm), como manda o NA–3.2.1(1), e não pelo Quadro 3.1. Nas madres IPE, f<sub>y</sub> de cada perfil sai da espessura do banzo.
+- Carga concentrada Q<sub>k</sub> = 1,0 kN da categoria H verificada à parte (6.3.4.2(3)P), só no ELU.
+- Orografia: c<sub>0</sub> introduzido pelo utilizador (1,0 em terreno plano). A antiga opção "vale ou estuário → zona B" foi retirada porque não consta do AN (vinha do RSA).
+- Normas e catálogos de fabricantes ficam em `docs/normas/` e `docs/catalogos/`, fora do git. Não há AN português da EN 1993-1-3 (só a BS EN 1993-1-3:2006): usar os valores recomendados e assinalá-los.
 - Madremax e Omegamax (Constálica): os catálogos só têm a secção bruta e as secções são de classe 4, por isso a app faz **pré-seleção** (flechas e tensões na secção bruta) e marca o resto como "não avaliado". Falta pedir à Constálica as propriedades efetivas ou tabelas de cargas.
 
 ## Próximos passos combinados

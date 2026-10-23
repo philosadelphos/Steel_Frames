@@ -47,7 +47,7 @@ Tabelas completas das séries IPE, HEA, HEB e HEM (calculadas a partir das dimen
 | --- | --- |
 | Dimensões dos perfis | EN 10365:2017 |
 | Classificação, resistência e bambeamento | NP EN 1993-1-1:2010 + Anexo Nacional |
-| Classes de aço | NP EN 1993-1-1, Quadro 3.1 · EN 10025-2 / EN 10025-3 · EN 10346 |
+| Classes de aço | EN 10025-2 / EN 10025-3 (f<sub>y</sub> e f<sub>u</sub> por escalão de espessura, NA–3.2.1(1) da NP EN 1993-1-1) · EN 10346 |
 | Neve | NP EN 1991-1-3:2009 + Anexo Nacional |
 | Vento | NP EN 1991-1-4:2010 + Anexo Nacional |
 | Sobrecarga de cobertura | NP EN 1991-1-1:2009 + Anexo Nacional |
@@ -55,7 +55,7 @@ Tabelas completas das séries IPE, HEA, HEB e HEM (calculadas a partir das dimen
 | Torção e momento crítico | SCI P363 · NCCI SN003 |
 | Madremax e Omegamax | Catálogos Constálica (MKC002_0219, MKC003_0118) |
 
-As propriedades dos perfis laminados são calculadas a partir das dimensões nominais e coincidem com os catálogos ArcelorMittal (diferenças inferiores a 0,5 %). Os coeficientes de pressão do vento foram conferidos com a NP EN 1991-1-4. Os restantes valores dos Anexos Nacionais foram confirmados em fontes secundárias, e a lista do que falta conferir com as normas está em **[docs/pendentes.md](docs/pendentes.md)**.
+As propriedades dos perfis laminados são calculadas a partir das dimensões nominais e coincidem com os catálogos ArcelorMittal (diferenças inferiores a 0,5 %). Os valores dos Anexos Nacionais foram conferidos com o texto das NP EN 1990, 1991-1-1, 1991-1-3, 1991-1-4 e 1993-1-1. A lista, com a cláusula de cada valor e o que ainda falta fazer, está em **[docs/pendentes.md](docs/pendentes.md)**.
 
 ## Plano
 
