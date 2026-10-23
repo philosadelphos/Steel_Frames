@@ -21,5 +21,7 @@ jobs:
         run: node testes/enformados.js
       - name: Pórtico de duas águas
         run: node testes/portico.js
+      - name: Painéis sandwich e verificação do revestimento
+        run: node testes/paineis.js
       - name: index.html gerado a partir de src/
         run: node ferramentas/construir.js --verificar

@@ -3,6 +3,7 @@
  * de perfis (ArcelorMittal, Sections and Merchant Bars). Correr com: node testes/verificar.js
  */
 global.PERFIS = require("../src/js/perfis.js");
+global.PERFIS_U = require("../src/js/perfis-u.js");
 var Seccao = require("../src/js/seccao.js");
 
 var REFERENCIAS = {
@@ -52,6 +53,33 @@ esperar("S235 fy com t = 70 mm", Seccao.tensoes("S235", 70).fy, 215);
 esperar("S460 fy com t = 19 mm (EN 10025-3)", Seccao.tensoes("S460", 19).fy, 440);
 esperar("S355 fu (3 ≤ t ≤ 100 mm)", Seccao.tensoes("S355", 10).fu, 470);
 esperar("HEB 300 S275 (tf = 19 mm) fy", Seccao.tensoes("S275", porNome["HEB 300"].tf).fy, 265);
+
+// Perfis U: área e peso calculados pelo contorno (banzos inclinados do UPN e concordâncias) contra o fornecedor.
+var maxA = 0, maxG = 0;
+Seccao.todosU().forEach(function (p) {
+  var pr = Seccao.propriedadesU(p), f = PERFIS_U[p.familia].fornecedor[p.nome];
+  maxA = Math.max(maxA, Math.abs(pr.A / f[0] - 1)); maxG = Math.max(maxG, Math.abs(pr.G / f[1] - 1));
+});
+function dentro(desc, valor, esperado, tol) {
+  verificados++;
+  var d = valor / esperado - 1, ok = Math.abs(d) <= tol;
+  if (!ok) falhas++;
+  console.log((ok ? "ok   " : "FALHA") + "  " + desc + " " + valor.toFixed(2) + " ref " + esperado + " " + (d * 100).toFixed(2) + " %");
+}
+dentro("UPN e UPE: maior desvio de A face ao fornecedor (32 secções)", 1 + maxA, 1, 0.01);
+dentro("UPN e UPE: maior desvio de G face ao fornecedor (32 secções)", 1 + maxG, 1, 0.01);
+// Valores de catálogo (ArcelorMittal, Sections and Merchant Bars) para alguns perfis.
+var REF_U = {
+  "UPN 100": { Iy: 206, Iz: 29.3 },
+  "UPN 200": { Iy: 1910, Wely: 191, Wply: 228, Iz: 148, Welz: 27.0, Wplz: 51.8, ys: 2.01 },
+  "UPN 300": { Iy: 8030, Iz: 495 },
+  "UPE 200": { Iy: 1910, Iz: 187, Welz: 34.45 }
+};
+Seccao.todosU().forEach(function (p) {
+  var ref = REF_U[p.nome]; if (!ref) return;
+  var pr = Seccao.propriedadesU(p);
+  Object.keys(ref).forEach(function (k) { dentro(p.nome + " " + k, pr[k], ref[k], 0.015); });
+});
 
 console.log("\n" + (verificados - falhas) + "/" + verificados + " verificações dentro da tolerância");
 process.exit(falhas ? 1 : 0);

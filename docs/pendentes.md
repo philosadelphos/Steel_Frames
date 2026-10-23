@@ -122,13 +122,38 @@ Fontes, em `docs/catalogos/` (fora do git): catálogos em PDF, folhas de cálcul
 - Vento só da esquerda: os dois pilares e as duas águas da travessa têm o mesmo perfil, por isso cobrem o lado contrário. Sem o fator 0,85 de falta de correlação (7.2.2(3)).
 - Não incluídos: cutelos, ligações, placas de base, fundações, pórticos de empena, contraventamentos, peso das fachadas e pontes rolantes.
 
-## 5. Perfis U
+## 5. Perfis U (UPN e UPE)
 
-Os U laminados a quente (UPN, de banzos inclinados, e UPE, de banzos paralelos, da EN 10365) são outra série: a C enformada da O Feliz tem reforços nos banzos e não os substitui. Podem entrar no identificador com uma tabela de dimensões fiável (catálogo do fornecedor ou EN 10365).
+Dimensões da EN 10365 tal como as publica o fornecedor J. Justino das Neves (jjustinodasneves.pt, produtos UPN e UPE). Os PDF descarregados estavam truncados; as tabelas completas vieram das páginas do fornecedor. `src/js/perfis-u.js` guarda as dimensões e, à parte, a área e o peso do fornecedor só para conferência.
 
-## 6. Ideias anotadas para mais tarde
+- Propriedades calculadas pelo contorno real, com os banzos inclinados do UPN (8 % até ao UPN 300, 5 % acima, t<sub>f</sub> a meio da largura do banzo) e as concordâncias r<sub>1</sub> e r<sub>2</sub>; W<sub>pl,z</sub> pela posição do eixo plástico. Conferência: A e G contra o fornecedor nas 32 secções (desvio máximo 0,8 %); I<sub>y</sub> e I<sub>z</sub> contra os catálogos ArcelorMittal no UPN 100, 200, 300 e UPE 200, e no UPN 200 também W<sub>el,y</sub>, W<sub>pl,y</sub>, W<sub>el,z</sub>, W<sub>pl,z</sub> e y<sub>s</sub> (tolerância 1,5 %).
+- I<sub>t</sub> e I<sub>w</sub> por fórmulas de paredes finas (aproximadas).
+- Classificação com c = b − t<sub>w</sub> − r no banzo e c = h − 2t<sub>f</sub> − 2r na alma.
+- O centro de corte fica fora da alma: a app avisa que as resistências não contam com a torção de uma carga no plano da alma nem com a encurvadura.
+- A C enformada da O Feliz tem reforços nos banzos: não substitui os U laminados.
 
-- Verificar o vão do painel sandwich (espaçamento entre madres) com as tabelas de cálculo direto do catálogo O Feliz Painel (cargas características por espessura, vão simples ou múltiplo, ascendentes e descendentes). O catálogo não dá a rigidez C<sub>D</sub> da ligação painel–madre: pedir à O Feliz.
+## 6. Painéis sandwich: tabelas de cargas e verificação do revestimento
+
+`src/js/paineis.js` é gerado por `ferramentas/dados_paineis.py` a partir de `docs/catalogos/` (fora do git). `src/js/revestimento.js` faz a verificação, que aparece no separador Madres.
+
+**O Feliz, catálogo OFPA-Sandwich-Panel.pdf (Topcover® 3, 5, Cap e Tile).** Tabelas de cálculo direto por espessura das chapas (0,4/0,4 e 0,5/0,4; no Tile 0,5/0,4 e 0,5/0,5), apoio simples e múltiplo, vãos de 1,50 a 5,00 m e cargas ▲/▼. Segundo o catálogo, são valores característicos das cargas admissíveis além do peso próprio e das variações diferenciais de temperatura, com os ELU (flexão, corte, cargas concentradas nos apoios) e a flecha de serviço ≤ L/200. Conferidos com a imagem das páginas e com o exemplo do catálogo (Topcover 5, 0,5/0,4, vãos múltiplos de 2,75 m, vento ascendente de 1,30 kN/m² → 50 mm), que está nos testes.
+- Gralha corrigida do lado da segurança: Topcover Cap 30 mm, 0,4/0,4, apoio simples, ▲ a 4,00 e 4,25 m (0,43 e 0,37, acima dos 0,33 a 3,75 m) → 0,33.
+- A tabela do exemplo da página 14 difere da tabela do Topcover 5 (página do produto) na linha de 100 mm; usa-se a do produto.
+- Cor escura: o catálogo indica uma redução da carga ascendente até cerca de 30 % nas menores espessuras; a app aplica 30 % a todas, quando se assinala a opção.
+- Topcover Deck e os painéis de fachada não entram (cobertura com outra tabela; fachadas fora do âmbito).
+
+**Panel Sandwich Group, fichas painel-sandwich-cinco-ondas.pdf e painel-sandwich-tres-ondas.pdf (indicativas).** "Tabela de cargas admissíveis" a 2 vãos, em kg/m² (convertidos com 9,81 N/kg), espessuras de 30 a 60 mm e vãos de 1,0 a 4,0 m. No 5 ondas cada célula tem dois valores; o site do fabricante (painelsandwich.com) mostra-os como pressão e sucção. No 3 ondas há um só valor, usado nos dois sentidos.
+- A ficha não indica a espessura das chapas, o critério (ELU ou flecha) nem se os valores são característicos. O site dá, para o 5 ondas de 50 mm com chapas 0,5/0,5, valores até cerca de 20 % mais baixos do que a ficha (281/301 contra 357/369 kg/m² a 1,0 m). Ficam marcadas como indicativas.
+- Gralha corrigida: 5 ondas 60 mm, pressão a 3,6 m (67 kg/m², acima dos 59 a 3,4 m) → 59.
+- Sem tabela para um só vão: a app avisa.
+
+**Verificação.** Vão do painel = espaçamento entre madres na pendente; sem interpolação (usa-se o vão tabelado imediatamente acima). Ações características (NP EN 1990, 6.14b): ▼ o maior de q<sub>k</sub> cos²α, s cos²α + ψ<sub>0</sub> w<sub>p</sub> e w<sub>p</sub> + ψ<sub>0</sub> s cos²α; ▲ a sucção com o c<sub>pe</sub> da área s × 1 m. Verifica-se na zona corrente e nas bordaduras; quando não cumpre, a app dá o espaçamento máximo e a espessura mínima. Ao escolher o painel, o peso do revestimento passa a ser o do fabricante.
+
+**Não verificado:** carga concentrada de manutenção sobre o painel, fixações (arrancamento, número por madre) e largura de apoio. A rigidez C<sub>D</sub> da ligação painel–madre não consta de nenhum dos catálogos: pedir aos fabricantes.
+
+## 7. Ideias anotadas para mais tarde
+
+- Painéis de outros fabricantes (Kingspan, Hiansa, ...) e de fachada, com as respetivas tabelas.
 - Coberturas de uma água (Quadros 7.3a e 7.3b da NP EN 1991-1-4).
 - Ligações das madres enformadas: parafusos na alma com esquadro e arrancamento das fixações em sucção (EN 1993-1-3, 8.3).
 - Madres que servem de escoras do contraventamento (esforço axial com flexão, EN 1993-1-3, 10.1.4.2 e 6.2).

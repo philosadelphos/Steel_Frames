@@ -2,6 +2,8 @@
 (function () {
   var FAMILIAS = Object.keys(PERFIS);
   var TODOS = Seccao.todos();
+  var TODOS_U = Seccao.todosU();
+  var FAMILIAS_U = Object.keys(PERFIS_U);
   var EXEMPLO = { h: 300, b: 150 };
 
   var estado = {
@@ -77,26 +79,38 @@
   // ----- Perfis enformados a frio (O Feliz) -----
   var FAMILIA_FORMA = { omega: "Superomega", C: "C", Z: "Z" };
   function acosForma(forma) {
-    return forma === "I" ? Object.keys(Seccao.ACOS) : Enformados.FAMILIAS[FAMILIA_FORMA[forma]].acos;
+    return forma === "I" || forma === "U" ? Object.keys(Seccao.ACOS) : Enformados.FAMILIAS[FAMILIA_FORMA[forma]].acos;
   }
   // Mostra os campos, o esboço e as classes de aço da forma escolhida.
   function atualizarForma(forma, aco) {
     estado.forma = forma;
-    var lista = acosForma(forma), padrao = forma === "I" ? "S355" : "S350GD";
+    var lista = acosForma(forma), padrao = forma === "I" || forma === "U" ? "S355" : "S350GD";
     estado.aco = lista.indexOf(aco) >= 0 ? aco : padrao;
     $("in-aco").innerHTML = lista.map(function (a) {
       return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + (Seccao.ACOS[a] ? " · " + Seccao.ACOS[a].norma : " · EN 10346") + "</option>";
     }).join("");
-    var enf = forma !== "I";
-    $("campo-tw").hidden = enf; $("campo-tf").hidden = enf; $("grupo-familias").hidden = enf;
+    var enf = forma !== "I" && forma !== "U";
+    $("campo-tw").hidden = enf; $("campo-tf").hidden = enf; $("grupo-familias").hidden = forma !== "I";
     $("campo-t").hidden = !enf; $("campo-a").hidden = !(forma === "C" || forma === "Z");
     Array.prototype.forEach.call(document.querySelectorAll(".esquema svg[data-forma]"), function (svg) {
       svg.hidden = svg.getAttribute("data-forma") !== forma;
     });
-    $("nota-forma").hidden = !enf;
-    $("nota-forma").innerHTML = forma === "omega"
+    $("nota-forma").hidden = forma === "I";
+    $("nota-forma").innerHTML = forma === "U"
+      ? "UPN (banzos inclinados, t<sub>f</sub> medida a meio do banzo) e UPE (banzos paralelos), da EN 10365. A C enformada a frio, com reforços nas pontas dos banzos, é outra série."
+      : forma === "omega"
       ? "Meça a altura total h e a largura total b, nas pontas das abas inferiores."
       : "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.";
+  }
+
+  // Perfis U laminados: mesmo critério dos perfis I e H (espessuras com metade do peso).
+  function procurarU(m) {
+    return TODOS_U.map(function (p) {
+      var soma = Math.pow((m.h - p.h) / p.h, 2) + Math.pow((m.b - p.b) / p.b, 2), peso = 2;
+      if (m.tw) { soma += 0.5 * Math.pow((m.tw - p.tw) / p.tw, 2); peso += 0.5; }
+      if (m.tf) { soma += 0.5 * Math.pow((m.tf - p.tf) / p.tf, 2); peso += 0.5; }
+      return { perfil: p, desvio: Math.sqrt(soma / peso) };
+    }).sort(function (a, b) { return a.desvio - b.desvio; });
   }
 
   // Desvio relativo médio quadrático, como nos laminados: espessura e reforço pesam metade.
@@ -168,6 +182,98 @@
       '<text class="sec-txt-eixo" x="' + (B / 2 + M * 0.1) + '" y="' + fs * 0.35 + '" font-size="' + fs + '">y</text>' +
       '<text class="sec-txt-eixo" x="0" y="' + (H / 2 + M * 0.1 + fs * 0.7) + '" font-size="' + fs + '" text-anchor="middle">z</text>' +
       '</svg>';
+  }
+
+  // Perfil U à escala, a partir do contorno calculado (unidades do SVG = mm; y para baixo no desenho).
+  function desenhoU(p, pr) {
+    var B = p.b, H = p.h, M = Math.max(B, H), fs = M * 0.05, tr = fs * 0.35, x0 = -B / 2;
+    var d = pr.contorno.map(function (q, i) { return (i ? "L" : "M") + (q[0] + x0).toFixed(2) + " " + (-q[1]).toFixed(2); }).join("") + "Z";
+    var cb = -H / 2 - M * 0.16, ch = -B / 2 - M * 0.16, xc = x0 + pr.ys * 10;
+    function traco(x, y) { return "M" + (x - tr) + " " + (y + tr) + "L" + (x + tr) + " " + (y - tr); }
+    var cotas = "M" + (-B / 2) + " " + (-H / 2 - M * 0.03) + "V" + (cb - M * 0.03) + "M" + (B / 2) + " " + (-H / 2 - M * 0.03) + "V" + (cb - M * 0.03) +
+      "M" + (-B / 2) + " " + cb + "H" + (B / 2) + "M" + (-B / 2 - M * 0.03) + " " + (-H / 2) + "H" + (ch - M * 0.03) + "M" + (-B / 2 - M * 0.03) + " " + (H / 2) + "H" + (ch - M * 0.03) +
+      "M" + ch + " " + (-H / 2) + "V" + (H / 2) + traco(-B / 2, cb) + traco(B / 2, cb) + traco(ch, -H / 2) + traco(ch, H / 2);
+    var eixos = "M" + (-B / 2 - M * 0.08) + " 0H" + (B / 2 + M * 0.08) + "M" + xc + " " + (-H / 2 - M * 0.08) + "V" + (H / 2 + M * 0.08);
+    var vb = [-B / 2 - M * 0.27, -H / 2 - M * 0.27, B + M * 0.27 + M * 0.36, H + M * 0.27 + M * 0.2];
+    return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Secção ' + p.nome + ' à escala">' +
+      '<path class="sec-forma" d="' + d + '"/><path class="sec-eixo" d="' + eixos + '"/><path class="sec-cota" d="' + cotas + '"/>' +
+      '<text class="sec-txt" x="0" y="' + (cb - fs * 0.45) + '" font-size="' + fs + '" text-anchor="middle">' + fmt(B, 0) + "</text>" +
+      '<text class="sec-txt" font-size="' + fs + '" text-anchor="middle" transform="translate(' + (ch - fs * 0.45) + ' 0) rotate(-90)">' + fmt(H, 0) + "</text>" +
+      '<text class="sec-txt-eixo" x="' + (B / 2 + M * 0.1) + '" y="' + fs * 0.35 + '" font-size="' + fs + '">y</text>' +
+      '<text class="sec-txt-eixo" x="' + xc + '" y="' + (H / 2 + M * 0.1 + fs * 0.7) + '" font-size="' + fs + '" text-anchor="middle">z</text>' +
+      "</svg>";
+  }
+
+  function blocoPropriedadesU(p, pr) {
+    return '<div class="grupos-props">' +
+      '<div class="grupo-props"><h3>Geometria</h3><dl class="lista-props">' +
+        linhaProp("h", p.h, "mm", 0) + linhaProp("b", p.b, "mm", 0) + linhaProp("t<sub>w</sub>", p.tw, "mm", 1) + linhaProp("t<sub>f</sub>", p.tf, "mm", 1) +
+        linhaProp(p.r2 ? "r<sub>1</sub>" : "r", p.r, "mm", 1) + (p.r2 ? linhaProp("r<sub>2</sub>", p.r2, "mm", 1) : "") +
+        linhaProp("A", pr.A, "cm²") + linhaProp("G", pr.G, "kg/m", 1) + "</dl></div>" +
+      '<div class="grupo-props"><h3>Eixo forte y-y</h3><dl class="lista-props">' +
+        linhaProp("I<sub>y</sub>", pr.Iy, "cm⁴") + linhaProp("W<sub>el,y</sub>", pr.Wely, "cm³") + linhaProp("W<sub>pl,y</sub>", pr.Wply, "cm³") +
+        linhaProp("i<sub>y</sub>", pr.iy, "cm") + linhaProp("A<sub>v,z</sub>", pr.Avz, "cm²") + "</dl></div>" +
+      '<div class="grupo-props"><h3>Eixo fraco z-z</h3><dl class="lista-props">' +
+        linhaProp("I<sub>z</sub>", pr.Iz, "cm⁴") + linhaProp("W<sub>el,z</sub>", pr.Welz, "cm³") + linhaProp("W<sub>pl,z</sub>", pr.Wplz, "cm³") +
+        linhaProp("i<sub>z</sub>", pr.iz, "cm") + linhaProp("y<sub>s</sub>", pr.ys, "cm", 2) + "</dl></div>" +
+      '<div class="grupo-props"><h3>Torção (aprox.)</h3><dl class="lista-props">' +
+        linhaProp("I<sub>t</sub>", pr.It, "cm⁴") + linhaProp("I<sub>w</sub>", pr.Iw / 1e3, "×10³ cm⁶") + linhaProp("y<sub>M</sub>", pr.eCorte, "cm", 2) + "</dl></div>" +
+      "</div>";
+  }
+
+  function blocoEC3U(p, pr) {
+    var tens = Seccao.tensoes(estado.aco, p.tf), fy = tens.fy, cl = Seccao.classificarU(p, fy);
+    function classe(c) { return '<span class="classe' + (c === 4 ? " classe-4" : "") + '">' + c + "</span>"; }
+    var W = cl.flexao <= 2 ? pr.Wply : pr.Wely, Wz = cl.banzo.classe <= 2 ? pr.Wplz : pr.Welz;
+    function kN(v, un, nota, ok) {
+      return !ok ? '<div class="valor-grande">—</div><p>Secção de classe 4: a resistência exige propriedades efetivas (EN 1993-1-5).</p>'
+        : '<div class="valor-grande">' + fmt(v, 0) + " <small>" + un + "</small></div><p>" + nota + "</p>";
+    }
+    return '<section class="cartao"><h2>Verificação da secção · ' + estado.aco + "</h2>" +
+      '<div class="ec3">' +
+        '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>y</sub> = ' + fy + " <small>MPa</small></div><p>f<sub>u</sub> = " + tens.fu + " MPa · t<sub>f</sub> = " + fmt(p.tf, 1) + " mm · ε = " + fmt(cl.eps, 3) + "</p></div>" +
+        '<div class="ec3-item"><h3>Classe à flexão</h3><div class="valor-grande">' + classe(cl.flexao) + "</div><p>Banzo c/t = " + fmt(cl.banzo.c_t, 1) + " (c = b − t<sub>w</sub> − r) · Alma c/t = " + fmt(cl.alma.c_t, 1) + "</p></div>" +
+        '<div class="ec3-item"><h3>Classe à compressão</h3><div class="valor-grande">' + classe(cl.compressao) + "</div><p>Alma comprimida: limites 33ε / 38ε / 42ε</p></div>" +
+        '<div class="ec3-item"><h3>Flexão <span class="sym">M<sub>c,y,Rd</sub></span></h3>' + kN(W * fy / 1e3, "kN·m", (cl.flexao <= 2 ? "W<sub>pl,y</sub>" : "W<sub>el,y</sub>") + " · f<sub>y</sub> / γ<sub>M0</sub> (6.2.5)", cl.flexao <= 3) + "</div>" +
+        '<div class="ec3-item"><h3>Flexão <span class="sym">M<sub>c,z,Rd</sub></span></h3>' + kN(Wz * fy / 1e3, "kN·m", (cl.banzo.classe <= 2 ? "W<sub>pl,z</sub>" : "W<sub>el,z</sub> mínimo") + " · f<sub>y</sub> / γ<sub>M0</sub>", cl.banzo.classe <= 3) + "</div>" +
+        '<div class="ec3-item"><h3>Compressão <span class="sym">N<sub>pl,Rd</sub></span></h3>' + kN(pr.A * 1e2 * fy / 1e3, "kN", "A · f<sub>y</sub> / γ<sub>M0</sub>, sem encurvadura (6.2.4)", cl.compressao <= 3) + "</div>" +
+        '<div class="ec3-item"><h3>Corte <span class="sym">V<sub>pl,z,Rd</sub></span></h3>' + kN(pr.Avz * 1e2 * fy / Math.sqrt(3) / 1e3, "kN", "A<sub>v,z</sub> = A − 2bt<sub>f</sub> + (t<sub>w</sub> + r)t<sub>f</sub> (6.2.6(3)c)", true) + "</div>" +
+      "</div>" +
+      '<p class="nota">O centro de corte fica fora da alma (y<sub>M</sub> a partir da linha média): uma carga aplicada no plano da alma provoca torção. Os valores acima não contam com essa torção nem com a encurvadura.</p>' +
+      "</section>";
+  }
+
+  function renderU(m) {
+    var lista = procurarU(m), melhor = lista[0];
+    var atual = estado.escolhido && lista.filter(function (c) { return c.perfil.nome === estado.escolhido; })[0] || melhor;
+    var p = atual.perfil, pr = Seccao.propriedadesU(p), av = avaliar(atual.desvio);
+    var desvios = '<div class="desvios">' +
+      "<span>h <b>" + fmt(p.h, 0) + "</b> (" + fmtDelta(m.h - p.h) + " mm)</span>" +
+      "<span>b <b>" + fmt(p.b, 0) + "</b> (" + fmtDelta(m.b - p.b) + " mm)</span>" +
+      (m.tw ? "<span>t<sub>w</sub> <b>" + fmt(p.tw, 1) + "</b> (" + fmtDelta(m.tw - p.tw) + " mm)</span>" : "") +
+      (m.tf ? "<span>t<sub>f</sub> <b>" + fmt(p.tf, 1) + "</b> (" + fmtDelta(m.tf - p.tf) + " mm)</span>" : "") + "</div>";
+    var segundo = lista[1], alerta = "";
+    if (atual === melhor && segundo && segundo.perfil.familia !== p.familia && segundo.desvio - melhor.desvio < 0.02) {
+      alerta = '<p class="alerta">' + p.nome + " e " + segundo.perfil.nome + " têm dimensões exteriores parecidas. Veja se as faces interiores dos banzos são inclinadas (UPN) ou paralelas (UPE), ou meça t<sub>w</sub>.</p>";
+    }
+    var candidatos = lista.slice(0, 6).map(function (c) {
+      var q = c.perfil, prox = Math.max(0, 1 - c.desvio / 0.15);
+      return '<li><button type="button" class="candidato" data-nome="' + q.nome + '" aria-current="' + (q === p) + '">' +
+        '<span class="candidato-nome">' + q.nome + "</span>" +
+        '<span class="candidato-dims">' + fmt(q.h, 0) + " × " + fmt(q.b, 0) + " · t<sub>w</sub> " + fmt(q.tw, 1) + " · t<sub>f</sub> " + fmt(q.tf, 1) + "</span>" +
+        '<span class="barra" title="Desvio médio ' + fmt(c.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span></button></li>';
+    }).join("");
+    resultado.innerHTML = '<section class="cartao">' +
+        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + p.nome + "</h2>" +
+          '<span class="familia-perfil">' + PERFIS_U[p.familia].descricao + "</span>" +
+          '<span class="selo ' + av.cls + '">' + av.txt + "</span></div>" +
+        desvios + alerta +
+        '<div class="corpo-resultado">' +
+          '<figure class="desenho">' + desenhoU(p, pr) + "<figcaption>Secção à escala, dimensões nominais em mm" + (p.inclinacao ? "; faces interiores dos banzos com inclinação de " + fmt(p.inclinacao * 100, 0) + " %" : "") + "</figcaption></figure>" +
+          blocoPropriedadesU(p, pr) +
+        "</div></section>" +
+      blocoEC3U(p, pr) +
+      '<section class="cartao"><h2>Perfis mais próximos</h2><ul class="candidatos">' + candidatos + "</ul></section>";
   }
 
   // Secção enformada à escala: linha média com a espessura nominal (unidades do SVG = mm).
@@ -332,6 +438,7 @@
       resultado.innerHTML = '<section class="cartao"><p class="nota">Introduza a altura e a largura do perfil para ver as séries que correspondem.</p></section>';
       return;
     }
+    if (estado.forma === "U") { renderU(m); return; }
     if (estado.forma !== "I") { renderEnformado(m); return; }
     if (!estado.familias.length) {
       resultado.innerHTML = '<section class="cartao"><p class="nota">Selecione pelo menos uma série de perfis.</p></section>';
@@ -406,8 +513,25 @@
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
   }
 
+  function renderCatalogoU(fam) {
+    $("catalogo-desc").textContent = fam + " · " + PERFIS_U[fam].descricao + " · dimensões segundo a EN 10365:2017 · I_t e I_w aproximados (paredes finas)";
+    var upn = fam === "UPN";
+    var colunas = [["Perfil", ""], ["h", "mm"], ["b", "mm"], ["t<sub>w</sub>", "mm"], ["t<sub>f</sub>", "mm"], [upn ? "r<sub>1</sub>" : "r", "mm"]].concat(upn ? [["r<sub>2</sub>", "mm"]] : []).concat([
+      ["A", "cm²"], ["G", "kg/m"], ["I<sub>y</sub>", "cm⁴"], ["W<sub>pl,y</sub>", "cm³"], ["i<sub>y</sub>", "cm"],
+      ["I<sub>z</sub>", "cm⁴"], ["W<sub>el,z</sub>", "cm³"], ["i<sub>z</sub>", "cm"], ["y<sub>s</sub>", "cm"], ["I<sub>t</sub>", "cm⁴"], ["I<sub>w</sub>", "×10³ cm⁶"]]);
+    var cab = "<thead><tr>" + colunas.map(function (c) { return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>"; }).join("") + "</tr></thead>";
+    var corpo = TODOS_U.filter(function (p) { return p.familia === fam; }).map(function (p) {
+      var pr = Seccao.propriedadesU(p);
+      var v = [fmt(p.h, 0), fmt(p.b, 0), fmt(p.tw, 1), fmt(p.tf, 1), fmt(p.r, 1)].concat(upn ? [fmt(p.r2, 1)] : []).concat([fmt(pr.A), fmt(pr.G, 1),
+        fmt(pr.Iy), fmt(pr.Wply), fmt(pr.iy), fmt(pr.Iz), fmt(pr.Welz), fmt(pr.iz), fmt(pr.ys, 2), fmt(pr.It), fmt(pr.Iw / 1e3)]);
+      return '<tr data-nome="' + p.nome + '" data-familia="' + fam + '" tabindex="0"><td>' + p.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
+    }).join("");
+    $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+  }
+
   function renderCatalogo() {
     var fam = estado.familiaCatalogo;
+    if (FAMILIAS_U.indexOf(fam) >= 0) { renderCatalogoU(fam); return; }
     var ofeliz = FAMILIAS_OFELIZ.indexOf(fam) >= 0;
     if (ofeliz) { renderCatalogoOFeliz(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
@@ -431,6 +555,19 @@
 
   function abrirNoIdentificador(nome, familia) {
     function v(x) { return String(x).replace(".", ","); }
+    if (FAMILIAS_U.indexOf(familia) >= 0) {
+      var u = TODOS_U.filter(function (q) { return q.nome === nome; })[0];
+      if (!u) return;
+      form.elements.forma.value = "U";
+      atualizarForma("U", estado.aco);
+      form.elements.h.value = v(u.h); form.elements.b.value = v(u.b); form.elements.tw.value = v(u.tw); form.elements.tf.value = v(u.tf);
+      estado.escolhido = nome;
+      $("nota-exemplo").hidden = true;
+      mostrar("identificar");
+      render();
+      window.scrollTo(0, 0);
+      return;
+    }
     if (FAMILIAS_OFELIZ.indexOf(familia) >= 0) {
       var s = Enformados.seccoes(familia).filter(function (q) { return q.nome === nome; })[0];
       if (!s) return;
@@ -463,13 +600,25 @@
   }
 
   // ----- Vistas -----
-  function mostrar(vista) {
-    ["identificar", "madres", "portico", "catalogo"].forEach(function (v) {
+  var VISTAS = ["identificar", "madres", "portico", "catalogo", "manual"];
+  // O manual só existe no index.html gerado (src/manual.html é embutido por ferramentas/construir.js).
+  function mostrar(vista, ancora) {
+    if (!$("vista-" + vista)) return;
+    VISTAS.forEach(function (v) {
+      if (!$("vista-" + v)) return;
       $("vista-" + v).hidden = v !== vista;
       $("tab-" + v).setAttribute("aria-selected", String(v === vista));
     });
-    try { history.replaceState(null, "", "#" + vista); } catch (e) { /* sem histórico disponível */ }
+    try { history.replaceState(null, "", "#" + (ancora || vista)); } catch (e) { /* sem histórico disponível */ }
     Memoria.gravar("vista", vista);
+  }
+
+  // Ligações para uma secção do manual (href="#manual-…"), também a partir dos formulários.
+  function abrirManual(id) {
+    var alvo = $(id);
+    if (!alvo) return;
+    mostrar("manual", id);
+    alvo.scrollIntoView();
   }
 
   // ----- Arranque -----
@@ -477,7 +626,7 @@
     $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
       return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
     }).join("");
-    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_OFELIZ).map(function (f) {
+    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_U, FAMILIAS_OFELIZ).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
     }).join("");
     atualizarForma("I", estado.aco);
@@ -548,12 +697,19 @@
     Array.prototype.forEach.call(document.querySelectorAll(".separador"), function (b) {
       b.addEventListener("click", function () { mostrar(b.getAttribute("data-vista")); window.scrollTo(0, 0); });
     });
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest('a[href^="#manual-"]');
+      if (!a) return;
+      e.preventDefault();
+      abrirManual(a.getAttribute("href").slice(1));
+    });
 
     renderCatalogo();
     render();
     // Abre a vista do endereço; sem endereço (por exemplo, pelo ícone do ecrã principal), a última usada.
-    var VISTAS = ["identificar", "madres", "portico", "catalogo"];
-    var vista = VISTAS.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : Memoria.ler("vista");
+    var hash = location.hash.slice(1);
+    if (/^manual-/.test(hash)) { abrirManual(hash); return; }
+    var vista = VISTAS.indexOf(hash) >= 0 ? hash : Memoria.ler("vista");
     if (VISTAS.indexOf(vista) > 0) mostrar(vista);
   }
 
