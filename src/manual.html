@@ -1,0 +1,396 @@
+  <section class="vista manual" id="vista-manual" aria-labelledby="tab-manual" hidden>
+    <svg class="mn-defs" aria-hidden="true" focusable="false">
+      <defs>
+        <marker id="mn-ponta" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" class="mn-ponta"/></marker>
+        <marker id="mn-ponta-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" class="mn-ponta-p"/></marker>
+      </defs>
+    </svg>
+
+    <header class="manual-cabeca">
+      <h1 class="titulo-painel">Manual de utilização</h1>
+      <p>Como a app faz o pré-dimensionamento, o que cada dado quer dizer e os cuidados a ter ao escolhê-lo. As explicações seguem os Eurocódigos com os Anexos Nacionais portugueses; as referências entre parênteses são as cláusulas das normas.</p>
+    </header>
+
+    <nav class="manual-indice" aria-label="Índice do manual">
+      <ol>
+        <li><a href="#manual-organizacao">Como a app está organizada</a></li>
+        <li><a href="#manual-identificar">Identificar um perfil</a></li>
+        <li><a href="#manual-geometria">Geometria do pavilhão</a></li>
+        <li><a href="#manual-neve">Neve</a></li>
+        <li><a href="#manual-vento">Vento</a></li>
+        <li><a href="#manual-combinacoes">Sobrecarga e combinações</a></li>
+        <li><a href="#manual-madres">Madres</a></li>
+        <li><a href="#manual-painel">Painel de revestimento</a></li>
+        <li><a href="#manual-portico">Pórtico</a></li>
+        <li><a href="#manual-limites">O que fica por verificar</a></li>
+        <li><a href="#manual-simbolos">Símbolos</a></li>
+      </ol>
+    </nav>
+
+    <article class="manual-cap" id="manual-organizacao">
+      <h2>1. Como a app está organizada</h2>
+      <p>São quatro separadores de trabalho, que se usam por esta ordem num pavilhão novo:</p>
+      <ul>
+        <li><b>Identificar perfil</b> — a partir das medidas tiradas em obra, encontra o perfil normalizado mais provável (I/H, U ou enformado a frio) e mostra as propriedades e as resistências da secção.</li>
+        <li><b>Madres</b> — define o pavilhão, o local e as cargas, calcula a neve e o vento, e escolhe a madre mais leve que verifica. Também verifica o painel de revestimento contra a tabela do fabricante.</li>
+        <li><b>Pórtico</b> — usa a geometria, o local, as ações e o peso das madres do separador Madres e escolhe o par pilar/travessa mais leve. Qualquer mudança nas Madres passa logo para o Pórtico.</li>
+        <li><b>Catálogo</b> — tabelas das séries; tocar numa linha abre o perfil no Identificar.</li>
+      </ul>
+      <p>Os números escrevem-se com vírgula decimal (o ponto também é aceite). Os formulários ficam guardados no aparelho; o botão <i>Repor o exemplo</i> volta ao pavilhão de exemplo. A app funciona sem internet: o ficheiro <code>index.html</code> pode ser copiado e aberto sozinho.</p>
+      <p class="manual-aviso">É uma ferramenta de <b>pré-dimensionamento</b>: dá secções plausíveis e mostra de onde vêm, mas não substitui o projeto, as verificações de ligações e fundações, nem a responsabilidade de um técnico habilitado.</p>
+    </article>
+
+    <article class="manual-cap" id="manual-identificar">
+      <h2>2. Identificar um perfil</h2>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 480 290" role="img" aria-labelledby="mn-f1">
+          <title id="mn-f1">Secção em I e secção em U com as dimensões h, b, tw, tf e r e os eixos y e z</title>
+          <path class="mn-aco" d="M60,50 H180 V66 H135 Q125,66 125,76 V224 Q125,234 135,234 H180 V250 H60 V234 H105 Q115,234 115,224 V76 Q115,66 105,66 H60 Z"/>
+          <line class="mn-trac" x1="42" y1="150" x2="198" y2="150"/><text class="mn-txt" x="202" y="155">y</text>
+          <line class="mn-trac" x1="120" y1="36" x2="120" y2="266"/><text class="mn-txt" x="114" y="284">z</text>
+          <line class="mn-cota" x1="36" y1="50" x2="36" y2="250"/><text class="mn-txt" x="16" y="155">h</text>
+          <line class="mn-cota" x1="60" y1="30" x2="180" y2="30"/><text class="mn-txt" x="114" y="22">b</text>
+          <text class="mn-txt" x="186" y="64">t<tspan class="mn-ind" dy="4">f</tspan></text>
+          <text class="mn-txt" x="131" y="196">t<tspan class="mn-ind" dy="4">w</tspan></text>
+          <text class="mn-txt" x="140" y="96">r</text>
+          <path class="mn-aco" d="M300,50 H380 V62.8 L320,67.6 Q310,68.4 310,78.4 V221.6 Q310,231.6 320,232.4 L380,237.2 V250 H300 Z"/>
+          <line class="mn-cota" x1="280" y1="50" x2="280" y2="250"/><text class="mn-txt" x="262" y="155">h</text>
+          <line class="mn-cota" x1="300" y1="30" x2="380" y2="30"/><text class="mn-txt" x="334" y="22">b</text>
+          <line class="mn-fina" x1="340" y1="40" x2="340" y2="70"/>
+          <text class="mn-txt-s" x="348" y="90">t<tspan dy="4">f</tspan><tspan dy="-4"> a b/2</tspan></text>
+          <text class="mn-txt-s" x="322" y="160">UPN: face interior</text>
+          <text class="mn-txt-s" x="322" y="177">do banzo inclinada</text>
+          <text class="mn-txt-s" x="322" y="194">(8 % ou 5 %)</text>
+        </svg>
+        <figcaption>Medidas a tirar em obra. Nos U, a espessura do banzo do UPN é medida a meio da largura; o UPE tem banzos paralelos.</figcaption>
+      </figure>
+      <p>A altura <i>h</i> e a largura <i>b</i> chegam para encontrar o perfil; as espessuras desempatam séries parecidas (por exemplo, HEA e HEB com a mesma altura nominal têm larguras iguais e espessuras diferentes). A app compara as medidas com todas as secções das séries escolhidas e ordena-as pelo desvio, com uma tolerância que cobre as tolerâncias de laminagem e o erro de medição.</p>
+      <h3>Cuidados</h3>
+      <ul>
+        <li>Meça <i>h</i> e <i>b</i> em vários pontos e use a média; a pintura e a ferrugem aumentam as espessuras aparentes.</li>
+        <li>Num perfil já montado, confirme se é laminado (concordâncias arredondadas entre alma e banzo) ou soldado (cordões de soldadura): um perfil soldado não está no catálogo e as propriedades calculam-se à parte.</li>
+        <li>A classe do aço não se vê: sem certificado ou ensaio, use a mais baixa plausível para a época da obra.</li>
+        <li>f<sub>y</sub> depende da espessura (EN 10025-2, escalões t ≤ 16 / 40 / 63 / 80 mm), como manda o NA–3.2.1(1). A app usa a maior espessura da secção (o banzo), do lado da segurança.</li>
+      </ul>
+      <h3>O que a app calcula</h3>
+      <p>As propriedades dos laminados calculam-se a partir das dimensões nominais da EN 10365, incluindo as concordâncias (A, I, W<sub>el</sub>, W<sub>pl</sub>, i, I<sub>t</sub>, I<sub>w</sub>), e conferem-se com os catálogos. Seguem-se a classe da secção (Quadro 5.2 da NP EN 1993-1-1) e as resistências da secção (6.2): N<sub>pl,Rd</sub>, M<sub>c,Rd</sub> e V<sub>pl,Rd</sub>. Nos enformados a frio (Superomega®, C e Z da O Feliz) usam-se as propriedades efetivas do fabricante, que já descontam a encurvadura local das paredes finas.</p>
+    </article>
+
+    <article class="manual-cap" id="manual-geometria">
+      <h2>3. Geometria do pavilhão</h2>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 560 270" role="img" aria-labelledby="mn-f2">
+          <title id="mn-f2">Corte transversal: alturas no pilar e a meio vão medidas do pavimento à face inferior da cobertura, z_e até ao topo, inclinação alfa e espaçamento entre madres s</title>
+          <line class="mn-fina" x1="20" y1="220" x2="500" y2="220"/>
+          <polyline class="mn-linha mn-grossa" points="60,220 60,100 260,60 460,100 460,220"/>
+          <polygon class="mn-painel" points="60,100 260,60 460,100 460,92 260,52 60,92"/>
+          <g class="mn-madres"><rect x="146" y="86" width="8" height="8"/><rect x="196" y="76" width="8" height="8"/><rect x="246" y="66" width="8" height="8"/>
+            <rect x="266" y="66" width="8" height="8"/><rect x="316" y="76" width="8" height="8"/><rect x="366" y="86" width="8" height="8"/></g>
+          <line class="mn-cota" x1="30" y1="220" x2="30" y2="100"/><text class="mn-txt-s" x="8" y="166" transform="rotate(-90 22 160)">no pilar</text>
+          <line class="mn-trac" x1="260" y1="60" x2="512" y2="60"/><line class="mn-trac" x1="260" y1="52" x2="540" y2="52"/>
+          <line class="mn-cota" x1="505" y1="220" x2="505" y2="60"/><text class="mn-txt-s" x="476" y="150" transform="rotate(-90 497 140)">a meio vão</text>
+          <line class="mn-cota" x1="535" y1="220" x2="535" y2="52"/><text class="mn-txt" x="540" y="140">z<tspan class="mn-ind" dy="4">e</tspan></text>
+          <path class="mn-fina" d="M110,100 A50,50 0 0 0 109,90"/><line class="mn-trac" x1="60" y1="100" x2="125" y2="100"/><text class="mn-txt" x="114" y="92">α</text>
+          <line class="mn-cota" x1="150" y1="72" x2="200" y2="62"/><text class="mn-txt" x="168" y="58">s</text>
+          <line class="mn-cota" x1="60" y1="244" x2="460" y2="244"/><text class="mn-txt-s" x="200" y="262">vão do pórtico</text>
+          <line class="mn-fina" x1="330" y1="88" x2="350" y2="150"/><text class="mn-txt-s" x="300" y="166">face inferior da cobertura</text>
+        </svg>
+        <figcaption>As alturas medem-se do pavimento à <b>face inferior</b> da cobertura; para o vento, z<sub>e</sub> = altura a meio vão + 0,15 m (espessura do revestimento, por excesso).</figcaption>
+      </figure>
+      <p>A inclinação α calcula-se das duas alturas e do vão; não se introduz. O espaçamento entre madres <i>s</i> mede-se <b>na pendente</b>, de eixo a eixo; o espaçamento entre pórticos <i>L</i> é o vão das madres.</p>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 520 240" role="img" aria-labelledby="mn-f3">
+          <title id="mn-f3">Planta da cobertura com pórticos espaçados de L, madres espaçadas de s, a área de influência L vezes s de uma madre e tirantes a meio vão</title>
+          <rect class="mn-zona" x="20" y="20" width="480" height="180"/>
+          <rect class="mn-zona-forte" x="180" y="125" width="80" height="30"/>
+          <g class="mn-linha"><line x1="20" y1="20" x2="20" y2="200"/><line x1="100" y1="20" x2="100" y2="200"/><line x1="180" y1="20" x2="180" y2="200"/><line x1="260" y1="20" x2="260" y2="200"/><line x1="340" y1="20" x2="340" y2="200"/><line x1="420" y1="20" x2="420" y2="200"/><line x1="500" y1="20" x2="500" y2="200"/></g>
+          <g class="mn-fina"><line x1="20" y1="50" x2="500" y2="50"/><line x1="20" y1="80" x2="500" y2="80"/><line x1="20" y1="140" x2="500" y2="140"/><line x1="20" y1="170" x2="500" y2="170"/></g>
+          <line class="mn-trac" x1="20" y1="110" x2="500" y2="110"/><text class="mn-txt-s" x="430" y="104">cumeeira</text>
+          <line class="mn-real" x1="180" y1="140" x2="260" y2="140"/>
+          <g class="mn-trac"><line x1="60" y1="20" x2="60" y2="200"/><line x1="140" y1="20" x2="140" y2="200"/><line x1="220" y1="20" x2="220" y2="200"/><line x1="300" y1="20" x2="300" y2="200"/><line x1="380" y1="20" x2="380" y2="200"/><line x1="460" y1="20" x2="460" y2="200"/></g>
+          <line class="mn-cota" x1="180" y1="222" x2="260" y2="222"/><text class="mn-txt" x="214" y="238">L</text>
+          <line class="mn-cota" x1="276" y1="125" x2="276" y2="155"/><text class="mn-txt" x="282" y="146">s</text>
+          <text class="mn-txt-s" x="26" y="16">pórticos</text><text class="mn-txt-s" x="104" y="96">madre</text><text class="mn-txt-s" x="306" y="194">tirante</text>
+        </svg>
+        <figcaption>Cada madre recebe a faixa L × s (a cor). Os tirantes (tracejado) travam o banzo inferior das madres a meio ou a terços do vão.</figcaption>
+      </figure>
+      <h3>Cuidados</h3>
+      <ul>
+        <li>Medir a altura até à face inferior evita contar duas vezes a espessura da cobertura. Se só tiver a cota do topo, desconte a espessura do painel e da madre.</li>
+        <li>A app trata duas águas simétricas até 30°; para coberturas de uma água, em dente de serra ou em arco, as zonas de vento e a neve são outras.</li>
+        <li>O espaçamento entre madres é o vão do painel: muda a madre e também a verificação do revestimento (secção 8).</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-neve">
+      <h2>4. Neve</h2>
+      <p>A carga de neve na cobertura (NP EN 1991-1-3, 5.2) é</p>
+      <p class="manual-formula">s = μ<sub>1</sub> C<sub>e</sub> C<sub>t</sub> s<sub>k</sub>, &nbsp; com &nbsp; s<sub>k</sub> = C<sub>z</sub> [1 + (H/500)²]</p>
+      <p>em kN/m² de <b>projeção horizontal</b>. C<sub>z</sub> sai da zona (Z1, Z2 ou Z3), que o Anexo Nacional atribui por concelho (NA–4.1(1)); H é a <b>altitude do local</b> da obra, em metros. μ<sub>1</sub> = 0,8 até 30° de inclinação. C<sub>e</sub> traduz a exposição ao vento: normal (1,0), exposta (0,8, neve varrida pelo vento) ou abrigada (1,2). C<sub>t</sub> = 1 (cobertura sem perdas de calor relevantes).</p>
+      <figure class="manual-fig manual-fig-estreita">
+        <svg viewBox="0 0 420 220" role="img" aria-labelledby="mn-f4">
+          <title id="mn-f4">Decomposição de uma carga em projeção horizontal sobre uma cobertura inclinada nas componentes normal e no plano</title>
+          <line class="mn-linha mn-grossa" x1="40" y1="190" x2="380" y2="80"/>
+          <g class="mn-seta"><line x1="90" y1="70" x2="90" y2="168"/><line x1="150" y1="70" x2="150" y2="149"/><line x1="210" y1="70" x2="210" y2="129"/><line x1="270" y1="70" x2="270" y2="110"/><line x1="330" y1="70" x2="330" y2="91"/></g>
+          <line class="mn-fina" x1="80" y1="62" x2="340" y2="62"/><text class="mn-txt" x="160" y="52">s (por m² em planta)</text>
+          <line class="mn-trac" x1="40" y1="190" x2="140" y2="190"/><path class="mn-fina" d="M120,190 A80,80 0 0 0 117,166"/><text class="mn-txt" x="124" y="182">α</text>
+          <text class="mn-txt-s" x="200" y="190">normal: s cos²α</text>
+          <text class="mn-txt-s" x="200" y="208">no plano: s cos α sen α</text>
+        </svg>
+        <figcaption>A neve e a sobrecarga atuam em projeção horizontal; por metro quadrado de cobertura valem s cos α, com as componentes acima. O peso próprio é por metro quadrado de superfície; o vento é normal à superfície.</figcaption>
+      </figure>
+      <h3>Cuidados</h3>
+      <ul>
+        <li>A altitude é a <b>do local</b>, não a do concelho: em zonas de serra, poucos metros mudam muito s<sub>k</sub>, porque o termo (H/500)² cresce depressa.</li>
+        <li>C<sub>e</sub> = 0,8 só se a cobertura estiver mesmo exposta, sem obstáculos nem construções mais altas à volta, em toda a vida da obra; na dúvida, normal.</li>
+        <li>Junto a platibandas, desníveis de cobertura e edifícios encostados mais altos, a neve acumula-se (5.3.6 e Anexo B): a app não calcula essas acumulações.</li>
+        <li>Na zona Z1, o Anexo Nacional (Quadro NA–A.1) exige situações acidentais de neve excecional e de deslocamento excecional: a app assinala-as mas não as verifica.</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-vento">
+      <h2>5. Vento</h2>
+      <p>A pressão do vento numa superfície (NP EN 1991-1-4) é</p>
+      <p class="manual-formula">w = q<sub>p</sub>(z<sub>e</sub>) (c<sub>pe</sub> − c<sub>pi</sub>)</p>
+      <p>A <b>pressão dinâmica de pico</b> q<sub>p</sub> depende da velocidade de referência (zona A, v<sub>b,0</sub> = 27 m/s; zona B, 30 m/s, na faixa costeira de 5 km ou acima de 600 m de altitude), da categoria de terreno, da altura z<sub>e</sub> e da orografia (c<sub>0</sub>). Os coeficientes c<sub>pe</sub> (exteriores) dependem da zona da cobertura, da direção do vento e da área carregada; c<sub>pi</sub> (interior) depende das aberturas do edifício.</p>
+      <h3>Categoria de terreno</h3>
+      <p>Escolha-a pelo terreno a barlavento, numa distância de algumas centenas de metros, para a direção mais desfavorável: I junto ao mar; II campo aberto com obstáculos isolados; III zona industrial, suburbana ou floresta; IV zona urbana com pelo menos 15 % da área com edifícios acima de 15 m. Uma categoria mais rugosa reduz q<sub>p</sub>, por isso só a use se a rugosidade for duradoura. Na dúvida entre duas, use a de menor número.</p>
+      <h3>Zonas da cobertura</h3>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 500 250" role="img" aria-labelledby="mn-f5">
+          <title id="mn-f5">Zonas F, G, H, I e J de uma cobertura de duas águas em planta, com o vento perpendicular e paralelo à cumeeira</title>
+          <rect class="mn-zona-forte" x="30" y="40" width="20" height="40"/><rect class="mn-zona-forte" x="30" y="160" width="20" height="40"/>
+          <rect class="mn-zona-media" x="30" y="80" width="20" height="80"/>
+          <rect class="mn-zona" x="50" y="40" width="80" height="160"/>
+          <rect class="mn-zona-media" x="130" y="40" width="20" height="160"/>
+          <rect class="mn-zona" x="150" y="40" width="80" height="160"/>
+          <line class="mn-trac" x1="130" y1="32" x2="130" y2="208"/>
+          <g class="mn-txt"><text x="34" y="66">F</text><text x="34" y="186">F</text><text x="34" y="126">G</text><text x="84" y="126">H</text><text x="134" y="126">J</text><text x="184" y="126">I</text></g>
+          <line class="mn-seta" x1="2" y1="226" x2="40" y2="226"/><text class="mn-txt-s" x="48" y="231">vento, θ = 0°</text>
+          <line class="mn-cota" x1="30" y1="26" x2="50" y2="26"/><text class="mn-txt-s" x="24" y="18">e/10</text>
+          <line class="mn-cota" x1="18" y1="40" x2="18" y2="80"/><text class="mn-txt-s" x="0" y="64" transform="rotate(-90 10 60)">e/4</text>
+          <text class="mn-txt-s" x="136" y="22">cumeeira</text>
+          <rect class="mn-zona-forte" x="280" y="40" width="20" height="40"/><rect class="mn-zona-forte" x="280" y="160" width="20" height="40"/>
+          <rect class="mn-zona-media" x="280" y="80" width="20" height="40"/><rect class="mn-zona-media" x="280" y="120" width="20" height="40"/>
+          <rect class="mn-zona" x="300" y="40" width="80" height="160"/>
+          <rect class="mn-zona" x="380" y="40" width="100" height="160"/>
+          <line class="mn-trac" x1="272" y1="120" x2="488" y2="120"/>
+          <g class="mn-txt"><text x="284" y="66">F</text><text x="284" y="186">F</text><text x="284" y="106">G</text><text x="284" y="146">G</text><text x="334" y="96">H</text><text x="424" y="96">I</text></g>
+          <line class="mn-seta" x1="252" y1="226" x2="290" y2="226"/><text class="mn-txt-s" x="298" y="231">vento, θ = 90°</text>
+          <line class="mn-cota" x1="280" y1="26" x2="380" y2="26"/><text class="mn-txt-s" x="318" y="18">e/2</text>
+        </svg>
+        <figcaption>Zonas de uma cobertura de duas águas (Figura 7.8 da NP EN 1991-1-4), com e = min(b; 2h), sendo b a dimensão transversal ao vento. As zonas a cor mais forte (F) têm as maiores sucções.</figcaption>
+      </figure>
+      <p>As madres e o pórtico de bordadura apanham as zonas F e G; as correntes, H, I e J. Na posição da madre, escolha <i>Bordadura</i> para a madre mais exposta ou <i>Zona corrente</i> para as restantes; em obra é comum aproximar as madres nas bordaduras.</p>
+      <p>Os c<sub>pe</sub> variam com a <b>área carregada</b> A: c<sub>pe,10</sub> para A ≥ 10 m², c<sub>pe,1</sub> para A ≤ 1 m² e interpolação logarítmica entre os dois (7.2.1). Para uma madre, A = L × s; para um painel entre duas madres, A = s × largura do painel, quase sempre perto de 1 m² — por isso o revestimento e as fixações sofrem sucções maiores do que as madres.</p>
+      <h3>Pressão interior e aberturas</h3>
+      <figure class="manual-fig manual-fig-estreita">
+        <svg viewBox="0 0 420 220" role="img" aria-labelledby="mn-f6">
+          <title id="mn-f6">Portão aberto a barlavento: a pressão interior soma-se à sucção exterior na cobertura</title>
+          <polyline class="mn-linha mn-grossa" points="100,190 100,150"/><polyline class="mn-linha mn-grossa" points="100,100 100,80 220,50 340,80 340,190"/>
+          <line class="mn-fina" x1="60" y1="190" x2="380" y2="190"/>
+          <g class="mn-seta"><line x1="20" y1="125" x2="90" y2="125"/><line x1="20" y1="160" x2="60" y2="160"/></g>
+          <text class="mn-txt-s" x="10" y="110">vento</text><text class="mn-txt-s" x="4" y="184">portão aberto</text>
+          <g class="mn-seta"><line x1="160" y1="150" x2="160" y2="80"/><line x1="220" y1="150" x2="220" y2="64"/><line x1="280" y1="150" x2="280" y2="80"/></g>
+          <g class="mn-seta"><line x1="160" y1="56" x2="160" y2="22"/><line x1="220" y1="40" x2="220" y2="8"/><line x1="280" y1="56" x2="280" y2="22"/></g>
+          <text class="mn-txt-s" x="180" y="176">c<tspan dy="3">pi</tspan><tspan dy="-3"> &gt; 0 (empurra)</tspan></text>
+          <text class="mn-txt-s" x="298" y="30">c<tspan dy="3">pe</tspan><tspan dy="-3"> &lt; 0 (puxa)</tspan></text>
+        </svg>
+        <figcaption>Com uma abertura dominante a barlavento, o interior fica em pressão e soma-se à sucção exterior: a cobertura é puxada pelos dois lados.</figcaption>
+      </figure>
+      <p>Os valores +0,2 e −0,3 que a app propõe só valem para edifícios <b>sem face dominante</b> (7.2.9(6)). Um portão grande que possa ficar aberto numa tempestade torna essa face dominante, e c<sub>pi</sub> passa a seguir o c<sub>pe</sub> nessa abertura (7.2.9(5)): 0,75 c<sub>pe</sub> se a abertura for o dobro das restantes, 0,90 c<sub>pe</sub> se for o triplo. Introduza então o c<sub>pi</sub> máximo correspondente. É dos dados que mais pesam no dimensionamento à sucção.</p>
+      <h3>Orografia</h3>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 520 230" role="img" aria-labelledby="mn-f7">
+          <title id="mn-f7">Colina com altura H, vertente a barlavento Lu, vertente a sotavento Ld e distância x do pavilhão à crista</title>
+          <polyline class="mn-linha mn-grossa" points="10,190 70,190 270,70 480,190 510,190"/>
+          <line class="mn-trac" x1="270" y1="70" x2="270" y2="190"/><line class="mn-trac" x1="70" y1="190" x2="480" y2="190"/>
+          <line class="mn-cota" x1="285" y1="190" x2="285" y2="70"/><text class="mn-txt" x="292" y="140">H</text>
+          <line class="mn-cota" x1="70" y1="208" x2="270" y2="208"/><text class="mn-txt" x="160" y="224">L<tspan class="mn-ind" dy="4">u</tspan></text>
+          <line class="mn-cota" x1="270" y1="208" x2="480" y2="208"/><text class="mn-txt" x="368" y="224">L<tspan class="mn-ind" dy="4">d</tspan></text>
+          <rect class="mn-aco" x="330" y="90" width="34" height="18" transform="rotate(30 347 99)"/>
+          <line class="mn-cota" x1="270" y1="44" x2="347" y2="44"/><text class="mn-txt-s" x="282" y="36">x &gt; 0 a sotavento</text>
+          <line class="mn-seta" x1="12" y1="150" x2="80" y2="150"/><text class="mn-txt-s" x="12" y="140">vento</text>
+        </svg>
+        <figcaption>Colina (Anexo A.3): o vento acelera ao subir a vertente e é máximo perto da crista. Numa falésia ou escarpa não há L<sub>d</sub>.</figcaption>
+      </figure>
+      <p>Em terreno plano (declive médio a barlavento inferior a 3°), c<sub>0</sub> = 1. Perto do topo de colinas, falésias e escarpas, o Anexo A.3 dá c<sub>0</sub> a partir de H, L<sub>u</sub> (e L<sub>d</sub>) e da distância x à crista, negativa a barlavento e positiva a sotavento, à altura z<sub>e</sub>. A app aplica esse c<sub>0</sub> a todas as direções, do lado da segurança. Vales com afunilamento do vento e orografia complexa ficam fora do âmbito: a norma remete para parecer técnico ou ensaio, e a app aceita um c<sub>0</sub> justificado.</p>
+      <h3>Cuidados</h3>
+      <ul>
+        <li>H, L<sub>u</sub> e L<sub>d</sub> medem-se numa carta topográfica, na direção do vento em que o relevo fica a barlavento; o pavilhão perto da crista é o caso crítico (c<sub>0</sub> pode passar de 1,3, e q<sub>p</sub> cresce com c<sub>0</sub>²).</li>
+        <li>Acima de 15 m de altura, c<sub>s</sub>c<sub>d</sub> = 1 deixa de estar garantido pela norma (6.2(1)a).</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-combinacoes">
+      <h2>6. Sobrecarga e combinações</h2>
+      <p>A sobrecarga das coberturas não acessíveis (categoria H) é q<sub>k</sub> = 0,4 kN/m² em projeção horizontal, com uma carga concentrada Q<sub>k</sub> = 1,0 kN verificada à parte (6.3.4.2(3)P). Não se combina com a neve nem com o vento (3.3.2(1)). Nas madres contínuas coloca-se em alternância de vãos, onde for mais desfavorável.</p>
+      <p>Os estados limites últimos usam a expressão 6.10 da NP EN 1990, com γ<sub>G</sub> = 1,35 (ou 1,0 quando a permanente ajuda) e γ<sub>Q</sub> = 1,5:</p>
+      <p class="manual-formula">1,35 G + 1,5 Q<sub>k,1</sub> + 1,5 ψ<sub>0</sub> Q<sub>k,i</sub> &nbsp; e, na sucção, &nbsp; 1,0 G<sub>rev</sub> + 1,5 W<sub>s</sub></p>
+      <p>com ψ<sub>0</sub> = 0,6 para o vento e 0,5 para a neve (0,7 acima de 1000 m). Na sucção só contam o revestimento e a madre: as instalações suspensas podem não existir ou ser retiradas. As flechas usam a combinação característica, com coeficientes 1,0.</p>
+      <h3>Cuidados</h3>
+      <ul>
+        <li>Instalações (iluminação, AVAC, sprinklers, painéis fotovoltaicos) entram como carga permanente; seja realista, mas não as conte contra a sucção.</li>
+        <li>Painéis fotovoltaicos na cobertura mudam o peso, a neve (acumulação entre filas) e o vento: verifique à parte.</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-madres">
+      <h2>7. Madres</h2>
+      <p>A madre é uma viga que vence o espaçamento entre pórticos L e recebe a faixa de cobertura L × s. A carga decompõe-se numa componente normal à cobertura, resistida pela flexão em torno do eixo forte, e numa componente no plano da cobertura, resistida em torno do eixo fraco entre tirantes. A app percorre as secções da série por peso e escolhe a mais leve que verifica tudo.</p>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 520 260" role="img" aria-labelledby="mn-f8">
+          <title id="mn-f8">Esquemas estáticos de madres e diagramas de momentos: simplesmente apoiada, contínua de dois vãos e sobreposição sobre o apoio</title>
+          <text class="mn-txt-s" x="30" y="16">simplesmente apoiada</text>
+          <text class="mn-txt-s" x="270" y="16">contínua, 2 vãos</text>
+          <g transform="translate(0 14)">
+            <line class="mn-linha mn-grossa" x1="30" y1="40" x2="210" y2="40"/>
+            <path class="mn-apoio" d="M30,40 l-7,12 h14 z M210,40 l-7,12 h14 z"/>
+            <path class="mn-mom" d="M30,40 Q120,130 210,40 Z"/><text class="mn-txt-s" x="94" y="104">qL²/8</text>
+            <line class="mn-linha mn-grossa" x1="270" y1="40" x2="490" y2="40"/>
+            <path class="mn-apoio" d="M270,40 l-7,12 h14 z M380,40 l-7,12 h14 z M490,40 l-7,12 h14 z"/>
+            <path class="mn-mom" d="M270,40 Q312,92 352,40 L380,14 L408,40 Q448,92 490,40 Z"/>
+            <text class="mn-txt-s" x="290" y="86">9qL²/128</text><text class="mn-txt-s" x="412" y="26">−qL²/8</text>
+          </g>
+          <text class="mn-txt-s" x="30" y="140">sobreposição (empalme) sobre o apoio</text>
+          <line class="mn-linha mn-grossa" x1="30" y1="166" x2="300" y2="166"/>
+          <line class="mn-linha mn-grossa" x1="200" y1="174" x2="490" y2="174"/>
+          <path class="mn-apoio" d="M250,178 l-7,12 h14 z"/>
+          <line class="mn-cota" x1="200" y1="206" x2="250" y2="206"/><line class="mn-cota" x1="250" y1="206" x2="300" y2="206"/>
+          <text class="mn-txt-s" x="190" y="228">≥ 0,1 L</text><text class="mn-txt-s" x="262" y="228">≥ 0,1 L</text>
+          <text class="mn-txt-s" x="330" y="206">secção dupla no apoio;</text>
+          <text class="mn-txt-s" x="330" y="224">verifica-se a secção</text>
+          <text class="mn-txt-s" x="330" y="242">simples no fim do empalme</text>
+        </svg>
+        <figcaption>Na madre contínua, o momento máximo passa para o apoio e a flecha baixa muito. Nas madres enformadas, a continuidade faz-se por sobreposição ou mangas.</figcaption>
+      </figure>
+      <h3>Madres IPE (NP EN 1993-1-1)</h3>
+      <p>Verificam-se a flexão desviada da secção (6.2), o esforço transverso, o bambeamento e as flechas (L/200 total e L/250 das ações variáveis). Sob a gravidade, o banzo superior está comprimido mas travado pelo revestimento; sob a sucção do vento, comprime-se o <b>banzo inferior</b>, que só fica travado nos tirantes ou escoras. O bambeamento usa o caso geral (6.3.2.2), com L<sub>cr</sub> entre travamentos e sem contar com o revestimento.</p>
+      <h3>Madres enformadas a frio (EN 1993-1-3, 10.1)</h3>
+      <figure class="manual-fig manual-fig-estreita">
+        <svg viewBox="0 0 400 260" role="img" aria-labelledby="mn-f9">
+          <title id="mn-f9">Madre em Z sob sucção: banzo superior fixo ao painel, banzo inferior livre e comprimido, com a carga lateral kh q e a mola de rotação do revestimento</title>
+          <rect class="mn-painel" x="40" y="30" width="320" height="16"/>
+          <text class="mn-txt-s" x="40" y="22">painel, fixado ao banzo superior</text>
+          <path class="mn-aco" d="M152,46 h78 v14 h-4 v-10 h-70 v152 h-4 Z"/>
+          <path class="mn-aco" d="M156,202 h-84 v-14 h4 v10 h80 Z"/>
+          <path class="mn-livre" d="M72,188 v14 h84 v-38 h-4 v34 h-76 v-10 Z"/>
+          <line class="mn-seta" x1="210" y1="200" x2="166" y2="200"/><text class="mn-txt-s" x="214" y="205">k<tspan dy="3">h</tspan><tspan dy="-3"> q (carga lateral)</tspan></text>
+          <g class="mn-seta"><line x1="300" y1="120" x2="300" y2="60"/><line x1="340" y1="120" x2="340" y2="60"/></g>
+          <text class="mn-txt-s" x="276" y="140">sucção</text>
+          <path class="mn-fina" d="M244,72 q14,-6 14,8 q0,12 -12,10"/><text class="mn-txt-s" x="262" y="92">C<tspan dy="3">D</tspan><tspan dy="-3"> → K</tspan></text>
+          <text class="mn-txt-s" x="20" y="232">banzo livre = banzo + reforço + 1/5 da alma (comprimido)</text>
+        </svg>
+        <figcaption>Na sucção, o banzo inferior das madres C e Z comprime-se e tende a rodar para o lado (k<sub>h</sub> q). A rigidez de rotação do revestimento (C<sub>D</sub>, que dá a mola K) e os tirantes seguram-no.</figcaption>
+      </figure>
+      <p>O banzo superior conta-se travado pelo revestimento; o banzo livre (banzo inferior, reforço e um quinto da alma) é verificado como uma barra comprimida apoiada numa mola lateral K. Sem justificação, K = 0 (do lado da segurança): o banzo livre só fica travado nos tirantes. Com chapa trapezoidal fixada nas ondas baixas pode usar-se C<sub>D,A</sub> = 130 p (10.1.5.2(7)); com painel sandwich, só com o C<sub>D</sub> do fabricante do painel. Na ómega (Superomega®) não há carga lateral (k<sub>h</sub> = 0), mas apoiada pelas abas verifica-se o esmagamento da alma.</p>
+      <h3>Cuidados</h3>
+      <ul>
+        <li><b>Tirantes</b>: sem eles, a sucção governa quase sempre as madres enformadas e as IPE compridas. Têm de estar ancorados (por exemplo, à cumeeira ou à madre de beirado) para travar de facto.</li>
+        <li><b>Continuidade</b>: escolha "contínua" só se a madre passar sem emenda ou com sobreposição de pelo menos 0,1 L para cada lado do apoio, aparafusada como o fabricante indica. Se o empalme for mais curto ou desconhecido, a app trata a continuidade como parcial e verifica também o vão como simplesmente apoiado.</li>
+        <li><b>Ligação à asna</b>: com esquadro aparafusado à alma, a alma não é esmagada; madres pousadas pelas abas (como o Superomega) precisam da largura de apoio real.</li>
+        <li>O vão extremo de uma madre contínua é o mais esforçado; muitos fabricantes reforçam-no ou pedem um perfil mais espesso nesse vão.</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-painel">
+      <h2>8. Painel de revestimento</h2>
+      <figure class="manual-fig manual-fig-estreita">
+        <svg viewBox="0 0 420 190" role="img" aria-labelledby="mn-f10">
+          <title id="mn-f10">Painel apoiado nas madres: apoio múltiplo e apoio simples, com o vão s e as cargas descendentes e ascendentes</title>
+          <rect class="mn-painel" x="20" y="60" width="380" height="12"/>
+          <g class="mn-madres"><rect x="16" y="72" width="10" height="10"/><rect x="141" y="72" width="10" height="10"/><rect x="266" y="72" width="10" height="10"/><rect x="391" y="72" width="10" height="10"/></g>
+          <g class="mn-seta"><line x1="60" y1="20" x2="60" y2="54"/><line x1="100" y1="20" x2="100" y2="54"/><line x1="200" y1="20" x2="200" y2="54"/></g>
+          <g class="mn-seta"><line x1="320" y1="54" x2="320" y2="20"/><line x1="360" y1="54" x2="360" y2="20"/></g>
+          <text class="mn-txt-s" x="30" y="14">▼ neve, sobrecarga, pressão</text><text class="mn-txt-s" x="300" y="14">▲ sucção</text>
+          <line class="mn-cota" x1="146" y1="100" x2="271" y2="100"/><text class="mn-txt" x="204" y="118">s</text>
+          <text class="mn-txt-s" x="20" y="150">apoio múltiplo: o painel passa contínuo sobre várias madres</text>
+          <text class="mn-txt-s" x="20" y="170">apoio simples: cada painel vence um só vão entre duas madres</text>
+        </svg>
+        <figcaption>O vão do painel é o espaçamento entre madres s.</figcaption>
+      </figure>
+      <p>Os fabricantes de painéis sandwich dão tabelas de <b>cargas uniformes admissíveis</b> por espessura do painel, espessura das chapas, vão e condição de apoio, para cargas descendentes (▼) e ascendentes (▲). Na O Feliz, são valores característicos, além do peso próprio e das variações de temperatura, com os estados limites últimos e a flecha ≤ L/200 já verificados. Compara-se, por isso, com as ações características:</p>
+      <ul>
+        <li>▼ o maior de q<sub>k</sub> cos²α, s cos²α + ψ<sub>0</sub> w<sub>p</sub> e w<sub>p</sub> + ψ<sub>0</sub> s cos²α;</li>
+        <li>▲ a sucção w<sub>s</sub>, com o c<sub>pe</sub> da área de um painel entre duas madres (perto de c<sub>pe,1</sub>).</li>
+      </ul>
+      <p>Como o mesmo painel cobre a cobertura toda, a app verifica-o na zona corrente e nas bordaduras e diz qual condiciona. Não interpola entre vãos: usa a carga do vão tabelado imediatamente acima de s. Quando não cumpre, propõe o espaçamento máximo das madres com esse painel e a espessura mínima ao espaçamento atual. Ao escolher um painel, o peso do revestimento passa a ser o do fabricante.</p>
+      <h3>Cuidados</h3>
+      <ul>
+        <li><b>Cor escura</b>: a chapa exterior pode chegar a 80 °C e a capacidade ascendente baixa até cerca de 30 % nas menores espessuras; assinale a opção.</li>
+        <li><b>Fixações</b>: a tabela não cobre o arrancamento dos parafusos nem o número de fixações por madre; nas bordaduras e cantos, o fabricante costuma pedir mais fixações.</li>
+        <li><b>Circulação</b>: a carga concentrada de manutenção (1 kN) e a passagem de pessoas sobre o painel não estão nas tabelas de cargas uniformes.</li>
+        <li><b>Tabelas indicativas</b>: as fichas do Panel Sandwich Group não indicam as chapas nem o critério; servem só de orientação, e o site do fabricante dá valores mais baixos do que a ficha. Confirme sempre com o fabricante.</li>
+        <li>Num painel de outro fabricante, escolha <i>Outro painel</i> e introduza as cargas admissíveis da tabela dele para o vão s.</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-portico">
+      <h2>9. Pórtico</h2>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 520 260" role="img" aria-labelledby="mn-f11">
+          <title id="mn-f11">Pórtico de duas águas com bases encastradas, madres sobre a travessa, escoras ao banzo inferior, imperfeição global phi e carga horizontal de 1 kN para alfa cr</title>
+          <line class="mn-fina" x1="20" y1="220" x2="500" y2="220"/>
+          <path class="mn-encastre" d="M50,220 h40 M50,220 l-6,10 M60,220 l-6,10 M70,220 l-6,10 M80,220 l-6,10 M90,220 l-6,10 M430,220 h40 M430,220 l-6,10 M440,220 l-6,10 M450,220 l-6,10 M460,220 l-6,10 M470,220 l-6,10"/>
+          <polyline class="mn-linha mn-grossa" points="70,220 70,100 260,60 450,100 450,220"/>
+          <polyline class="mn-trac" points="70,220 82,100 272,60 462,100 450,220"/><text class="mn-txt" x="86" y="132">φ</text>
+          <g class="mn-madres"><rect x="106" y="84" width="8" height="8"/><rect x="146" y="76" width="8" height="8"/><rect x="186" y="68" width="8" height="8"/><rect x="226" y="60" width="8" height="8"/><rect x="286" y="60" width="8" height="8"/><rect x="326" y="68" width="8" height="8"/><rect x="366" y="76" width="8" height="8"/><rect x="406" y="84" width="8" height="8"/></g>
+          <g class="mn-real"><line x1="150" y1="84" x2="160" y2="98"/><line x1="230" y1="68" x2="240" y2="82"/><line x1="330" y1="76" x2="320" y2="90"/><line x1="410" y1="92" x2="400" y2="106"/></g>
+          <text class="mn-txt-s" x="150" y="122">escoras ao banzo inferior</text>
+          <line class="mn-seta" x1="12" y1="100" x2="62" y2="100"/><text class="mn-txt-s" x="10" y="90">1 kN</text>
+          <circle class="mn-trav" cx="70" cy="160" r="4"/><circle class="mn-trav" cx="450" cy="160" r="4"/><text class="mn-txt-s" x="300" y="164">travamento do pilar</text><line class="mn-fina" x1="430" y1="160" x2="444" y2="160"/>
+          <text class="mn-txt-s" x="40" y="250">bases encastradas</text>
+        </svg>
+        <figcaption>Modelo do pórtico interior. A imperfeição φ (tracejado) e α<sub>cr</sub> tratam os efeitos de 2.ª ordem; as escoras e os travamentos do pilar definem os comprimentos de encurvadura fora do plano.</figcaption>
+      </figure>
+      <p>O pórtico é analisado em elasticidade plana (bases encastradas, nós rígidos), com as cargas das madres distribuídas ao longo da travessa e o vento nas zonas reais da faixa do pórtico. Seguem-se os passos da NP EN 1993-1-1:</p>
+      <ol>
+        <li><b>Sensibilidade à 2.ª ordem</b>: α<sub>cr</sub> pela (5.2), com uma carga horizontal de 1 kN nos beirados. Com α<sub>cr</sub> ≥ 10 basta a análise de 1.ª ordem; entre 3 e 10, amplificam-se os esforços da parte antissimétrica (oscilação lateral) por 1/(1 − 1/α<sub>cr</sub>) (5.2.2(5)B); abaixo de 3 a app não aceita o par.</li>
+        <li><b>Imperfeição global</b> φ (5.3.2), aplicada como forças horizontais equivalentes.</li>
+        <li><b>Secções</b> (6.2): classe sob N + M e resistência.</li>
+        <li><b>Encurvadura e bambeamento</b> (6.3.3, método 2 do Anexo B): no plano, com o comprimento real do membro (5.2.2(7)b); fora do plano e ao bambeamento, entre travamentos.</li>
+        <li><b>Deformações</b>: deslocamento do beirado h/150 e flecha da cumeeira vão/200 (vão/250 das ações variáveis).</li>
+      </ol>
+      <h3>Cuidados</h3>
+      <ul>
+        <li><b>Escoras</b>: sob a sucção e junto aos nós, o banzo inferior da travessa comprime-se. Sem escoras (pequenas diagonais da madre ao banzo inferior), o bambeamento governa e a travessa fica muito mais pesada. Indique só as escoras que vão mesmo existir.</li>
+        <li><b>Travamentos dos pilares</b>: só contam se ligados a um sistema que leve a força a um contraventamento (por exemplo, uma longarina de fachada ligada ao contraventamento vertical).</li>
+        <li><b>Bases encastradas</b> exigem placa de base, chumbadouros e fundação dimensionados para o momento; com bases rotuladas, o pórtico seria outro (ainda não incluído).</li>
+        <li>O pórtico junto à empena apanha zonas de vento mais desfavoráveis do que um corrente; verifique os dois.</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-limites">
+      <h2>10. O que fica por verificar</h2>
+      <ul>
+        <li>Ligações: emendas e apoios das madres, nós pilar–travessa (cutelos), placas de base e chumbadouros.</li>
+        <li>Fixações do revestimento e das madres (arrancamento na sucção).</li>
+        <li>Pórticos de empena, contraventamentos, longarinas de fachada e pontes rolantes.</li>
+        <li>Acumulações de neve e situações acidentais; ação sísmica; incêndio.</li>
+        <li>Fundações.</li>
+      </ul>
+    </article>
+
+    <article class="manual-cap" id="manual-simbolos">
+      <h2>11. Símbolos</h2>
+      <dl class="manual-simbolos">
+        <dt>L</dt><dd>espaçamento entre pórticos (vão das madres)</dd>
+        <dt>s</dt><dd>espaçamento entre madres, na pendente (vão do painel); também a carga de neve na cobertura</dd>
+        <dt>α</dt><dd>inclinação da cobertura</dd>
+        <dt>z<sub>e</sub></dt><dd>altura de referência do vento</dd>
+        <dt>s<sub>k</sub></dt><dd>valor característico da neve ao nível do solo</dd>
+        <dt>μ<sub>1</sub>, C<sub>e</sub>, C<sub>t</sub></dt><dd>coeficientes de forma, de exposição e térmico da neve</dd>
+        <dt>q<sub>p</sub></dt><dd>pressão dinâmica de pico do vento</dd>
+        <dt>c<sub>pe</sub>, c<sub>pi</sub></dt><dd>coeficientes de pressão exterior e interior</dd>
+        <dt>c<sub>0</sub></dt><dd>coeficiente de orografia</dd>
+        <dt>q<sub>k</sub>, Q<sub>k</sub></dt><dd>sobrecarga de cobertura distribuída e concentrada</dd>
+        <dt>ψ<sub>0</sub></dt><dd>coeficiente de combinação</dd>
+        <dt>W<sub>el</sub>, W<sub>pl</sub>, W<sub>eff</sub></dt><dd>módulos de flexão elástico, plástico e efetivo</dd>
+        <dt>χ<sub>LT</sub></dt><dd>coeficiente de redução ao bambeamento</dd>
+        <dt>C<sub>D</sub>, K</dt><dd>rigidez de rotação do revestimento e mola lateral equivalente no banzo livre</dd>
+        <dt>k<sub>h</sub></dt><dd>fator da carga lateral no banzo livre das madres C e Z</dd>
+        <dt>α<sub>cr</sub></dt><dd>fator de carga crítica elástica do pórtico</dd>
+        <dt>φ</dt><dd>imperfeição global (inclinação inicial)</dd>
+      </dl>
+    </article>
+  </section>

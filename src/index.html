@@ -23,6 +23,7 @@
       <button type="button" class="separador" id="tab-madres" data-vista="madres" aria-selected="false">Madres</button>
       <button type="button" class="separador" id="tab-portico" data-vista="portico" aria-selected="false">Pórtico</button>
       <button type="button" class="separador" id="tab-catalogo" data-vista="catalogo" aria-selected="false">Catálogo</button>
+      <button type="button" class="separador" id="tab-manual" data-vista="manual" aria-selected="false">Manual</button>
     </nav>
   </div>
 </header>
@@ -31,11 +32,12 @@
   <section class="vista vista-dupla" id="vista-identificar" aria-labelledby="tab-identificar">
     <form class="painel-medidas" id="form-medidas" autocomplete="off">
       <h1 class="titulo-painel">Medidas do perfil</h1>
-      <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas.</p>
+      <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas. <a class="ajuda-manual" href="#manual-identificar">manual</a></p>
 
       <label class="campo" for="in-forma"><span>Forma da secção</span>
         <select id="in-forma" name="forma">
           <option value="I" selected>I ou H laminado (IPE, HEA, HEB, HEM)</option>
+          <option value="U">U laminado (UPN, UPE)</option>
           <option value="omega">Ómega enformado a frio (Superomega®, O Feliz)</option>
           <option value="C">C enformado a frio (O Feliz)</option>
           <option value="Z">Z enformado a frio (O Feliz)</option>
@@ -54,6 +56,18 @@
           <text x="134" y="30" class="esquema-txt esquema-txt-s">tf</text>
           <line class="esquema-guia" x1="121" y1="26" x2="130" y2="26"/>
           <line class="esquema-guia" x1="85" y1="76" x2="92" y2="76"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="U" hidden>
+          <path class="esquema-perfil" d="M50 20h66v12H66v86h50v12H50z"/>
+          <g class="esquema-cota">
+            <line x1="50" y1="10" x2="116" y2="10"/><line x1="50" y1="6" x2="50" y2="14"/><line x1="116" y1="6" x2="116" y2="14"/>
+            <line x1="36" y1="20" x2="36" y2="130"/><line x1="32" y1="20" x2="40" y2="20"/><line x1="32" y1="130" x2="40" y2="130"/>
+          </g>
+          <text x="83" y="7" class="esquema-txt">b</text>
+          <text x="26" y="79" class="esquema-txt">h</text>
+          <text x="72" y="80" class="esquema-txt esquema-txt-s">tw</text>
+          <text x="128" y="30" class="esquema-txt esquema-txt-s">tf</text>
+          <line class="esquema-guia" x1="117" y1="26" x2="126" y2="26"/>
         </svg>
         <svg viewBox="0 0 160 150" role="img" data-forma="omega" hidden>
           <path class="esquema-fino" d="M18 120l6-6h22l4-8 4-66 8-8h36l8 8 4 66 4 8h22l6 6"/>
@@ -129,7 +143,7 @@
       <p class="nota">Pré-dimensionamento de madres numa cobertura de duas águas, com as ações do Anexo Nacional português (Portugal continental).</p>
 
       <fieldset class="grupo">
-        <legend>Pavilhão</legend>
+        <legend>Pavilhão <a class="ajuda-manual" href="#manual-geometria">manual</a></legend>
         <div class="campos">
           <label class="campo" for="m-largura"><span>Vão do pórtico</span>
             <span class="entrada"><input id="m-largura" name="largura" type="text" inputmode="decimal" min="1" step="0.1" value="20"><em>m</em></span></label>
@@ -144,7 +158,7 @@
       </fieldset>
 
       <fieldset class="grupo">
-        <legend>Madres</legend>
+        <legend>Madres <a class="ajuda-manual" href="#manual-madres">manual</a></legend>
         <label class="campo" for="m-tipo"><span>Tipo de madre</span>
           <select id="m-tipo" name="tipo">
             <option value="IPE" selected>IPE laminado (NP EN 1993-1-1)</option>
@@ -173,7 +187,7 @@
       </fieldset>
 
       <fieldset class="grupo" id="m-grupo-enformados" hidden>
-        <legend>Enformados a frio (EN 1993-1-3)</legend>
+        <legend>Enformados a frio (EN 1993-1-3) <a class="ajuda-manual" href="#manual-madres">manual</a></legend>
         <div id="m-campos-continuidade">
           <label class="campo" for="m-ligacao"><span>Continuidade nos apoios intermédios</span>
             <select id="m-ligacao" name="ligacao">
@@ -202,7 +216,7 @@
       </fieldset>
 
       <fieldset class="grupo">
-        <legend>Cargas permanentes e sobrecarga</legend>
+        <legend>Cargas permanentes e sobrecarga <a class="ajuda-manual" href="#manual-combinacoes">manual</a></legend>
         <label class="campo" for="m-revestimento"><span>Revestimento</span>
           <select id="m-revestimento" name="revestimento"></select></label>
         <div class="campos">
@@ -216,7 +230,34 @@
       </fieldset>
 
       <fieldset class="grupo">
-        <legend>Local</legend>
+        <legend>Painel de revestimento <a class="ajuda-manual" href="#manual-painel">manual</a></legend>
+        <label class="campo" for="m-painel"><span>Painel (tabela de cargas do fabricante)</span>
+          <select id="m-painel" name="painel"></select></label>
+        <div id="m-campos-painel">
+          <div class="campos">
+            <label class="campo" for="m-painel-faces"><span>Chapas ext./int.</span>
+              <select id="m-painel-faces" name="painelFaces"></select></label>
+            <label class="campo" for="m-painel-espessura"><span>Espessura do painel</span>
+              <select id="m-painel-espessura" name="painelEspessura"></select></label>
+          </div>
+          <label class="campo" for="m-painel-apoio"><span>Apoio do painel nas madres</span>
+            <select id="m-painel-apoio" name="painelApoio">
+              <option value="multiplo" selected>Contínuo sobre três ou mais madres (apoio múltiplo)</option>
+              <option value="simples">Um só vão entre duas madres (apoio simples)</option>
+            </select></label>
+        </div>
+        <div class="campos" id="m-campos-painel-manual">
+          <label class="campo" for="m-painel-desc"><span>Admissível ▼ ao vão s</span>
+            <span class="entrada"><input id="m-painel-desc" name="painelDesc" type="text" inputmode="decimal" value="1,00"><em>kN/m²</em></span></label>
+          <label class="campo" for="m-painel-asc"><span>Admissível ▲ ao vão s</span>
+            <span class="entrada"><input id="m-painel-asc" name="painelAsc" type="text" inputmode="decimal" value="1,00"><em>kN/m²</em></span></label>
+        </div>
+        <label class="verificar" for="m-painel-escura" id="m-campo-painel-escura"><input id="m-painel-escura" name="painelEscura" type="checkbox"> Face exterior de cor escura (▲ admissível − 30 %)</label>
+        <p class="nota" id="m-nota-painel"></p>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Local <a class="ajuda-manual" href="#manual-vento">manual</a></legend>
         <div class="campos">
           <label class="campo" for="m-distrito"><span>Distrito (zona de neve)</span>
             <select id="m-distrito" name="distrito"></select></label>
@@ -315,7 +356,7 @@
       </fieldset>
 
       <fieldset class="grupo">
-        <legend>Travamentos fora do plano</legend>
+        <legend>Travamentos fora do plano <a class="ajuda-manual" href="#manual-portico">manual</a></legend>
         <label class="campo" for="p-escoras"><span>Escoras do banzo inferior da travessa</span>
           <select id="p-escoras" name="escoras">
             <option value="0">Sem escoras (só nos pórticos)</option>
@@ -360,6 +401,8 @@
     </div>
     <p class="nota" id="catalogo-ajuda">Toque numa linha para abrir o perfil com todas as propriedades.</p>
   </section>
+
+<!-- incluir manual.html -->
 </main>
 
 <footer class="rodape">
@@ -368,9 +411,12 @@
 </footer>
 
 <script src="js/perfis.js"></script>
+<script src="js/perfis-u.js"></script>
 <script src="js/seccao.js"></script>
 <script src="js/ofeliz.js"></script>
 <script src="js/acoes.js"></script>
+<script src="js/paineis.js"></script>
+<script src="js/revestimento.js"></script>
 <script src="js/madres.js"></script>
 <script src="js/enformados.js"></script>
 <script src="js/portico.js"></script>

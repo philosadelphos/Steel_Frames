@@ -1,4 +1,4 @@
-/* Vista "Madres": formulário, esquiços e resultados. Depende de acoes.js, madres.js e app.js. */
+/* Vista "Madres": formulário, esquiços e resultados. Depende de acoes.js, paineis.js, revestimento.js, madres.js e app.js. */
 (function () {
   var fmt = window.SteelFrames.fmt, Memoria = window.SteelFrames.Memoria;
   var $ = function (id) { return document.getElementById(id); };
@@ -15,6 +15,7 @@
     { id: "chapa", nome: "Chapa perfilada simples", g: 0.08 },
     { id: "chapadupla", nome: "Chapa dupla com isolamento", g: 0.15 },
     { id: "fibrocimento", nome: "Placas de fibrocimento", g: 0.18 },
+    { id: "painel", nome: "O painel escolhido abaixo (peso do fabricante)", g: null },
     { id: "outro", nome: "Outro (introduzir o peso)", g: null }
   ];
 
@@ -45,9 +46,47 @@
       cpiMax: num("cpiMax"), cpiMin: num("cpiMin"),
       aco: form.elements.aco.value,
       ligacao: form.elements.ligacao.value, sobreposicao: opcional("sobreposicao"),
-      restricao: form.elements.restricao.value, fixacoes: num("fixacoes"), CD: num("cd"), apoio: num("apoio")
+      restricao: form.elements.restricao.value, fixacoes: num("fixacoes"), CD: num("cd"), apoio: num("apoio"),
+      painel: form.elements.painel.value, painelFaces: form.elements.painelFaces.value,
+      painelEspessura: parseInt(form.elements.painelEspessura.value, 10), painelApoio: form.elements.painelApoio.value,
+      painelDesc: num("painelDesc"), painelAsc: num("painelAsc"), painelEscura: form.elements.painelEscura.checked
     };
   }
+
+  // ----- Painel de revestimento (tabelas de cargas dos fabricantes, paineis.js) -----
+  function nomePainel(n) { return n.replace("Topcover", "Topcover®").replace(/^PSG /, "Painel "); }
+
+  function opcoesPainel() {
+    var grupos = {};
+    Object.keys(PAINEIS).forEach(function (n) {
+      var f = PAINEIS[n].fabricante + (PAINEIS[n].indicativo ? " (valores indicativos)" : "");
+      (grupos[f] = grupos[f] || []).push(n);
+    });
+    $("m-painel").innerHTML = '<option value="">Não verificar o painel</option>' + Object.keys(grupos).map(function (f) {
+      return '<optgroup label="' + f + '">' + grupos[f].map(function (n) { return '<option value="' + n + '">' + nomePainel(n) + "</option>"; }).join("") + "</optgroup>";
+    }).join("") + '<option value="manual">Outro painel: introduzir as cargas admissíveis</option>';
+  }
+
+  // Chapas e espessuras do painel escolhido; mantém as escolhidas quando existem.
+  function opcoesDoPainel(produto, faces, espessura) {
+    var p = PAINEIS[produto];
+    if (!p) return;
+    var lf = Object.keys(p.faces), f = lf.indexOf(faces) >= 0 ? faces : lf[lf.length - 1];
+    $("m-painel-faces").innerHTML = lf.map(function (x) {
+      return '<option value="' + x + '"' + (x === f ? " selected" : "") + ">" + (x === "não indicada" ? "Não indicadas na ficha" : x + " mm") + "</option>";
+    }).join("");
+    var le = p.espessuras.map(String), e = le.indexOf(String(espessura)) >= 0 ? String(espessura) : le.indexOf("40") >= 0 ? "40" : le[0];
+    $("m-painel-espessura").innerHTML = le.map(function (x, i) {
+      return '<option value="' + x + '"' + (x === e ? " selected" : "") + ">" + x + " mm · " + fmt(p.faces[f].pesos[i], 1) + " kg/m²</option>";
+    }).join("");
+  }
+
+  // Peso do painel escolhido no formulário, em kN/m² (NaN sem painel de catálogo).
+  function pesoPainel() {
+    var kg = Revestimento.peso({ produto: form.elements.painel.value, faces: form.elements.painelFaces.value, espessura: form.elements.painelEspessura.value });
+    return kg * 9.81 / 1000;
+  }
+  function kNm2(v) { return (Math.ceil(v * 100 - 1e-9) / 100).toFixed(2).replace(".", ","); }
 
   // Campo que pode ficar vazio (valor desconhecido): devolve 0 nesse caso.
   function opcional(nome) {
@@ -133,6 +172,11 @@
     $("m-campos-orografia").hidden = !a3;
     $("m-campo-oro-ld").hidden = d.orografia !== "colina";
     $("m-campo-c0").hidden = d.orografia !== "manual";
+
+    // Painel de revestimento
+    $("m-campos-painel").hidden = !PAINEIS[d.painel];
+    $("m-campos-painel-manual").hidden = d.painel !== "manual";
+    $("m-campo-painel-escura").hidden = !d.painel;
     var o = d.oroCalc;
     $("m-nota-orografia").innerHTML = d.orografia === "plano"
       ? "Terreno plano: declive médio a barlavento inferior a 3° (NP EN 1991-1-4, 4.3.3(2))."
@@ -173,6 +217,7 @@
     if (d.esquema === "continua2" && d.comprimento < 2 * d.L) erros.push("Uma madre contínua de 2 vãos precisa de pelo menos 2 vãos entre pórticos (comprimento ≥ 2 L).");
     if (d.esquema === "continua3" && d.comprimento < 3 * d.L) erros.push("Uma madre contínua de 3 ou mais vãos precisa de pelo menos 3 vãos entre pórticos (comprimento ≥ 3 L).");
     if (d.altitudeAmbigua) erros.push("Escreva a altitude sem separador de milhares (por exemplo, 1200).");
+    if (d.painel === "manual" && !(d.painelDesc > 0 && d.painelAsc > 0)) erros.push("Indique as cargas admissíveis do painel (descendente e ascendente), tiradas da tabela do fabricante para o vão s.");
     if (d.tipo !== "IPE") {
       if (d.esquema !== "simples" && d.ligacao === "sobreposicao" && !(d.sobreposicao >= 0 && d.sobreposicao <= d.L)) erros.push("O comprimento da sobreposição tem de estar entre 0 e o espaçamento entre pórticos (ou ficar vazio, se for desconhecido).");
       if (d.restricao === "chapa" && !(d.fixacoes >= 0.5 && d.fixacoes <= 10)) erros.push("O número de fixações por metro tem de estar entre 0,5 e 10.");
@@ -212,7 +257,33 @@
         fixacoes: d.fixacoes, CD: d.CD, apoio: d.apoio
       }));
     }
-    return { d: d, hCumeeira: hCumeeira, ze: ze, zonaVento: zonaVento, area: area, vento: vento, neve: neve, cargas: cargas, comb: comb, dim: dim };
+    return { d: d, hCumeeira: hCumeeira, ze: ze, zonaVento: zonaVento, area: area, vento: vento, neve: neve, cargas: cargas, comb: comb, dim: dim,
+      painel: verificarPainel(d, ze, zonaVento, neve) };
+  }
+
+  /*
+   * Painel de revestimento contra a tabela do fabricante, nas duas posições da cobertura (o mesmo painel cobre tudo).
+   * Vão do painel = espaçamento entre madres; área carregada do vento = s × largura do painel.
+   */
+  function verificarPainel(d, ze, zonaVento, neve) {
+    if (!d.painel) return null;
+    var manual = d.painel === "manual";
+    var sel = manual ? { manual: true, desc: d.painelDesc, asc: d.painelAsc, escura: d.painelEscura }
+      : { produto: d.painel, faces: d.painelFaces, espessura: d.painelEspessura, apoio: d.painelApoio, escura: d.painelEscura };
+    var largura = manual ? 1 : PAINEIS[d.painel].largura / 1000;
+    var psiS = Acoes.psi0Neve(d.altitude), psiW = Acoes.PSI0.W;
+    var posicoes = {};
+    Object.keys(Acoes.POSICOES).forEach(function (pos) {
+      posicoes[pos] = Revestimento.verificar(sel, d.s, function (sv) {
+        var w = Acoes.vento(zonaVento, d.terreno, ze, d.alfa, pos, sv * largura, [d.cpiMax, d.cpiMin], d.c0);
+        var a = Revestimento.acoes({ alfa: d.alfa, qk: d.qk, s: neve.s, wPressao: w.pressao.w, wSuccao: w.succao.w, psiS: psiS, psiW: psiW });
+        a.vento = w;
+        return a;
+      });
+    });
+    var peso = manual ? NaN : Revestimento.peso(sel) * 9.81 / 1000;
+    return { sel: sel, manual: manual, posicoes: posicoes, largura: largura, peso: peso,
+      ok: posicoes.corrente.ok && posicoes.bordadura.ok, pesoInsuficiente: peso > d.gRev + 0.005 };
   }
 
   // ----- Esquiços (unidades do SVG = metros) -----
@@ -410,7 +481,7 @@
     if (!v) {
       var maior = enformado ? Enformados.seccoes(d.tipo)[Enformados.seccoes(d.tipo).length - 1].nome : "IPE 600";
       return '<section class="cartao"><h2>Resultado</h2><p class="alerta">Nenhuma secção até à ' + maior + " verifica estas condições. Reduza o espaçamento entre pórticos ou entre madres, ou acrescente tirantes" +
-        (enformado ? " ou a restrição do revestimento" : "") + ".</p></section>";
+        (enformado ? " ou a restrição do revestimento" : "") + ".</p>" + alertaPainel(r) + "</section>";
     }
     var N = nomes(d);
     var linhas = Object.keys(N).map(function (k) { return linhaVerif(r, k, v.verificacoes[k]); }).join("");
@@ -435,6 +506,7 @@
       (manual ? '<p class="alerta">Secção escolhida à mão. ' + (r.dim.escolhido
         ? "A mais leve que verifica é a " + r.dim.escolhido.perfil.nome + "."
         : "Nenhuma secção da série verifica estas condições.") + "</p>" : "") +
+      alertaPainel(r) +
       '<div class="numeros">' +
         '<div><span class="valor-grande">' + fmt(v.props.G, 2) + " <small>kg/m</small></span><p>peso da madre</p></div>" +
         '<div><span class="valor-grande">' + fmt(kgm2, 1) + " <small>kg/m²</small></span><p>de cobertura, só em madres</p></div>" +
@@ -496,6 +568,96 @@
       '<p class="nota">Componente normal positiva para baixo. A componente no plano da cobertura é resistida pela madre em flexão em torno do eixo fraco, entre tirantes. ' +
         "A carga concentrada Q<sub>k</sub> decompõe-se em " + fmt(k.QP.n, 3) + " kN normal e " + fmt(k.QP.t, 3) + " kN no plano.</p>" +
       "</section>";
+  }
+
+  // ----- Painel de revestimento -----
+  var NOMES_POSICAO = { corrente: "Zona corrente", bordadura: "Bordadura, cantos e cumeeira" };
+  var NA_POSICAO = { corrente: "na zona corrente", bordadura: "nas bordaduras, cantos e cumeeira" };
+  function pct(u) { return isFinite(u) ? fmt(u * 100, 0) + " %" : "—"; }
+
+  function descricaoPainel(d) {
+    if (d.painel === "manual") return "Painel definido pelo utilizador, com as cargas admissíveis da tabela do fabricante para s = " + fmt(d.s, 2) + " m";
+    return PAINEIS[d.painel].fabricante + " · " + nomePainel(d.painel) + " de " + d.painelEspessura + " mm" +
+      (d.painelFaces === "não indicada" ? "" : ", chapas " + d.painelFaces + " mm") + ", apoio " + (d.painelApoio === "simples" ? "simples (um só vão)" : "múltiplo");
+  }
+
+  // O que mudar quando o painel não cumpre: espaçamento máximo em cada posição e espessura mínima do mesmo painel.
+  function sugestoesPainel(r) {
+    var P = r.painel;
+    if (P.manual) return "Reduza o espaçamento entre madres ou escolha um painel mais resistente.";
+    var falham = Object.keys(P.posicoes).filter(function (k) { return !P.posicoes[k].ok; });
+    var espacos = falham.map(function (k) {
+      var v = P.posicoes[k];
+      return v.sMax ? "madres a " + fmt(v.sMax, 2) + " m ou menos " + NA_POSICAO[k] : "nenhum vão da tabela serve " + NA_POSICAO[k];
+    });
+    var esp = falham.map(function (k) { return P.posicoes[k].espessuraMinima; });
+    var minima = esp.indexOf(null) >= 0 ? null : Math.max.apply(null, esp);
+    return "Para usar este painel: " + espacos.join("; ") + ". " +
+      (minima ? "Ou, com o espaçamento atual, o mesmo painel com " + minima + " mm." : "Com o espaçamento atual, nenhuma espessura deste painel cumpre.");
+  }
+
+  function resumoPainel(r) {
+    var P = r.painel, d = r.d;
+    if (P.posicoes.corrente.semTabela) return "O fabricante só dá a tabela deste painel para vãos múltiplos: não há valores para um só vão entre duas madres.";
+    var nome = P.manual ? "O painel" : nomePainel(d.painel) + " de " + d.painelEspessura + " mm";
+    var indicativo = !P.manual && PAINEIS[d.painel].indicativo ? " (indicativa)" : "";
+    if (P.ok) return nome + " cumpre a tabela" + indicativo + " do fabricante para madres a " + fmt(d.s, 2) + " m: utilização máxima " +
+      pct(Math.max(P.posicoes.corrente.u, P.posicoes.bordadura.u)) + ", nas duas posições da cobertura.";
+    var falham = Object.keys(P.posicoes).filter(function (k) { return !P.posicoes[k].ok; }).map(function (k) {
+      var v = P.posicoes[k];
+      return NA_POSICAO[k] + " (" + (isFinite(v.u) ? pct(v.u) : "vão não admitido") + ")";
+    });
+    return nome + " não cumpre a tabela" + indicativo + " do fabricante para madres a " + fmt(d.s, 2) + " m " + falham.join(" e ") + ". " + sugestoesPainel(r);
+  }
+
+  function alertaPainel(r) {
+    var P = r.painel;
+    if (!P) return "";
+    return (P.ok ? "" : '<p class="alerta alerta-mau">Painel de revestimento: ' + resumoPainel(r) + "</p>") +
+      (P.pesoInsuficiente ? '<p class="alerta">O peso do revestimento usado nas madres (' + fmt(r.d.gRev, 2) + " kN/m²) é inferior ao do painel escolhido (" + fmt(P.peso, 3) + " kN/m²).</p>" : "");
+  }
+
+  function linhaPainel(nome, x, det) {
+    var u = x.adm === null ? Infinity : x.u;
+    return '<li class="verif"><span class="verif-nome">' + nome + '</span><span class="verif-u">' + pct(u) + "</span>" + barra(isFinite(u) ? u : 2) +
+      '<span class="verif-det">q = ' + fmt(x.q, 2) + " kN/m² · " +
+      (x.adm === null ? "o fabricante não admite este vão" : "admissível " + fmt(x.adm, 2) + " kN/m²" + (x.vao ? " (tabela a " + fmt(x.vao, 2) + " m)" : "")) +
+      " · " + det + "</span></li>";
+  }
+
+  function cartaoPainel(r) {
+    var P = r.painel, d = r.d;
+    if (!P) return "";
+    var p = P.manual ? null : PAINEIS[d.painel];
+    var cab = '<section class="cartao"><h2>Painel de revestimento</h2><p class="nota">' + descricaoPainel(d) +
+      (isFinite(P.peso) ? " · " + fmt(P.peso * 1000 / 9.81, 1) + " kg/m²" : "") + "</p>";
+    if (P.posicoes.corrente.semTabela) return cab + '<p class="alerta alerta-mau">' + resumoPainel(r) + "</p></section>";
+    var corpo = Object.keys(P.posicoes).map(function (k) {
+      var v = P.posicoes[k], a = v.acoes, w = a.vento.succao;
+      return '<h3 class="sub">' + NOMES_POSICAO[k] + " · zonas " + Acoes.POSICOES[k].zonas.join(", ") + "</h3>" +
+        '<ul class="verifs">' +
+          linhaPainel("Carga descendente ▼", v.desc, a.desc.nome.toLowerCase()) +
+          linhaPainel("Carga ascendente ▲", v.asc, "sucção com c<sub>pe</sub> = " + fmt(w.cpe, 2) + " (zona " + w.zona + "), c<sub>pi</sub> = " + coef(w.cpi) +
+            ", A = " + fmt(d.s * P.largura, 2) + " m²") +
+        "</ul>";
+    }).join("");
+    var c2 = Math.pow(Math.cos(d.alfa * Math.PI / 180), 2);
+    var notas = [
+      p ? (p.indicativo
+        ? "Tabela " + p.fonte + ". <b>Valores indicativos:</b> a ficha não indica a espessura das chapas, o critério (ELU ou flecha) nem se as cargas são características. No 5 ondas, o site do fabricante dá, para 50 mm com chapas 0,5/0,5, valores até cerca de 20 % mais baixos do que a ficha. Confirme com o fabricante."
+        : "Tabela " + p.fonte + ": cargas características admissíveis além do peso próprio e das variações diferenciais de temperatura, com os estados limites últimos e a flecha de serviço ≤ L/200.")
+        : "Cargas admissíveis introduzidas pelo utilizador, para o vão s = " + fmt(d.s, 2) + " m.",
+      "Ações características normais ao painel (NP EN 1990, 6.14b), com ψ<sub>0</sub> = " + fmt(Acoes.psi0Neve(d.altitude), 1) + " para a neve e " + fmt(Acoes.PSI0.W, 1) + " para o vento: " +
+        "▼ o maior de q<sub>k</sub> cos²α, s cos²α + ψ<sub>0</sub> w<sub>p</sub> e w<sub>p</sub> + ψ<sub>0</sub> s cos²α (cos²α = " + fmt(c2, 3) + "); " +
+        "▲ a sucção, com c<sub>pe</sub> para a área de um painel entre duas madres, A = s × " + fmt(P.largura, 2) + " m. O mesmo painel cobre toda a cobertura: verifica-se na zona corrente e nas bordaduras.",
+      p ? "Sem interpolação: usa-se a carga do vão tabelado imediatamente acima de s, do lado da segurança" +
+        (P.posicoes.corrente.abaixoDaTabela ? "; s é menor do que o primeiro vão da tabela (" + fmt(P.posicoes.corrente.vaoMin, 2) + " m), cujo valor se usa." : ".") : "",
+      d.painelEscura ? "Face exterior de cor escura: carga ascendente admissível reduzida em 30 % (a O Feliz indica uma redução até cerca de 30 % nas menores espessuras, com a chapa a 80 °C)."
+        : "Com a face exterior de cor escura, a carga ascendente admissível baixa (a O Feliz indica até cerca de 30 %): assinale a opção no formulário.",
+      p && p.correcoes.length ? "Gralhas do catálogo corrigidas do lado da segurança: " + p.correcoes.join(" ") : "",
+      "Não verificados: a carga concentrada Q<sub>k</sub> = " + fmt(Acoes.SOBRECARGA_H.Qk, 1) + " kN sobre o painel (circulação para manutenção), as fixações (arrancamento e número por madre na sucção) e a largura de apoio do painel na madre."
+    ].filter(Boolean);
+    return cab + alertaPainel(r) + corpo + '<ul class="hipoteses">' + notas.map(function (n) { return "<li>" + n + "</li>"; }).join("") + "</ul></section>";
   }
 
   function cartaoCombinacoes(r, v) {
@@ -614,13 +776,25 @@
     $("m-zona-vento").innerHTML = "Zona de vento <b>" + zona + "</b> (v<sub>b,0</sub> = " + Acoes.VENTO_VB0[zona] + " m/s). A zona B aplica-se a menos de 5 km da costa ou acima de 600 m de altitude.";
     if (erros.length) {
       saida.innerHTML = '<section class="cartao"><h2>Dados por corrigir</h2><ul class="hipoteses">' + erros.map(function (e) { return "<li>" + e + "</li>"; }).join("") + "</ul></section>";
+      notaPainel(null, d);
       publicar(null);
       return;
     }
     var r = calcular(d);
     publicar(r);
+    notaPainel(r, d);
     var v = estado.escolhido && r.dim.lista.filter(function (x) { return x.perfil.nome === estado.escolhido; })[0] || r.dim.escolhido;
-    saida.innerHTML = cartaoResultado(r, v) + cartaoEsquicos(r) + cartaoAcoes(r) + cartaoCombinacoes(r, v) + cartaoComparacao(r, v) + cartaoHipoteses(r);
+    saida.innerHTML = cartaoResultado(r, v) + cartaoEsquicos(r) + cartaoAcoes(r) + cartaoPainel(r) + cartaoCombinacoes(r, v) + cartaoComparacao(r, v) + cartaoHipoteses(r);
+  }
+
+  // Alerta do painel junto aos campos, logo ao escolher ou mudar o painel, o espaçamento ou as ações.
+  function notaPainel(r, d) {
+    var el = $("m-nota-painel"), falha = !!(r && r.painel && !r.painel.ok);
+    el.className = "nota" + (falha ? " nota-mau" : "");
+    el.innerHTML = !d.painel
+      ? "Escolha o painel para comparar o espaçamento entre madres (vão do painel) e as ações com a tabela do fabricante."
+      : !r ? "Corrija os dados para verificar o painel."
+      : (d.painel === "manual" ? "Cargas características admissíveis, além do peso próprio, que a tabela do fabricante dá para o vão s = " + fmt(d.s, 2) + " m. " : "") + resumoPainel(r);
   }
 
   function iniciar() {
@@ -636,20 +810,25 @@
     opcoesAco("IPE", "S275");
     opcoesDistrito();
     opcoesConcelho("", "");
+    opcoesPainel();
+    form.elements.painel.value = "Topcover 5";
+    opcoesDoPainel("Topcover 5", "0,5/0,4", 40);
     form.elements.grev.value = REVESTIMENTOS[0].g.toFixed(2).replace(".", ",");
     var padrao = Memoria.doFormulario(form);
     var guardado = Memoria.ler("madres");
     if (guardado) {
       Memoria.paraFormulario(form, guardado);
-      // A lista de classes de aço depende do tipo de madre guardado.
+      // As listas de classes de aço, de concelhos e das chapas e espessuras do painel dependem do que foi guardado.
       opcoesAco(form.elements.tipo.value, guardado.aco);
       opcoesConcelho(form.elements.distrito.value, guardado.concelho);
+      opcoesDoPainel(form.elements.painel.value, guardado.painelFaces, guardado.painelEspessura);
       $("m-nota-exemplo").hidden = true;
     }
     $("repor-madres").addEventListener("click", function () {
       Memoria.paraFormulario(form, padrao);
       opcoesAco(padrao.tipo, padrao.aco);
       opcoesConcelho(padrao.distrito, padrao.concelho);
+      opcoesDoPainel(padrao.painel, padrao.painelFaces, padrao.painelEspessura);
       Memoria.apagar("madres");
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = false;
@@ -661,9 +840,18 @@
       if (e.target.name === "revestimento") {
         var rev = REVESTIMENTOS.filter(function (x) { return x.id === e.target.value; })[0];
         if (rev.g !== null) form.elements.grev.value = rev.g.toFixed(2).replace(".", ",");
+        else if (rev.id === "painel" && pesoPainel() > 0) form.elements.grev.value = kNm2(pesoPainel());
         else form.elements.grev.focus();
       }
       if (e.target.name === "grev") form.elements.revestimento.value = "outro";
+      // Ao escolher o painel, o peso do revestimento passa a ser o do fabricante.
+      if (e.target.name === "painel" || e.target.name === "painelFaces" || e.target.name === "painelEspessura") {
+        if (e.target.name !== "painelEspessura") opcoesDoPainel(form.elements.painel.value, form.elements.painelFaces.value, form.elements.painelEspessura.value);
+        if (pesoPainel() > 0) {
+          form.elements.revestimento.value = "painel";
+          form.elements.grev.value = kNm2(pesoPainel());
+        }
+      }
       if (e.target.name === "tipo") opcoesAco(e.target.value, form.elements.aco.value);
       if (e.target.name === "distrito") opcoesConcelho(e.target.value, "");
       estado.escolhido = null;

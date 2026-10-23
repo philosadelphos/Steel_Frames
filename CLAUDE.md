@@ -14,17 +14,19 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
   node testes/madres.js              # ações e madres IPE
   node testes/enformados.js          # madres enformadas a frio e dados O Feliz
   node testes/portico.js             # pórtico de duas águas (Fase 3)
+  node testes/paineis.js             # tabelas dos painéis e verificação do revestimento
   ```
-- O CI (`.github/workflows/verificar.yml`) corre os quatro testes e `node ferramentas/construir.js --verificar`, que falha se o `index.html` não tiver sido gerado de novo.
+- O CI (`.github/workflows/verificar.yml`) corre os cinco testes e `node ferramentas/construir.js --verificar`, que falha se o `index.html` não tiver sido gerado de novo.
 - Fluxo de trabalho: ramo novo a partir da `main` → commits → Pull Request → o utilizador faz merge → o Pages atualiza sozinho.
-- `src/js/`: `perfis.js` (dimensões EN 10365), `seccao.js` (propriedades e EC3), `ofeliz.js` (dados O Feliz, gerado por `ferramentas/dados_ofeliz.py`), `acoes.js` (neve, vento, combinações), `madres.js` (madres IPE), `enformados.js` (madres enformadas a frio, EN 1993-1-3), `portico.js` (pórtico de duas águas), `app.js` (Identificar, com I/H laminados e ómega/C/Z enformados, e Catálogo; memória dos formulários), `vista-madres.js` (separador Madres; publica o resultado em `SteelFrames.madres` e no evento `madres:calculadas`), `vista-portico.js` (separador Pórtico).
+- `src/manual.html`: manual de utilização (separador Manual), embutido no `index.html` pelo `construir.js` através de `<!-- incluir manual.html -->`. Ligações para secções do manual: `href="#manual-…"` (tratadas em `app.js`). Ao mudar um método de cálculo, atualizar também o manual.
+- `src/js/`: `perfis.js` (dimensões EN 10365), `perfis-u.js` (UPN e UPE), `seccao.js` (propriedades e EC3, também dos U pelo contorno), `ofeliz.js` (dados O Feliz, gerado por `ferramentas/dados_ofeliz.py`), `acoes.js` (neve, vento, combinações), `paineis.js` (tabelas dos painéis sandwich, gerado por `ferramentas/dados_paineis.py`), `revestimento.js` (verificação do painel), `madres.js` (madres IPE), `enformados.js` (madres enformadas a frio, EN 1993-1-3), `portico.js` (pórtico de duas águas), `app.js` (Identificar, com I/H e U laminados e ómega/C/Z enformados, Catálogo e separador Manual; memória dos formulários), `vista-madres.js` (separador Madres; publica o resultado em `SteelFrames.madres` e no evento `madres:calculadas`), `vista-portico.js` (separador Pórtico).
 
 ## Convenções da interface
 
 - Números com vírgula decimal. Os campos são `type="text" inputmode="decimal"` com um leitor estrito (aceita vírgula ou ponto, rejeita espaços interiores).
 - Cores só por tokens CSS, com tema claro e escuro. Sem scroll horizontal a 320 px. Tem de funcionar sem internet (as Google Fonts são opcionais).
 - Os formulários guardam os últimos valores no aparelho (`localStorage`, via `Memoria` em `app.js`), com o botão "Repor o exemplo".
-- Antes de publicar, testar no Chromium com Playwright (instalado globalmente: `NODE_PATH=$(npm root -g) node script.js`).
+- Antes de publicar, testar no Chromium com Playwright. No Legion não há Playwright global: instalar `playwright-core` numa pasta temporária e usar o Chromium de `~/.cache/ms-playwright/` (`executablePath`).
 
 ## Decisões de engenharia já tomadas (não reverter sem falar com o utilizador)
 
@@ -48,6 +50,7 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
   - Superomega apoiado pelas abas: esmagamento da alma pela 6.1.7.3 (aproximação, as dobras não cumprem a 6.1.7.4) e 6.1.11; C e Z com esquadro: sem esmagamento (10.1.3.2(2));
   - corte pela (6.10a) com a altura desenvolvida; M + V pela (6.27) com M<sub>f,Rd</sub> = 0; flechas com I<sub>eff</sub> mínimo.
 
+- Painel de revestimento (`revestimento.js`): vão = espaçamento entre madres; ações características (6.14b) normais ao painel, ▼ máx(q<sub>k</sub> cos²α; s cos²α + ψ<sub>0</sub>w<sub>p</sub>; w<sub>p</sub> + ψ<sub>0</sub>s cos²α), ▲ sucção com c<sub>pe</sub> da área s × 1 m; verificado na zona corrente e nas bordaduras; sem interpolação (vão tabelado imediatamente acima); cor escura: ▲ × 0,7. Tabelas do Panel Sandwich Group marcadas como indicativas. Gralhas dos catálogos tornadas não crescentes com o vão (registadas em `correcoes`).
 - Fase 3, pórtico (`portico.js`): malha simétrica, análise elástica 2D em banda; α<sub>cr</sub> pela (5.2) com 1 kN horizontal nos beirados; amplificação 1/(1 − 1/α<sub>cr</sub>) só da parte antissimétrica de cada combinação (5.2.2(5)B); imperfeição φ com h = altura no pilar e m = 2; 6.2 com classe sob N + M; 6.3.3 método 2 com C<sub>m</sub> = 1,0 e L<sub>cr,y</sub> = comprimento real (5.2.2(7)b); vento de um só lado (pares iguais cobrem o outro), zonas reais pela posição do pórtico; ELS h/150 e vão/200, vão/250. Escolhe o par pilar/travessa mais leve percorrendo os pares por peso.
 
 ## Próximos passos combinados

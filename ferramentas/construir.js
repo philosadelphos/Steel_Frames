@@ -41,7 +41,14 @@ function construir() {
   var html = modelo;
   var estilos = 0, scripts = 0;
 
+  // Partes de HTML guardadas à parte (o manual): <!-- incluir manual.html -->.
   // As substituições usam funções para que "$" no código não seja interpretado como padrão.
+  html = html.replace(/<!-- incluir ([\w-]+\.html) -->/g, function (_, ficheiro) {
+    var parte = ler(path.join(SRC, ficheiro)).replace(/\n+$/, "");
+    var local = parte.match(RE_LOCAL);
+    if (local) throw new Error(ficheiro + " referencia um ficheiro local que não é embutido: " + local[0] + "…");
+    return parte;
+  });
   html = html.replace(reEstilo(), function (_, aspa, ficheiro) {
     estilos++;
     return "<style>\n" + embutir(ficheiro, "style") + "\n</style>";
