@@ -35,7 +35,8 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
 - Bambeamento pelo **caso geral EC3 6.3.2.2** (curvas a/b para perfis laminados). O NA–6.3.2.3(1) adota λ<sub>LT,0</sub> = 0,2 e β = 1, com que o 6.3.2.3 dá o mesmo χ<sub>LT</sub>: não vale a pena mudar. z<sub>g</sub> = 0, L<sub>cr</sub> entre travamentos do banzo inferior, sem contar com a restrição do revestimento.
 - f<sub>y</sub> e f<sub>u</sub> pela **norma de produto** (EN 10025-2/-3, escalões t ≤ 16 / 40 / 63 / 80 mm), como manda o NA–3.2.1(1), e não pelo Quadro 3.1. Nas madres IPE, f<sub>y</sub> de cada perfil sai da espessura do banzo.
 - Carga concentrada Q<sub>k</sub> = 1,0 kN da categoria H verificada à parte (6.3.4.2(3)P), só no ELU.
-- Orografia: c<sub>0</sub> introduzido pelo utilizador (1,0 em terreno plano). A antiga opção "vale ou estuário → zona B" foi retirada porque não consta do AN (vinha do RSA).
+- Orografia: terreno plano (c<sub>0</sub> = 1), colina ou escarpa pelo Anexo A.3 (`Acoes.coeficienteOrografia`, à altura z<sub>e</sub>, aplicado a todas as direções), ou c<sub>0</sub> de estudo específico. Vales com afunilamento ficam fora do âmbito (parecer técnico, NA–4.3.3(1)). A antiga opção "vale ou estuário → zona B" foi retirada porque não consta do AN (vinha do RSA).
+- Zona de neve pelo distrito e concelho (NA–4.1(1), `Acoes.NEVE_DISTRITOS`), com o caso B2/B3 do Quadro NA–A.1; na Guarda só se distinguem Aguiar da Beira e Fornos de Algodres (B3).
 - Normas e catálogos de fabricantes ficam em `docs/normas/` e `docs/catalogos/`, fora do git. Não há AN português da EN 1993-1-3 (só a BS EN 1993-1-3:2006): usar os valores recomendados e assinalá-los.
 - Catálogos O Feliz conferidos (ver `docs/pendentes.md`, secção 3): no Superomega, usar os valores do PDF onde o Excel diverge (I<sub>z</sub> 120×1,5 e 120×2,0, I<sub>t</sub> 250×3,0); nas C e Z, aplicar a redução δ da EN 1993-1-3, 5.1(4), porque o catálogo despreza os cantos arredondados.
 - Madremax e Omegamax (Constálica) foram retiradas (catálogos só com a secção bruta) e substituídas pelas madres O Feliz: Superomega, C e Z, com propriedades efetivas.
@@ -49,5 +50,4 @@ O utilizador é engenheiro de estruturas e escreve em português de Portugal. To
 ## Próximos passos combinados
 
 1. **Fase 3: pórtico de duas águas com bases encastradas** (pavilhões industriais, Portugal continental, sem pontes rolantes na primeira versão): esforços na travessa e nos pilares, flexão composta com encurvadura e bambeamento (EC3 6.3.3), deslocamentos. Reutilizar as ações de `acoes.js`.
-2. Cálculo de c<sub>0</sub> pelo Anexo A.3 e zona de neve pelo concelho (ver `docs/pendentes.md`).
-3. Ideias anotadas em `docs/pendentes.md`.
+2. Ideias anotadas em `docs/pendentes.md`.

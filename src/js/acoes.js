@@ -16,6 +16,47 @@ var Acoes = (function () {
     return 0;
   }
 
+  // Zonas de neve do NA–4.1(1) para Portugal continental: distrito inteiro numa zona, ou os concelhos
+  // de cada zona (nos distritos repartidos, o Anexo Nacional enumera todos os concelhos).
+  var NEVE_DISTRITOS = {
+    "Aveiro": "Z2", "Beja": "Z3", "Braga": "Z2",
+    "Bragança": { Z1: ["Alfândega da Fé", "Carrazeda de Ansiães", "Freixo de Espada à Cinta", "Mogadouro", "Torre de Moncorvo", "Vila Flor"],
+      Z2: ["Bragança", "Macedo de Cavaleiros", "Miranda do Douro", "Mirandela", "Vimioso", "Vinhais"] },
+    "Castelo Branco": "Z1",
+    "Coimbra": { Z1: ["Arganil", "Góis", "Oliveira do Hospital", "Pampilhosa da Serra", "Tábua"],
+      Z2: ["Cantanhede", "Coimbra", "Condeixa-a-Nova", "Figueira da Foz", "Lousã", "Mira", "Miranda do Corvo", "Montemor-o-Velho", "Penacova", "Penela", "Soure", "Vila Nova de Poiares"] },
+    "Évora": "Z3", "Faro": "Z3", "Guarda": "Z1",
+    "Leiria": { Z2: ["Alvaiázere", "Ansião", "Batalha", "Castanheira de Pêra", "Figueiró dos Vinhos", "Leiria", "Marinha Grande", "Pedrógão Grande", "Pombal"],
+      Z3: ["Alcobaça", "Bombarral", "Caldas da Rainha", "Nazaré", "Óbidos", "Peniche", "Porto de Mós"] },
+    "Lisboa": "Z3",
+    "Portalegre": { Z1: ["Castelo de Vide", "Marvão", "Nisa"],
+      Z2: ["Alter do Chão", "Arronches", "Avis", "Campo Maior", "Crato", "Elvas", "Fronteira", "Gavião", "Monforte", "Ponte de Sôr", "Portalegre", "Sousel"] },
+    "Porto": "Z2",
+    "Santarém": { Z1: ["Mação"],
+      Z2: ["Abrantes", "Chamusca", "Constância", "Entroncamento", "Ferreira do Zêzere", "Golegã", "Ourém", "Sardoal", "Tomar", "Torres Novas", "Vila Nova da Barquinha"],
+      Z3: ["Alcanena", "Almeirim", "Alpiarça", "Benavente", "Cartaxo", "Coruche", "Rio Maior", "Salvaterra de Magos", "Santarém"] },
+    "Setúbal": "Z3", "Viana do Castelo": "Z2", "Vila Real": "Z2",
+    "Viseu": { Z1: ["Armamar", "Carregal do Sal", "Castro Daire", "Lamego", "Mangualde", "Moimenta da Beira", "Nelas", "Penalva do Castelo", "Penedono", "São João da Pesqueira", "Sátão", "Sernancelhe", "Tabuaço", "Tarouca", "Vila Nova de Paiva", "Viseu"],
+      Z2: ["Cinfães", "Mortágua", "Oliveira de Frades", "Resende", "Santa Comba Dão", "São Pedro do Sul", "Tondela", "Vouzela"] }
+  };
+  // Quadro NA–A.1, Nota 1: caso B3 (queda e deslocamento excecionais) nestes concelhos; B2 no resto da zona Z1.
+  var NEVE_B3 = ["Aguiar da Beira", "Fornos de Algodres", "Mangualde", "Nelas", "Penalva do Castelo", "Sátão", "Viseu"];
+
+  // Concelhos que é preciso distinguir num distrito: os do Anexo Nacional ou, na Guarda, os do caso B3.
+  function concelhosDistrito(distrito) {
+    var d = NEVE_DISTRITOS[distrito];
+    if (!d) return [];
+    if (typeof d === "string") return distrito === "Guarda" ? ["Aguiar da Beira", "Fornos de Algodres"] : [];
+    return Object.keys(d).reduce(function (l, z) { return l.concat(d[z]); }, []).sort(function (a, b) { return a.localeCompare(b, "pt"); });
+  }
+  // Zona de neve (ou null se faltar o concelho) e caso do Quadro NA–A.1.
+  function zonaNeve(distrito, concelho) {
+    var d = NEVE_DISTRITOS[distrito], zona = null;
+    if (typeof d === "string") zona = d;
+    else if (d) Object.keys(d).forEach(function (z) { if (d[z].indexOf(concelho) >= 0) zona = z; });
+    return { zona: zona, caso: zona === "Z1" ? (NEVE_B3.indexOf(concelho) >= 0 ? "B3" : "B2") : zona ? "A" : null };
+  }
+
   function neve(zona, altitude, exposicao, alfa) {
     var sk = NEVE_CZ[zona] * (1 + Math.pow(altitude / 500, 2));
     var mu = mu1(alfa), ce = NEVE_CE[exposicao];
@@ -49,6 +90,50 @@ var Acoes = (function () {
     var vm = cr * co * vb;
     var qp = (1 + 7 * Iv) * 0.5 * RHO * vm * vm / 1000;
     return { vb: vb, qb: 0.5 * RHO * vb * vb / 1000, z0: t.z0, zmin: t.zmin, z: z, kr: kr, cr: cr, c0: co, Iv: Iv, vm: vm, qp: qp };
+  }
+
+  /*
+   * Coeficiente de orografia c0(z) pelo Anexo A.3 (NA–4.3.3(1)), expressões (A.1) a (A.13).
+   * o: { tipo: "colina" (isolada ou em cadeia) | "escarpa" (falésia ou escarpa), H (altura efetiva),
+   *      Lu, Ld (comprimentos das vertentes a barlavento e a sotavento; Ld só nas colinas),
+   *      x (distância horizontal do local à crista: < 0 a barlavento, > 0 a sotavento) }, em m.
+   * z: altura do ponto acima do solo no local (m). As expressões aplicam-se em todo o seu domínio de
+   * validade, também para lá da zona em que a norma obriga a considerar a orografia (A.3(3), facultativo).
+   */
+  function polA5(zl) {
+    return 0.1552 * Math.pow(zl, 4) - 0.8575 * Math.pow(zl, 3) + 1.8133 * zl * zl - 1.9115 * zl + 1.0124;
+  }
+  function coeficienteOrografia(o, z) {
+    var phi = o.H / o.Lu;
+    var Le = phi < 0.3 ? o.Lu : o.H / 0.3;          // Quadro A.2
+    var zl = z / Le, s = 0, seccao;
+    if (phi < 0.05) return { phi: phi, Le: Le, s: 0, c0: 1, seccao: "declive inferior a 0,05" };
+    if (o.x <= 0) {
+      // Barlavento, todos os tipos (A.4) a (A.6)
+      seccao = "barlavento";
+      var xu = o.x / o.Lu;
+      if (xu >= -1.5 && zl <= 2) s = polA5(zl) * Math.exp((0.3542 * zl * zl - 1.0577 * zl + 2.6456) * xu);
+    } else if (o.tipo === "escarpa") {
+      // Sotavento de falésias e escarpas (A.7) a (A.10), com z/Le ≥ 0,1 e interpolação para X/Le < 0,1
+      seccao = "sotavento da escarpa";
+      var xe = o.x / Le;
+      var sA7 = function (xr) {
+        var lz = Math.log10(Math.max(zl, 0.1)), lx = Math.log10(xr);
+        var A = -1.3420 * Math.pow(lz, 3) - 0.8222 * lz * lz + 0.4609 * lz - 0.0791;
+        var B = -1.0196 * Math.pow(lz, 3) - 0.8910 * lz * lz + 0.5343 * lz - 0.1156;
+        var C = 0.8030 * Math.pow(lz, 3) + 0.4236 * lz * lz - 0.5738 * lz + 0.1606;
+        return A * lx * lx + B * lx + C;
+      };
+      if (xe <= 3.5 && zl <= 2) s = xe >= 0.1 ? sA7(xe) : polA5(zl) + (sA7(0.1) - polA5(zl)) * xe / 0.1;
+    } else {
+      // Sotavento de colinas isoladas ou em cadeia (A.11) a (A.13)
+      seccao = "sotavento da colina";
+      var xd = o.x / o.Ld;
+      if (xd <= 2 && zl <= 2) s = polA5(zl) * Math.exp((-0.3056 * zl * zl + 1.0212 * zl - 1.7637) * xd);
+    }
+    s = Math.max(s, 0);
+    var c0 = phi < 0.3 ? 1 + 2 * s * phi : 1 + 0.6 * s;   // (A.2) e (A.3)
+    return { phi: phi, Le: Le, s: s, c0: c0, seccao: seccao };
   }
 
   /*
@@ -229,6 +314,8 @@ var Acoes = (function () {
 
   return {
     NEVE_CZ: NEVE_CZ, NEVE_CE: NEVE_CE, VENTO_VB0: VENTO_VB0, TERRENO: TERRENO, POSICOES: POSICOES, SOBRECARGA_H: SOBRECARGA_H,
+    NEVE_DISTRITOS: NEVE_DISTRITOS, NEVE_B3: NEVE_B3, concelhosDistrito: concelhosDistrito, zonaNeve: zonaNeve,
+    coeficienteOrografia: coeficienteOrografia,
     mu1: mu1, neve: neve, pressaoPico: pressaoPico, coeficientesCobertura: coeficientesCobertura, vento: vento,
     cargasMadre: cargasMadre, combinacoes: combinacoes,
     _interpolarAlfa: interpolarAlfa, _cpeArea: cpeArea

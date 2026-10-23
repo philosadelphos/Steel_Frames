@@ -38,7 +38,10 @@
       posicao: form.elements.posicao.value,
       gRev: num("grev"), gInst: num("ginst"), qk: num("qk"),
       altitude: num("altitude"), altitudeAmbigua: /^\d{1,3}[.,\s\u00a0\u202f]\d{3}$/.test(String(form.elements.altitude.value).trim()), zonaNeve: form.elements.zonaNeve.value, exposicao: form.elements.exposicao.value,
-      terreno: form.elements.terreno.value, costa: form.elements.costa.checked, c0: num("c0"),
+      distrito: form.elements.distrito.value, concelho: form.elements.concelho.value,
+      terreno: form.elements.terreno.value, costa: form.elements.costa.checked,
+      orografia: form.elements.orografia.value, c0Manual: num("c0"),
+      oro: { H: num("oroH"), Lu: num("oroLu"), Ld: num("oroLd"), x: num("oroX") },
       cpiMax: num("cpiMax"), cpiMin: num("cpiMin"),
       aco: form.elements.aco.value,
       ligacao: form.elements.ligacao.value, sobreposicao: opcional("sobreposicao"),
@@ -62,6 +65,40 @@
     }).join("");
   }
 
+  // Distritos e concelhos para a zona de neve (NA–4.1(1) da NP EN 1991-1-3).
+  function opcoesDistrito() {
+    $("m-distrito").innerHTML = '<option value="">— escolher a zona à mão —</option>' +
+      Object.keys(Acoes.NEVE_DISTRITOS).map(function (x) { return '<option value="' + x + '">' + x + "</option>"; }).join("");
+  }
+  function opcoesConcelho(distrito, valor) {
+    var lista = Acoes.concelhosDistrito(distrito);
+    var primeira = distrito === "Guarda" ? "Outro concelho do distrito" : "— escolher o concelho —";
+    $("m-concelho").innerHTML = '<option value="">' + primeira + "</option>" + lista.map(function (x) {
+      return '<option value="' + x + '"' + (x === valor ? " selected" : "") + ">" + x + "</option>";
+    }).join("");
+  }
+
+  // Zona de neve pelo distrito e concelho, quando indicados; senão a escolhida à mão.
+  function resolverNeve(d) {
+    d.casoNeve = null;
+    d.zonaPorConcelho = null;
+    if (!d.distrito) return;
+    var z = Acoes.zonaNeve(d.distrito, d.concelho);
+    d.zonaPorConcelho = z.zona;
+    if (z.zona) { d.zonaNeve = z.zona; d.casoNeve = z.caso; }
+  }
+
+  // c0 do local: 1 em terreno plano, pelo Anexo A.3 em colinas e escarpas, ou o valor introduzido.
+  function resolverOrografia(d) {
+    d.oroCalc = null;
+    if (d.orografia === "manual") { d.c0 = d.c0Manual; return; }
+    if (d.orografia !== "colina" && d.orografia !== "escarpa") { d.c0 = 1; return; }
+    var o = d.oro, ok = o.H > 0 && o.Lu > 0 && isFinite(o.x) && (d.orografia === "escarpa" || o.Ld > 0) && d.meio > 0;
+    if (!ok) { d.c0 = NaN; return; }
+    d.oroCalc = Acoes.coeficienteOrografia({ tipo: d.orografia, H: o.H, Lu: o.Lu, Ld: o.Ld, x: o.x }, d.meio + ESPESSURA_COBERTURA);
+    d.c0 = d.oroCalc.c0;
+  }
+
   // Mostra só os campos que se aplicam ao tipo de madre, ao esquema e à restrição escolhidos.
   function atualizarCampos(d) {
     var enformado = d.tipo !== "IPE";
@@ -79,6 +116,30 @@
           (d.tipo === "Superomega" ? "No Superomega não se aplica: o banzo superior tem 44 mm e a fixação fica a menos de 25 mm da alma." : "")
         : "Rigidez de rotação da ligação revestimento–madre, por metro (10.1.5.2). Para painel sandwich, peça-a ao fabricante do painel.";
     $("m-nota-restricao").innerHTML = nota;
+
+    // Neve: concelho só quando o distrito o exige; a zona fica fixa quando sai do concelho.
+    var concelhos = Acoes.concelhosDistrito(d.distrito);
+    $("m-campo-concelho").hidden = !concelhos.length;
+    form.elements.zonaNeve.disabled = !!d.zonaPorConcelho;
+    if (d.zonaPorConcelho) form.elements.zonaNeve.value = d.zonaPorConcelho;
+    $("m-nota-neve").innerHTML = !d.distrito
+      ? "Escolha o distrito para a zona sair do Anexo Nacional (NA–4.1(1)), ou indique-a à mão."
+      : d.zonaPorConcelho
+        ? "Zona " + d.zonaPorConcelho + " (NA–4.1(1)): distrito de " + d.distrito + (d.concelho ? ", concelho de " + d.concelho : "") + "."
+        : "No distrito de " + d.distrito + " a zona depende do concelho.";
+
+    // Orografia
+    var a3 = d.orografia === "colina" || d.orografia === "escarpa";
+    $("m-campos-orografia").hidden = !a3;
+    $("m-campo-oro-ld").hidden = d.orografia !== "colina";
+    $("m-campo-c0").hidden = d.orografia !== "manual";
+    var o = d.oroCalc;
+    $("m-nota-orografia").innerHTML = d.orografia === "plano"
+      ? "Terreno plano: declive médio a barlavento inferior a 3° (NP EN 1991-1-4, 4.3.3(2))."
+      : d.orografia === "manual"
+        ? "Vales com afunilamento do vento ou orografia complexa: a norma remete para parecer técnico ou ensaio (A.3(4) e NA–4.3.3(1)). A app aceita um c<sub>0</sub> que esteja justificado."
+        : (o ? "Φ = H/L<sub>u</sub> = " + fmt(o.phi, 3) + ", L<sub>e</sub> = " + fmt(o.Le, 0) + " m, " + o.seccao + ", s = " + fmt(o.s, 3) + " → <b>c<sub>0</sub> = " + fmt(o.c0, 3) + "</b> à altura z<sub>e</sub>. " : "") +
+          "x é a distância horizontal do pavilhão à crista: negativa a barlavento, positiva a sotavento. Considere a direção do vento em que o relevo fica a barlavento.";
   }
 
   // Inclinação de cada água a partir das alturas no pilar e a meio vão (medidas do pavimento
@@ -105,7 +166,9 @@
     if (!(d.gRev >= 0) || !(d.gInst >= 0) || !(d.qk >= 0)) erros.push("As cargas têm de ser números iguais ou superiores a zero.");
     if (!(d.altitude >= 0 && d.altitude <= 1500)) erros.push("A altitude tem de estar entre 0 e 1500 m (limite da NP EN 1991-1-3).");
     if (d.largura > 0 && d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
-    if (!(d.c0 >= 1 && d.c0 <= 2)) erros.push("O coeficiente de orografia c₀ tem de estar entre 1,0 e 2,0.");
+    if (d.orografia === "manual" && !(d.c0 >= 1 && d.c0 <= 2)) erros.push("O coeficiente de orografia c₀ tem de estar entre 1,0 e 2,0.");
+    if ((d.orografia === "colina" || d.orografia === "escarpa") && !(d.c0 >= 1)) erros.push("Para o Anexo A.3 indique H e L<sub>u</sub> positivos" + (d.orografia === "colina" ? ", L<sub>d</sub> positivo" : "") + " e a distância à crista x.");
+    if (d.distrito && !d.zonaPorConcelho) erros.push("Escolha o concelho: no distrito de " + d.distrito + " a zona de neve depende do concelho.");
     if (!(d.cpiMax >= d.cpiMin) || !(d.cpiMax >= -1.5 && d.cpiMax <= 1) || !(d.cpiMin >= -1.5 && d.cpiMin <= 1)) erros.push("Os coeficientes de pressão interior têm de estar entre −1,5 e +1,0, com o máximo maior ou igual ao mínimo.");
     if (d.esquema === "continua2" && d.comprimento < 2 * d.L) erros.push("Uma madre contínua de 2 vãos precisa de pelo menos 2 vãos entre pórticos (comprimento ≥ 2 L).");
     if (d.esquema === "continua3" && d.comprimento < 3 * d.L) erros.push("Uma madre contínua de 3 ou mais vãos precisa de pelo menos 3 vãos entre pórticos (comprimento ≥ 3 L).");
@@ -398,21 +461,26 @@
     var zonaNota = r.zonaVento === "B"
       ? (d.costa ? "faixa costeira de 5 km" : "altitude superior a 600 m")
       : "generalidade do território";
+    var DESLOCAMENTO = "deslocamento excecional da neve (Anexo B), que conta quando há platibandas, obstáculos na cobertura ou construções mais altas encostadas";
     var alertaNeve = d.zonaNeve !== "Z1" ? ""
-      : '<p class="alerta">Zona Z1: o Anexo Nacional (Quadro NA–A.1) exige situações acidentais que não estão incluídas aqui. ' +
-        "Em todos os concelhos da zona Z1, o deslocamento excecional da neve (Anexo B), que conta quando há platibandas, obstáculos na cobertura ou construções mais altas encostadas. " +
-        "Em Aguiar da Beira, Fornos de Algodres, Mangualde, Nelas, Penalva do Castelo, Sátão e Viseu, também a queda excecional de neve, com C<sub>esl</sub> = 2,5.</p>";
+      : d.casoNeve === "B3"
+        ? '<p class="alerta">' + d.concelho + ": caso B3 do Quadro NA–A.1. O Anexo Nacional exige as situações acidentais de queda excecional de neve (C<sub>esl</sub> = 2,5) e de " + DESLOCAMENTO + ". Não estão incluídas aqui.</p>"
+        : d.casoNeve === "B2"
+          ? '<p class="alerta">Zona Z1, caso B2 do Quadro NA–A.1: o Anexo Nacional exige a situação acidental de ' + DESLOCAMENTO + ". Não está incluída aqui.</p>"
+          : '<p class="alerta">Zona Z1: o Anexo Nacional (Quadro NA–A.1) exige situações acidentais que não estão incluídas aqui. ' +
+            "Em todos os concelhos da zona Z1, o " + DESLOCAMENTO + ". " +
+            "Em Aguiar da Beira, Fornos de Algodres, Mangualde, Nelas, Penalva do Castelo, Sátão e Viseu, também a queda excecional de neve, com C<sub>esl</sub> = 2,5.</p>";
     return '<section class="cartao"><h2>Ações</h2><div class="acoes">' +
       '<div class="acao"><h3>Permanentes</h3><p>Revestimento ' + fmt(d.gRev, 2) + " + instalações " + fmt(d.gInst, 2) +
         " = <b>" + fmt(d.gRev + d.gInst, 2) + " kN/m²</b> de cobertura, mais o peso próprio da madre.</p></div>" +
       '<div class="acao"><h3>Sobrecarga (categoria H)</h3><p>q<sub>k</sub> = <b>' + fmt(d.qk, 2) + " kN/m²</b> em projeção horizontal. Não se combina com a neve nem com o vento.<br>" +
         "Q<sub>k</sub> = <b>" + fmt(Acoes.SOBRECARGA_H.Qk, 1) + " kN</b> concentrada, verificada à parte, sem q<sub>k</sub> (6.3.4.2(3)P).</p></div>" +
-      '<div class="acao"><h3>Neve · zona ' + d.zonaNeve + "</h3><p>s<sub>k</sub> = C<sub>z</sub> [1 + (H/500)²] = " + fmt(Acoes.NEVE_CZ[d.zonaNeve], 2) +
+      '<div class="acao"><h3>Neve · zona ' + d.zonaNeve + "</h3><p>" + (d.zonaPorConcelho ? d.distrito + (d.concelho ? ", " + d.concelho : "") + " (NA–4.1(1))<br>" : "") + "s<sub>k</sub> = C<sub>z</sub> [1 + (H/500)²] = " + fmt(Acoes.NEVE_CZ[d.zonaNeve], 2) +
         " × [1 + (" + fmt(d.altitude, 0) + "/500)²] = " + fmt(n.sk, 3) + " kN/m²<br>s = μ<sub>1</sub> C<sub>e</sub> C<sub>t</sub> s<sub>k</sub> = " +
         fmt(n.mu1, 2) + " × " + fmt(n.Ce, 1) + " × " + fmt(n.Ct, 1) + " × " + fmt(n.sk, 3) + " = <b>" + fmt(n.s, 3) + " kN/m²</b> em projeção horizontal</p></div>" +
       '<div class="acao"><h3>Vento · zona ' + r.zonaVento + "</h3><p>" + zonaNota + ": v<sub>b</sub> = " + p.vb + " m/s · terreno " + d.terreno +
         " · z<sub>e</sub> = " + fmt(r.hCumeeira, 2) + " + " + fmt(ESPESSURA_COBERTURA, 2) + " = " + fmt(r.ze, 2) + " m" + (p.z > r.ze ? " (inferior a z<sub>min</sub>: usa-se z = " + fmt(p.z, 0) + " m)" : "") +
-        "<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · c<sub>0</sub> = " + fmt(p.c0, 2) + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
+        "<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · c<sub>0</sub> = " + fmt(p.c0, 3) + (d.oroCalc ? " (Anexo A.3, " + (d.orografia === "colina" ? "colina" : "escarpa") + ")" : d.orografia === "manual" ? " (estudo específico)" : "") + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
         " · q<sub>p</sub> = <b>" + fmt(p.qp, 3) + " kN/m²</b><br>Área carregada A = s × L = " + fmt(r.area, 1) + " m²<br>" +
         "Sucção: c<sub>pe</sub> = " + fmt(w.succao.cpe, 2) + " (zona " + w.succao.zona + ", θ = " + w.succao.direcao + "), c<sub>pi</sub> = " + coef(w.succao.cpi) +
         " → <b>" + fmt(w.succao.w, 3) + " kN/m²</b><br>" +
@@ -511,7 +579,11 @@
       "<li>Na combinação com o vento em sucção só o revestimento e a madre contam como carga permanente favorável; as instalações suspensas não.</li>" +
       "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
         ", interpolados para A = s × L. c<sub>pi</sub> = " + coef(d.cpiMax) + " e " + coef(d.cpiMin) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1.</li>" +
-      "<li>Orografia: c<sub>0</sub> = " + fmt(d.c0, 2) + (d.c0 === 1 ? ", válido em terreno plano (declive médio a barlavento inferior a 3°, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, q<sub>p</sub> pode aumentar muito: calcule c<sub>0</sub> pelo Anexo A.3." : ", introduzido pelo utilizador (Anexo A.3 ou estudo específico).") +
+      "<li>Orografia: c<sub>0</sub> = " + fmt(d.c0, 3) + (d.oroCalc
+          ? ", pelo Anexo A.3 (" + (d.orografia === "colina" ? "colina isolada ou em cadeia" : "falésia ou escarpa") + ", H = " + fmt(d.oro.H, 0) + " m, L<sub>u</sub> = " + fmt(d.oro.Lu, 0) + " m" +
+            (d.orografia === "colina" ? ", L<sub>d</sub> = " + fmt(d.oro.Ld, 0) + " m" : "") + ", x = " + fmt(d.oro.x, 0) + " m, à altura z<sub>e</sub>), aplicado a todas as direções do vento (do lado da segurança). As expressões usam-se em todo o seu domínio, também onde a norma torna a orografia facultativa."
+          : d.orografia === "manual" ? ", de estudo específico introduzido pelo utilizador."
+          : ", válido em terreno plano (declive médio a barlavento inferior a 3°, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, escolha o cálculo pelo Anexo A.3.") +
         " Vales com afunilamento e orografia complexa, para os quais a norma remete para parecer técnico ou ensaio, ficam fora do âmbito da app.</li>" +
       "<li>Sobrecarga: Q<sub>k</sub> = " + fmt(Acoes.SOBRECARGA_H.Qk, 1) + " kN concentrada, verificada à parte (6.3.4.2(3)P), em qualquer ponto do vão e na direção da gravidade.</li>" +
       "<li>Alturas medidas do pavimento à face inferior da cobertura. Para o vento, z<sub>e</sub> = altura a meio vão + " + fmt(ESPESSURA_COBERTURA, 2) + " m, uma espessura do revestimento tomada por excesso.</li>" +
@@ -528,6 +600,8 @@
     $("m-inclinacao").innerHTML = (isFinite(d.alfa)
       ? "Inclinação calculada: <b>α = " + fmt(d.alfa, 1) + "°</b>\u00a0(" + fmt(Math.tan(d.alfa * Math.PI / 180) * 100, 1) + "\u00a0%). "
       : "") + "Alturas medidas do pavimento à face inferior da cobertura.";
+    resolverNeve(d);
+    resolverOrografia(d);
     atualizarCampos(d);
     var erros = validar(d);
     var zona = d.costa || d.altitude > 600 ? "B" : "A";
@@ -552,6 +626,8 @@
       return '<option value="' + x.id + '">' + x.nome + (x.g !== null ? " · " + fmt(x.g, 2) + " kN/m²" : "") + "</option>";
     }).join("");
     opcoesAco("IPE", "S275");
+    opcoesDistrito();
+    opcoesConcelho("", "");
     form.elements.grev.value = REVESTIMENTOS[0].g.toFixed(2).replace(".", ",");
     var padrao = Memoria.doFormulario(form);
     var guardado = Memoria.ler("madres");
@@ -559,11 +635,13 @@
       Memoria.paraFormulario(form, guardado);
       // A lista de classes de aço depende do tipo de madre guardado.
       opcoesAco(form.elements.tipo.value, guardado.aco);
+      opcoesConcelho(form.elements.distrito.value, guardado.concelho);
       $("m-nota-exemplo").hidden = true;
     }
     $("repor-madres").addEventListener("click", function () {
       Memoria.paraFormulario(form, padrao);
       opcoesAco(padrao.tipo, padrao.aco);
+      opcoesConcelho(padrao.distrito, padrao.concelho);
       Memoria.apagar("madres");
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = false;
@@ -579,6 +657,7 @@
       }
       if (e.target.name === "grev") form.elements.revestimento.value = "outro";
       if (e.target.name === "tipo") opcoesAco(e.target.value, form.elements.aco.value);
+      if (e.target.name === "distrito") opcoesConcelho(e.target.value, "");
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = true;
       Memoria.gravar("madres", Memoria.doFormulario(form));
