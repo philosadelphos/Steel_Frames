@@ -585,7 +585,7 @@ var Portico = (function () {
     var reacoes = { G: combinar([[1, res.Gp], [1, res.Gr], [1, res.Gi]]).R, Q: res.Qa.R, S: res.Si.R, Sii: res.Sii.R, Siii: res.Siii.R };
     casos.W.forEach(function (c, kk) { reacoes["W" + kk] = res["W" + kk].R; });
     return {
-      pilar: { perfil: perfilPilar, props: pp, fy: fyP }, travessa: { perfil: perfilTravessa, props: pt, fy: fyT },
+      aco: aco, pilar: { perfil: perfilPilar, props: pp, fy: fyP }, travessa: { perfil: perfilTravessa, props: pt, fy: fyT },
       malha: m, verificacoes: pior, uMax: uMax, ok: uMax <= 1, peso: peso,
       alfaCrMin: alfaMin, axialSignificativo: axialSignificativo, phi: phi, envM: envM, envR: envR,
       reacoes: reacoes, nomesVento: casos.W.map(function (c) { return c.nome; }), combinacoes: comb

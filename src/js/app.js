@@ -1,4 +1,4 @@
-/* Interface: identificação de perfis por medidas e catálogo. Depende de perfis.js e seccao.js. */
+/* Interface: identificação de perfis por medidas e catálogo. Depende de perfis.js, seccao.js e enformados.js. */
 (function () {
   var FAMILIAS = Object.keys(PERFIS);
   var TODOS = Seccao.todos();
@@ -6,6 +6,7 @@
 
   var estado = {
     familias: FAMILIAS.slice(),
+    forma: "I",             // I ou H laminado, ou enformado a frio: "omega", "C", "Z"
     aco: "S355",
     escolhido: null,        // perfil escolhido à mão na lista de candidatos
     familiaCatalogo: "IPE"
@@ -70,7 +71,43 @@
       var v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(txt) ? parseFloat(txt) : NaN;
       return isFinite(v) && v > 0 ? v : null;
     }
-    return { h: num("h"), b: num("b"), tw: num("tw"), tf: num("tf") };
+    return { h: num("h"), b: num("b"), tw: num("tw"), tf: num("tf"), t: num("t"), a: num("a") };
+  }
+
+  // ----- Perfis enformados a frio (O Feliz) -----
+  var FAMILIA_FORMA = { omega: "Superomega", C: "C", Z: "Z" };
+  function acosForma(forma) {
+    return forma === "I" ? Object.keys(Seccao.ACOS) : Enformados.FAMILIAS[FAMILIA_FORMA[forma]].acos;
+  }
+  // Mostra os campos, o esboço e as classes de aço da forma escolhida.
+  function atualizarForma(forma, aco) {
+    estado.forma = forma;
+    var lista = acosForma(forma), padrao = forma === "I" ? "S355" : "S350GD";
+    estado.aco = lista.indexOf(aco) >= 0 ? aco : padrao;
+    $("in-aco").innerHTML = lista.map(function (a) {
+      return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + (Seccao.ACOS[a] ? " · " + Seccao.ACOS[a].norma : " · EN 10346") + "</option>";
+    }).join("");
+    var enf = forma !== "I";
+    $("campo-tw").hidden = enf; $("campo-tf").hidden = enf; $("grupo-familias").hidden = enf;
+    $("campo-t").hidden = !enf; $("campo-a").hidden = !(forma === "C" || forma === "Z");
+    Array.prototype.forEach.call(document.querySelectorAll(".esquema svg[data-forma]"), function (svg) {
+      svg.hidden = svg.getAttribute("data-forma") !== forma;
+    });
+    $("nota-forma").hidden = !enf;
+    $("nota-forma").innerHTML = forma === "omega"
+      ? "Meça a altura total h e a largura total b, nas pontas das abas inferiores."
+      : "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.";
+  }
+
+  // Desvio relativo médio quadrático, como nos laminados: espessura e reforço pesam metade.
+  function procurarEnformado(m) {
+    var fam = FAMILIA_FORMA[estado.forma];
+    return Enformados.seccoes(fam).map(function (s) {
+      var soma = Math.pow((m.h - s.h) / s.h, 2) + Math.pow((m.b - s.b) / s.b, 2), peso = 2;
+      if (m.t) { soma += 0.5 * Math.pow((m.t - s.t) / s.t, 2); peso += 0.5; }
+      if (m.a && s.a) { soma += 0.5 * Math.pow((m.a - s.a) / s.a, 2); peso += 0.5; }
+      return { perfil: s, familia: fam, desvio: Math.sqrt(soma / peso) };
+    }).sort(function (a, b) { return a.desvio - b.desvio || a.perfil.G - b.perfil.G; });
   }
 
   // Desvio relativo médio quadrático; as espessuras pesam metade (medição menos fiável).
@@ -133,6 +170,114 @@
       '</svg>';
   }
 
+  // Secção enformada à escala: linha média com a espessura nominal (unidades do SVG = mm).
+  function desenhoEnformado(fam, s) {
+    var pts;
+    if (fam === "Superomega") {
+      var geo = OFELIZ.superomega.geo[s.h], xs = geo.linha.map(function (q) { return q[0]; }), ys = geo.linha.map(function (q) { return q[1]; });
+      var cx = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2, cy = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+      pts = geo.linha.map(function (q) { return [q[0] - cx, cy - q[1]]; });
+    } else {
+      var hm = s.h - s.t, bm = s.b - s.t, am = s.a - s.t / 2;
+      pts = fam === "C"
+        ? [[bm / 2, -hm / 2 + am], [bm / 2, -hm / 2], [-bm / 2, -hm / 2], [-bm / 2, hm / 2], [bm / 2, hm / 2], [bm / 2, hm / 2 - am]]
+        : [[bm, -hm / 2 + am], [bm, -hm / 2], [0, -hm / 2], [0, hm / 2], [-bm, hm / 2], [-bm, hm / 2 - am]];
+    }
+    var x0 = Math.min.apply(null, pts.map(function (q) { return q[0]; })), x1 = Math.max.apply(null, pts.map(function (q) { return q[0]; }));
+    var y0 = Math.min.apply(null, pts.map(function (q) { return q[1]; })), y1 = Math.max.apply(null, pts.map(function (q) { return q[1]; }));
+    var B = x1 - x0, H = y1 - y0, M = Math.max(B, H), fs = M * 0.05, tr = fs * 0.35;
+    var esp = Math.max(s.t, M * 0.012);
+    var d = pts.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(2) + " " + q[1].toFixed(2); }).join("");
+    var cb = y0 - M * 0.16, ch = x0 - M * 0.16;
+    function traco(x, y) { return "M" + (x - tr) + " " + (y + tr) + "L" + (x + tr) + " " + (y - tr); }
+    var cotas = "M" + x0 + " " + (y0 - M * 0.03) + "V" + (cb - M * 0.03) + "M" + x1 + " " + (y0 - M * 0.03) + "V" + (cb - M * 0.03) +
+      "M" + x0 + " " + cb + "H" + x1 + "M" + (x0 - M * 0.03) + " " + y0 + "H" + (ch - M * 0.03) + "M" + (x0 - M * 0.03) + " " + y1 + "H" + (ch - M * 0.03) +
+      "M" + ch + " " + y0 + "V" + y1 + traco(x0, cb) + traco(x1, cb) + traco(ch, y0) + traco(ch, y1);
+    var vb = [x0 - M * 0.27, y0 - M * 0.27, B + M * 0.54, H + M * 0.4];
+    return '<svg viewBox="' + vb.join(" ") + '" role="img" aria-label="Secção ' + s.nome + ' à escala">' +
+      '<path class="sec-fino" stroke-width="' + esp.toFixed(2) + '" d="' + d + '"/>' +
+      '<path class="sec-cota" d="' + cotas + '"/>' +
+      '<text class="sec-txt" x="' + ((x0 + x1) / 2) + '" y="' + (cb - fs * 0.45) + '" font-size="' + fs + '" text-anchor="middle">' + fmt(s.b, 0) + "</text>" +
+      '<text class="sec-txt" font-size="' + fs + '" text-anchor="middle" transform="translate(' + (ch - fs * 0.45) + " " + ((y0 + y1) / 2) + ') rotate(-90)">' + fmt(s.h, 0) + "</text>" +
+      "</svg>";
+  }
+
+  function blocoPropriedadesEnformado(fam, s, aco) {
+    var e = s.ef[aco], so = fam === "Superomega";
+    return '<div class="grupos-props">' +
+      '<div class="grupo-props"><h3>Geometria</h3><dl class="lista-props">' +
+        linhaProp("h", s.h, "mm", 0) + linhaProp("b", s.b, "mm", 0) + (so ? "" : linhaProp("a", s.a, "mm", 0)) +
+        linhaProp("t", s.t, "mm", 2) + linhaProp("t<sub>eff</sub>", s.teff, "mm", 2) + linhaProp("A", s.A, "cm²") + linhaProp("G", s.G, "kg/m", 2) + "</dl></div>" +
+      '<div class="grupo-props"><h3>Secção bruta</h3><dl class="lista-props">' +
+        linhaProp("I<sub>y</sub>", s.Iy, "cm⁴") + linhaProp("I<sub>z</sub>", s.Iz, "cm⁴") +
+        linhaProp("I<sub>t</sub>", s.It, "cm⁴", 4) + linhaProp("I<sub>w</sub>", s.Iw, "cm⁶") + "</dl></div>" +
+      '<div class="grupo-props"><h3>Secção efetiva · ' + aco + '</h3><dl class="lista-props">' +
+        linhaProp("A<sub>eff</sub>", e[0], "cm²") +
+        (so ? linhaProp("W<sub>eff,y+</sub>", e[2], "cm³") + linhaProp("W<sub>eff,y−</sub>", e[4], "cm³") + linhaProp("I<sub>eff,y</sub>", Math.min(e[1], e[3]), "cm⁴") + linhaProp("W<sub>eff,z</sub>", e[6], "cm³")
+          : linhaProp("W<sub>eff,y</sub>", e[2], "cm³") + linhaProp("I<sub>eff,y</sub>", e[1], "cm⁴") +
+            linhaProp("W<sub>eff,z</sub>", fam === "C" ? Math.min(e[4], e[6]) : e[4], "cm³")) +
+        "</dl></div>" +
+      "</div>";
+  }
+
+  // Resistências da secção pela EN 1993-1-3 (6.1), com as propriedades de cálculo da app.
+  function blocoEC3Enformado(fam, s, aco) {
+    var p = Enformados.propriedades(fam, s, aco), fy = p.fy;
+    function item(titulo, v, un, nota) {
+      return '<div class="ec3-item"><h3>' + titulo + '</h3><div class="valor-grande">' + fmt(v, v < 10 ? 2 : 1) + " <small>" + un + "</small></div><p>" + nota + "</p></div>";
+    }
+    var vr = Enformados.corteResistente(p, Enformados.FAMILIAS[fam].esquadro);
+    return '<section class="cartao"><h2>Resistência da secção · ' + aco + "</h2>" +
+      '<div class="ec3">' +
+        '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>yb</sub> = ' + fy + " <small>MPa</small></div><p>EN 10346, chapa galvanizada; t<sub>eff</sub> = " + fmt(s.teff, 2) + " mm (sem o revestimento de zinco)</p></div>" +
+        item("Compressão <span class=\"sym\">N<sub>c,Rd</sub></span>", p.Aeff * 1e2 * fy / 1e3, "kN", "A<sub>eff</sub> · f<sub>yb</sub> / γ<sub>M0</sub>, sem encurvadura (6.1.3)") +
+        item("Flexão <span class=\"sym\">M<sub>c,y,Rd</sub></span>", p.Wpos * fy / 1e3, "kN·m", (fam === "Superomega" ? "banzo superior comprimido; com o inferior: " + fmt(p.Wneg * fy / 1e3, 2) + " kN·m. " : "") + "W<sub>eff,y</sub> · f<sub>yb</sub> / γ<sub>M0</sub> (6.1.4)") +
+        item("Flexão <span class=\"sym\">M<sub>c,z,Rd</sub></span>", p.Wz * fy / 1e3, "kN·m", "W<sub>eff,z</sub> · f<sub>yb</sub> / γ<sub>M0</sub>, o menor dos dois sentidos") +
+        item("Corte <span class=\"sym\">V<sub>b,Rd</sub></span>", vr.VbRd, "kN", "6.1.5, λ̄<sub>w</sub> = " + fmt(vr.lambda, 2) + (Enformados.FAMILIAS[fam].esquadro ? ", alma com esquadro no apoio" : ", alma sem reforço no apoio") + ", com a altura desenvolvida da alma") +
+      "</div>" +
+      '<p class="nota">γ<sub>M0</sub> = 1,0 (valor recomendado da EN 1993-1-3; não há Anexo Nacional português).' +
+        (p.delta ? " Propriedades do fabricante reduzidas pelos cantos arredondados: δ = " + fmt(p.delta, 4) + " (5.1(4))." : "") +
+        " Sem encurvadura global: para madres, ver o separador Madres.</p>" +
+      "</section>";
+  }
+
+  function renderEnformado(m) {
+    var lista = procurarEnformado(m), melhor = lista[0];
+    var atual = estado.escolhido && lista.filter(function (c) { return c.perfil.nome === estado.escolhido; })[0] || melhor;
+    var s = atual.perfil, fam = atual.familia, av = avaliar(atual.desvio);
+    var desvios = '<div class="desvios">' +
+      "<span>h <b>" + fmt(s.h, 0) + "</b> (" + fmtDelta(m.h - s.h) + " mm)</span>" +
+      "<span>b <b>" + fmt(s.b, 0) + "</b> (" + fmtDelta(m.b - s.b) + " mm)</span>" +
+      (m.t ? "<span>t <b>" + fmt(s.t, 1) + "</b> (" + fmtDelta(m.t - s.t) + " mm)</span>" : "") +
+      (m.a && s.a ? "<span>a <b>" + fmt(s.a, 0) + "</b> (" + fmtDelta(m.a - s.a) + " mm)</span>" : "") +
+      "</div>";
+    var mesmas = lista.filter(function (c) { return c.perfil.h === s.h && c.perfil.b === s.b; });
+    var alerta = !m.t && mesmas.length > 1
+      ? '<p class="alerta">Há ' + mesmas.length + " espessuras com " + fmt(s.h, 0) + " × " + fmt(s.b, 0) + " mm (" + mesmas.map(function (c) { return fmt(c.perfil.t, 1); }).join(", ") + " mm). Meça a espessura t para escolher.</p>"
+      : "";
+    var candidatos = lista.slice(0, 6).map(function (c) {
+      var q = c.perfil, prox = Math.max(0, 1 - c.desvio / 0.15);
+      return '<li><button type="button" class="candidato" data-nome="' + q.nome + '" aria-current="' + (q === s) + '">' +
+        '<span class="candidato-nome">' + q.nome + "</span>" +
+        '<span class="candidato-dims">' + fmt(q.h, 0) + " × " + fmt(q.b, 0) + (q.a ? " · a " + fmt(q.a, 0) : "") + " · t " + fmt(q.t, 1) + " · " + fmt(q.G, 2) + " kg/m</span>" +
+        '<span class="barra" title="Desvio médio ' + fmt(c.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span>' +
+        "</button></li>";
+    }).join("");
+    resultado.innerHTML =
+      '<section class="cartao">' +
+        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + s.nome + "</h2>" +
+          '<span class="familia-perfil">' + Enformados.FAMILIAS[fam].descricao + "</span>" +
+          '<span class="selo ' + av.cls + '">' + av.txt + "</span></div>" +
+        desvios + alerta +
+        '<div class="corpo-resultado">' +
+          '<figure class="desenho">' + desenhoEnformado(fam, s) + "<figcaption>Secção à escala (linha média), dimensões nominais em mm</figcaption></figure>" +
+          blocoPropriedadesEnformado(fam, s, estado.aco) +
+        "</div>" +
+      "</section>" +
+      blocoEC3Enformado(fam, s, estado.aco) +
+      '<section class="cartao"><h2>Secções mais próximas</h2><ul class="candidatos">' + candidatos + "</ul></section>";
+  }
+
   // ----- Resultado -----
   function linhaProp(simbolo, valor, unidade, casas) {
     return "<dt>" + simbolo + "</dt><dd>" + fmt(valor, casas) + '</dd><dd class="un">' + unidade + "</dd>";
@@ -187,6 +332,7 @@
       resultado.innerHTML = '<section class="cartao"><p class="nota">Introduza a altura e a largura do perfil para ver as séries que correspondem.</p></section>';
       return;
     }
+    if (estado.forma !== "I") { renderEnformado(m); return; }
     if (!estado.familias.length) {
       resultado.innerHTML = '<section class="cartao"><p class="nota">Selecione pelo menos uma série de perfis.</p></section>';
       return;
@@ -255,7 +401,7 @@
       var ef = s.ef.S350GD;
       var v = [fmt(s.h, 0), fmt(s.b, 0)].concat(so ? [] : [fmt(s.a, 0)]).concat([fmt(s.t, 1), fmt(s.teff, 2), fmt(s.G, 2), fmt(s.A, 2),
         fmt(s.Iy), fmt(s.Iz), fmt(s.It, 4), fmt(s.Iw)]).concat(so ? [fmt(ef[2], 2), fmt(ef[4], 2)] : [fmt(ef[2], 2)]);
-      return '<tr class="linha-omega"><td>' + s.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
+      return '<tr class="linha-omega" data-nome="' + s.nome + '" data-familia="' + fam + '" tabindex="0"><td>' + s.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
     }).join("");
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
   }
@@ -263,7 +409,6 @@
   function renderCatalogo() {
     var fam = estado.familiaCatalogo;
     var ofeliz = FAMILIAS_OFELIZ.indexOf(fam) >= 0;
-    $("catalogo-ajuda").hidden = ofeliz;
     if (ofeliz) { renderCatalogoOFeliz(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
     var colunas = [
@@ -284,10 +429,26 @@
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
   }
 
-  function abrirNoIdentificador(nome) {
+  function abrirNoIdentificador(nome, familia) {
+    function v(x) { return String(x).replace(".", ","); }
+    if (FAMILIAS_OFELIZ.indexOf(familia) >= 0) {
+      var s = Enformados.seccoes(familia).filter(function (q) { return q.nome === nome; })[0];
+      if (!s) return;
+      var forma = familia === "Superomega" ? "omega" : familia;
+      form.elements.forma.value = forma;
+      atualizarForma(forma, estado.aco);
+      form.elements.h.value = v(s.h); form.elements.b.value = v(s.b); form.elements.t.value = v(s.t);
+      form.elements.a.value = s.a ? v(s.a) : "";
+      estado.escolhido = nome;
+      $("nota-exemplo").hidden = true;
+      mostrar("identificar");
+      render();
+      window.scrollTo(0, 0);
+      return;
+    }
     var p = TODOS.filter(function (q) { return q.nome === nome; })[0];
     if (!p) return;
-    function v(x) { return String(x).replace(".", ","); }
+    if (estado.forma !== "I") { form.elements.forma.value = "I"; atualizarForma("I", estado.aco); }
     form.elements.h.value = v(p.h); form.elements.b.value = v(p.b);
     form.elements.tw.value = v(p.tw); form.elements.tf.value = v(p.tf);
     if (estado.familias.indexOf(p.familia) === -1) {
@@ -303,7 +464,7 @@
 
   // ----- Vistas -----
   function mostrar(vista) {
-    ["identificar", "madres", "catalogo"].forEach(function (v) {
+    ["identificar", "madres", "portico", "catalogo"].forEach(function (v) {
       $("vista-" + v).hidden = v !== vista;
       $("tab-" + v).setAttribute("aria-selected", String(v === vista));
     });
@@ -319,9 +480,7 @@
     $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_OFELIZ).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
     }).join("");
-    $("in-aco").innerHTML = Object.keys(Seccao.ACOS).map(function (a) {
-      return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + " · " + Seccao.ACOS[a].norma + "</option>";
-    }).join("");
+    atualizarForma("I", estado.aco);
 
     form.elements.h.value = EXEMPLO.h;
     form.elements.b.value = EXEMPLO.b;
@@ -329,7 +488,8 @@
     var guardado = Memoria.ler("identificar");
     function aplicar(v, familias) {
       Memoria.paraFormulario(form, v);
-      estado.aco = form.elements.aco.value;
+      // A lista das classes de aço depende da forma guardada.
+      atualizarForma(form.elements.forma.value, v.aco);
       estado.familias = FAMILIAS.filter(function (f) { return !familias || familias.indexOf(f) !== -1; });
       Array.prototype.forEach.call(form.querySelectorAll("#fichas-familias input"), function (i) {
         i.checked = estado.familias.indexOf(i.value) !== -1;
@@ -351,6 +511,7 @@
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
       if (e.target.name === "aco") estado.aco = e.target.value;
+      else if (e.target.name === "forma") { atualizarForma(e.target.value, estado.aco); estado.escolhido = null; }
       else if (e.target.type === "checkbox") {
         estado.familias = Array.prototype.filter.call(form.querySelectorAll("#fichas-familias input"), function (i) { return i.checked; })
           .map(function (i) { return i.value; });
@@ -377,11 +538,11 @@
     var tabela = $("tabela-catalogo");
     tabela.addEventListener("click", function (e) {
       var tr = e.target.closest("tr[data-nome]");
-      if (tr) abrirNoIdentificador(tr.getAttribute("data-nome"));
+      if (tr) abrirNoIdentificador(tr.getAttribute("data-nome"), tr.getAttribute("data-familia"));
     });
     tabela.addEventListener("keydown", function (e) {
       var tr = e.target.closest("tr[data-nome]");
-      if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrirNoIdentificador(tr.getAttribute("data-nome")); }
+      if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrirNoIdentificador(tr.getAttribute("data-nome"), tr.getAttribute("data-familia")); }
     });
 
     Array.prototype.forEach.call(document.querySelectorAll(".separador"), function (b) {
@@ -391,9 +552,9 @@
     renderCatalogo();
     render();
     // Abre a vista do endereço; sem endereço (por exemplo, pelo ícone do ecrã principal), a última usada.
-    var vista = location.hash === "#catalogo" || location.hash === "#madres" || location.hash === "#identificar"
-      ? location.hash.slice(1) : Memoria.ler("vista");
-    if (vista === "catalogo" || vista === "madres") mostrar(vista);
+    var VISTAS = ["identificar", "madres", "portico", "catalogo"];
+    var vista = VISTAS.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : Memoria.ler("vista");
+    if (VISTAS.indexOf(vista) > 0) mostrar(vista);
   }
 
   iniciar();
