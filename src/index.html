@@ -68,6 +68,7 @@
         <select id="in-aco" name="aco"></select></label>
 
       <p class="nota nota-exemplo" id="nota-exemplo">Exemplo carregado: secção medida com 300 × 150 mm.</p>
+      <div class="acoes-form"><button type="button" class="botao-sec" id="repor-identificar">Repor o exemplo</button><span class="nota">Os valores ficam guardados neste aparelho.</span></div>
     </form>
 
     <div class="resultado" id="resultado" aria-live="polite"></div>
@@ -111,7 +112,7 @@
           <select id="m-esquema" name="esquema"></select></label>
         <label class="campo" for="m-tirantes"><span>Travamento do banzo inferior</span>
           <select id="m-tirantes" name="tirantes">
-            <option value="0">Só nos pórticos</option>
+            <option value="0">Sem travamento intermédio (só nos pórticos)</option>
             <option value="1" selected>Tirantes a meio vão</option>
             <option value="2">Tirantes a terços do vão</option>
           </select></label>
@@ -166,14 +167,17 @@
         </div>
         <p class="nota">+0,2 / −0,3 sem face dominante. Com portões grandes que possam ficar abertos, ver NP EN 1991-1-4, 7.2.9(5).</p>
         <label class="verificar" for="m-costa"><input id="m-costa" name="costa" type="checkbox"> A menos de 5 km da costa</label>
-        <label class="verificar" for="m-orografia"><input id="m-orografia" name="orografia" type="checkbox"> Vale ou estuário com exposição desfavorável</label>
         <p class="nota" id="m-zona-vento"></p>
+        <label class="campo" for="m-c0"><span>Coeficiente de orografia c<sub>0</sub></span>
+          <span class="entrada"><input id="m-c0" name="c0" type="text" inputmode="decimal" min="1" max="2" step="0.05" value="1,0"></span></label>
+        <p class="nota">c<sub>0</sub> = 1,0 em terreno plano: declive médio a barlavento inferior a 3° (NP EN 1991-1-4, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, calcule c<sub>0</sub> pelo Anexo A.3. Em vales onde o vento possa ser afunilado, ou com orografia complexa, a norma remete para parecer técnico ou ensaio (A.3(4) e NA–4.3.3(1)): a app não trata esses casos, mas aceita aqui um c<sub>0</sub> que esteja justificado.</p>
       </fieldset>
 
       <label class="campo" for="m-aco" id="m-campo-aco"><span>Classe do aço (IPE)</span>
         <select id="m-aco" name="aco"></select></label>
 
       <p class="nota nota-exemplo" id="m-nota-exemplo">Exemplo carregado: pavilhão de 20 × 48 m, alturas de 7,0 m no pilar e 8,4 m a meio vão, com painel sandwich.</p>
+      <div class="acoes-form"><button type="button" class="botao-sec" id="repor-madres">Repor o exemplo</button><span class="nota">Os valores ficam guardados neste aparelho.</span></div>
     </form>
 
     <div class="resultado" id="resultado-madres" aria-live="polite"></div>
@@ -193,8 +197,8 @@
 </main>
 
 <footer class="rodape">
-  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação, resistência e bambeamento, γ<sub>M0</sub> = γ<sub>M1</sub> = 1,0) · EN 10025-2/-3 e EN 10346 (classes de aço) · NP EN 1990, NP EN 1991-1-1, 1991-1-3 e 1991-1-4 + Anexos Nacionais (ações e combinações) · catálogos Constálica (Madremax, Omegamax).</p>
-  <p>Propriedades dos perfis laminados calculadas a partir das dimensões nominais, incluindo as concordâncias. Coeficientes de pressão do vento conferidos com a NP EN 1991-1-4; restantes valores dos Anexos Nacionais confirmados em fontes secundárias. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
+  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação, resistência e bambeamento, γ<sub>M0</sub> = γ<sub>M1</sub> = 1,0) · EN 10025-2/-3 (f<sub>y</sub> e f<sub>u</sub> por escalão de espessura, NA–3.2.1(1)) e EN 10346 (classes de aço) · NP EN 1990, NP EN 1991-1-1, 1991-1-3 e 1991-1-4 + Anexos Nacionais (ações e combinações) · catálogos Constálica (Madremax, Omegamax).</p>
+  <p>Propriedades dos perfis laminados calculadas a partir das dimensões nominais, incluindo as concordâncias. Valores dos Anexos Nacionais conferidos com o texto das normas. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
 </footer>
 
 <script src="js/perfis.js"></script>

@@ -43,5 +43,15 @@ esperar("IPE 300 S355 classe flexão", Seccao.classificar(porNome["IPE 300"], 35
 esperar("HEA 1000 S355 classe compressão", Seccao.classificar(porNome["HEA 1000"], 355).compressao, 4);
 esperar("HEB 300 S275 classe compressão", Seccao.classificar(porNome["HEB 300"], 275).compressao, 1);
 
+// fy e fu pela norma de produto (NA–3.2.1(1)): escalões ≤ 16, ≤ 40, ≤ 63, ≤ 80 mm da EN 10025-2/-3.
+esperar("S355 fy com t = 16 mm", Seccao.tensoes("S355", 16).fy, 355);
+esperar("S355 fy com t = 16,5 mm", Seccao.tensoes("S355", 16.5).fy, 345);
+esperar("S355 fy com t = 40 mm", Seccao.tensoes("S355", 40).fy, 345);
+esperar("S275 fy com t = 41 mm", Seccao.tensoes("S275", 41).fy, 255);
+esperar("S235 fy com t = 70 mm", Seccao.tensoes("S235", 70).fy, 215);
+esperar("S460 fy com t = 19 mm (EN 10025-3)", Seccao.tensoes("S460", 19).fy, 440);
+esperar("S355 fu (3 ≤ t ≤ 100 mm)", Seccao.tensoes("S355", 10).fu, 470);
+esperar("HEB 300 S275 (tf = 19 mm) fy", Seccao.tensoes("S275", porNome["HEB 300"].tf).fy, 265);
+
 console.log("\n" + (verificados - falhas) + "/" + verificados + " verificações dentro da tolerância");
 process.exit(falhas ? 1 : 0);

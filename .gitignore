@@ -2,3 +2,7 @@
 Thumbs.db
 node_modules/
 *.log
+
+# Normas e catálogos de fabricantes: só para consulta local, nunca no repositório
+docs/normas/
+docs/catalogos/

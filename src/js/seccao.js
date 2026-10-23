@@ -9,12 +9,15 @@ var Seccao = (function () {
   var GAMMA_M1 = 1.0;
   var DENSIDADE = 7850; // kg/m³
 
-  // NP EN 1993-1-1, Quadro 3.1 — fy e fu (MPa) para t ≤ 40 mm e 40 < t ≤ 80 mm.
+  // fy e fu (MPa) da norma de produto, como manda o NA–3.2.1(1) da NP EN 1993-1-1 (opção a), e não do
+  // Quadro 3.1, que dá valores mais altos entre 16 e 40 mm. fy por escalões de espessura nominal
+  // (t ≤ 16, ≤ 40, ≤ 63, ≤ 80 mm); fu mínimo para 3 ≤ t ≤ 100 mm.
+  var ESCALOES_T = [16, 40, 63, 80];
   var ACOS = {
-    S235: { norma: "EN 10025-2", ate40: [235, 360], ate80: [215, 360] },
-    S275: { norma: "EN 10025-2", ate40: [275, 430], ate80: [255, 410] },
-    S355: { norma: "EN 10025-2", ate40: [355, 510], ate80: [335, 470] },
-    S460: { norma: "EN 10025-3", ate40: [460, 540], ate80: [430, 540] }
+    S235: { norma: "EN 10025-2", fy: [235, 225, 215, 215], fu: 360 },
+    S275: { norma: "EN 10025-2", fy: [275, 265, 255, 245], fu: 410 },
+    S355: { norma: "EN 10025-2", fy: [355, 345, 335, 325], fu: 470 },
+    S460: { norma: "EN 10025-3", fy: [460, 440, 430, 410], fu: 540 }
   };
 
   // Concordância (área, centróide e inércia própria) de cada um dos 4 cantos arredondados.
@@ -81,10 +84,11 @@ var Seccao = (function () {
     };
   }
 
+  // t: espessura nominal do elemento mais espesso da secção (o banzo, nos perfis I e H).
   function tensoes(classeAco, t) {
-    var a = ACOS[classeAco];
-    var v = t <= 40 ? a.ate40 : a.ate80;
-    return { fy: v[0], fu: v[1] };
+    var a = ACOS[classeAco], i = 0;
+    while (i < ESCALOES_T.length - 1 && t > ESCALOES_T[i]) i++;
+    return { fy: a.fy[i], fu: a.fu, escalao: [i ? ESCALOES_T[i - 1] : 0, ESCALOES_T[i]] };
   }
 
   // EC3 Quadro 5.2 — classe para flexão pura (y-y) e compressão pura.

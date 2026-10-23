@@ -1,6 +1,6 @@
 /* Vista "Madres": formulário, esquiços e resultados. Depende de acoes.js, madres.js e app.js. */
 (function () {
-  var fmt = window.SteelFrames.fmt;
+  var fmt = window.SteelFrames.fmt, Memoria = window.SteelFrames.Memoria;
   var $ = function (id) { return document.getElementById(id); };
   var form = $("form-madres");
   var saida = $("resultado-madres");
@@ -38,7 +38,7 @@
       posicao: form.elements.posicao.value,
       gRev: num("grev"), gInst: num("ginst"), qk: num("qk"),
       altitude: num("altitude"), altitudeAmbigua: /^\d{1,3}[.,\s\u00a0\u202f]\d{3}$/.test(String(form.elements.altitude.value).trim()), zonaNeve: form.elements.zonaNeve.value, exposicao: form.elements.exposicao.value,
-      terreno: form.elements.terreno.value, costa: form.elements.costa.checked, orografia: form.elements.orografia.checked,
+      terreno: form.elements.terreno.value, costa: form.elements.costa.checked, c0: num("c0"),
       cpiMax: num("cpiMax"), cpiMin: num("cpiMin"),
       aco: form.elements.aco.value
     };
@@ -68,6 +68,7 @@
     if (!(d.gRev >= 0) || !(d.gInst >= 0) || !(d.qk >= 0)) erros.push("As cargas têm de ser números iguais ou superiores a zero.");
     if (!(d.altitude >= 0 && d.altitude <= 1500)) erros.push("A altitude tem de estar entre 0 e 1500 m (limite da NP EN 1991-1-3).");
     if (d.largura > 0 && d.s > d.largura / 2) erros.push("O espaçamento entre madres é maior do que a meia largura do pavilhão.");
+    if (!(d.c0 >= 1 && d.c0 <= 2)) erros.push("O coeficiente de orografia c₀ tem de estar entre 1,0 e 2,0.");
     if (!(d.cpiMax >= d.cpiMin) || !(d.cpiMax >= -1.5 && d.cpiMax <= 1) || !(d.cpiMin >= -1.5 && d.cpiMin <= 1)) erros.push("Os coeficientes de pressão interior têm de estar entre −1,5 e +1,0, com o máximo maior ou igual ao mínimo.");
     if (d.esquema === "continua2" && d.comprimento < 2 * d.L) erros.push("Uma madre contínua de 2 vãos precisa de pelo menos 2 vãos entre pórticos (comprimento ≥ 2 L).");
     if (d.esquema === "continua3" && d.comprimento < 3 * d.L) erros.push("Uma madre contínua de 3 ou mais vãos precisa de pelo menos 3 vãos entre pórticos (comprimento ≥ 3 L).");
@@ -81,9 +82,9 @@
     // z_e = altura do topo da cobertura: altura medida à face inferior mais a espessura do revestimento,
     // tomada por excesso (painel e nervuras).
     var ze = d.meio + ESPESSURA_COBERTURA;
-    var zonaVento = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
+    var zonaVento = d.costa || d.altitude > 600 ? "B" : "A";
     var area = d.s * d.L;
-    var vento = Acoes.vento(zonaVento, d.terreno, ze, d.alfa, d.posicao, area, [d.cpiMax, d.cpiMin]);
+    var vento = Acoes.vento(zonaVento, d.terreno, ze, d.alfa, d.posicao, area, [d.cpiMax, d.cpiMin], d.c0);
     var neve = Acoes.neve(d.zonaNeve, d.altitude, d.exposicao, d.alfa);
     var cargas = Acoes.cargasMadre({
       espacamento: d.s, alfa: d.alfa, gRev: d.gRev, gInst: d.gInst, qH: d.qk, s: neve.s,
@@ -96,8 +97,8 @@
     };
     var dim;
     if (d.tipo === "IPE") {
-      // Todos os IPE têm tf ≤ 40 mm, por isso fy é o mesmo para toda a série (Quadro 3.1).
-      cfg.fy = Seccao.tensoes(d.aco, 40).fy;
+      // fy de cada IPE pela espessura do banzo (escalões da EN 10025-2).
+      cfg.aco = d.aco;
       dim = Madres.dimensionar(IPE, cfg);
     } else {
       dim = Madres.dimensionarOmegas(OMEGAS[d.tipo], cfg);
@@ -313,31 +314,37 @@
       return "<tr><th scope=\"row\">" + nome + "</th><td>" + simbolo + "</td><td>" + fmt(x.n, 3) + "</td><td>" + fmt(x.t, 3) + "</td></tr>";
     }
     var zonaNota = r.zonaVento === "B"
-      ? (d.costa ? "faixa costeira de 5 km" : d.orografia ? "exposição orográfica desfavorável" : "altitude superior a 600 m")
+      ? (d.costa ? "faixa costeira de 5 km" : "altitude superior a 600 m")
       : "generalidade do território";
+    var alertaNeve = d.zonaNeve !== "Z1" ? ""
+      : '<p class="alerta">Zona Z1: o Anexo Nacional (Quadro NA–A.1) exige situações acidentais que não estão incluídas aqui. ' +
+        "Em todos os concelhos da zona Z1, o deslocamento excecional da neve (Anexo B), que conta quando há platibandas, obstáculos na cobertura ou construções mais altas encostadas. " +
+        "Em Aguiar da Beira, Fornos de Algodres, Mangualde, Nelas, Penalva do Castelo, Sátão e Viseu, também a queda excecional de neve, com C<sub>esl</sub> = 2,5.</p>";
     return '<section class="cartao"><h2>Ações</h2><div class="acoes">' +
       '<div class="acao"><h3>Permanentes</h3><p>Revestimento ' + fmt(d.gRev, 2) + " + instalações " + fmt(d.gInst, 2) +
         " = <b>" + fmt(d.gRev + d.gInst, 2) + " kN/m²</b> de cobertura, mais o peso próprio da madre.</p></div>" +
-      '<div class="acao"><h3>Sobrecarga (categoria H)</h3><p>q<sub>k</sub> = <b>' + fmt(d.qk, 2) + " kN/m²</b> em projeção horizontal. Não se combina com a neve nem com o vento.</p></div>" +
+      '<div class="acao"><h3>Sobrecarga (categoria H)</h3><p>q<sub>k</sub> = <b>' + fmt(d.qk, 2) + " kN/m²</b> em projeção horizontal. Não se combina com a neve nem com o vento.<br>" +
+        "Q<sub>k</sub> = <b>" + fmt(Acoes.SOBRECARGA_H.Qk, 1) + " kN</b> concentrada, verificada à parte, sem q<sub>k</sub> (6.3.4.2(3)P).</p></div>" +
       '<div class="acao"><h3>Neve · zona ' + d.zonaNeve + "</h3><p>s<sub>k</sub> = C<sub>z</sub> [1 + (H/500)²] = " + fmt(Acoes.NEVE_CZ[d.zonaNeve], 2) +
         " × [1 + (" + fmt(d.altitude, 0) + "/500)²] = " + fmt(n.sk, 3) + " kN/m²<br>s = μ<sub>1</sub> C<sub>e</sub> C<sub>t</sub> s<sub>k</sub> = " +
         fmt(n.mu1, 2) + " × " + fmt(n.Ce, 1) + " × " + fmt(n.Ct, 1) + " × " + fmt(n.sk, 3) + " = <b>" + fmt(n.s, 3) + " kN/m²</b> em projeção horizontal</p></div>" +
       '<div class="acao"><h3>Vento · zona ' + r.zonaVento + "</h3><p>" + zonaNota + ": v<sub>b</sub> = " + p.vb + " m/s · terreno " + d.terreno +
         " · z<sub>e</sub> = " + fmt(r.hCumeeira, 2) + " + " + fmt(ESPESSURA_COBERTURA, 2) + " = " + fmt(r.ze, 2) + " m" + (p.z > r.ze ? " (inferior a z<sub>min</sub>: usa-se z = " + fmt(p.z, 0) + " m)" : "") +
-        "<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
+        "<br>c<sub>r</sub> = " + fmt(p.cr, 3) + " · c<sub>0</sub> = " + fmt(p.c0, 2) + " · I<sub>v</sub> = " + fmt(p.Iv, 3) +
         " · q<sub>p</sub> = <b>" + fmt(p.qp, 3) + " kN/m²</b><br>Área carregada A = s × L = " + fmt(r.area, 1) + " m²<br>" +
         "Sucção: c<sub>pe</sub> = " + fmt(w.succao.cpe, 2) + " (zona " + w.succao.zona + ", θ = " + w.succao.direcao + "), c<sub>pi</sub> = " + coef(w.succao.cpi) +
         " → <b>" + fmt(w.succao.w, 3) + " kN/m²</b><br>" +
         "Pressão: c<sub>pe</sub> = " + fmt(w.pressao.cpe, 2) + " (zona " + w.pressao.zona + "), c<sub>pi</sub> = " + coef(w.pressao.cpi) +
         " → <b>" + fmt(w.pressao.w, 3) + " kN/m²</b></p></div>" +
       "</div>" +
-      (d.zonaNeve === "Z1" ? '<p class="alerta">Em alguns concelhos da zona Z1 (Aguiar da Beira, Fornos de Algodres, Mangualde, Nelas, Penalva do Castelo, Sátão e Viseu), o Anexo Nacional exige também a situação acidental de queda excecional de neve. Essa situação não está incluída aqui.</p>' : "") +
+      alertaNeve +
       '<h3 class="sub">Por metro de madre (espaçamento s = ' + fmt(d.s, 2) + ' m)</h3>' +
       '<div class="tabela-rolo tabela-baixa"><table class="tabela tabela-simples"><thead><tr><th scope="col">Ação</th><th scope="col"></th><th scope="col">Normal<span class="un">kN/m</span></th><th scope="col">No plano<span class="un">kN/m</span></th></tr></thead><tbody>' +
         linha("Permanentes (sem a madre)", "G", k.G) + linha("Sobrecarga", "Q", k.Q) + linha("Neve", "S", k.S) +
         linha("Vento em pressão", "W<sub>p</sub>", k.Wp) + linha("Vento em sucção", "W<sub>s</sub>", k.Ws) +
       "</tbody></table></div>" +
-      '<p class="nota">Componente normal positiva para baixo. A componente no plano da cobertura é resistida pela madre em flexão em torno do eixo fraco, entre tirantes.</p>' +
+      '<p class="nota">Componente normal positiva para baixo. A componente no plano da cobertura é resistida pela madre em flexão em torno do eixo fraco, entre tirantes. ' +
+        "A carga concentrada Q<sub>k</sub> decompõe-se em " + fmt(k.QP.n, 3) + " kN normal e " + fmt(k.QP.t, 3) + " kN no plano.</p>" +
       "</section>";
   }
 
@@ -350,11 +357,12 @@
       Q: "1,35 G + 1,5 Q",
       S: "1,35 G + 1,5 S + 1,5 × " + fmt(psi.W, 1) + " W<sub>p</sub>",
       Wp: "1,35 G + 1,5 W<sub>p</sub> + 1,5 × " + fmt(psi.S, 1) + " S",
-      Ws: "1,0 G<sub>rev</sub> + 1,5 W<sub>s</sub>"
+      Ws: "1,0 G<sub>rev</sub> + 1,5 W<sub>s</sub>",
+      QP: "1,35 G + 1,5 Q<sub>k</sub> (concentrada)"
     };
     var linhas = r.comb.elu.map(function (c) {
       var qn = c.qn + gM * c.gamaG * Math.cos(a), qt = c.qt + gM * c.gamaG * Math.sin(a);
-      var es = Madres.esforcos(e, qn, c.qnQ || 0, L);
+      var es = Madres.esforcos(e, qn, c.qnQ || 0, L, c.Pn);
       return "<tr><th scope=\"row\">" + formulas[c.id] + "</th><td>" + fmt(qn, 3) + "</td><td>" + fmt(qt, 3) + "</td><td>" +
         fmt(es.mVao, 2) + "</td><td>" + (e.mApoio ? fmt(-es.mApoio, 2) : "—") + "</td><td>" + fmt(es.V, 2) + "</td></tr>";
     }).join("");
@@ -363,7 +371,9 @@
       '<th scope="col">q<sub>n,Ed</sub><span class="un">kN/m</span></th><th scope="col">q<sub>t,Ed</sub><span class="un">kN/m</span></th>' +
       '<th scope="col">M<sub>vão</sub><span class="un">kN·m</span></th><th scope="col">M<sub>apoio</sub><span class="un">kN·m</span></th><th scope="col">V<sub>Ed</sub><span class="un">kN</span></th></tr></thead><tbody>' +
       linhas + "</tbody></table></div>" +
-      '<p class="nota">Inclui o peso próprio do ' + v.perfil.nome + " (" + fmt(gM, 3) + " kN/m). Momento positivo comprime o banzo superior. Para a flecha usam-se as mesmas combinações com coeficientes 1,0 (combinação característica).</p>" +
+      '<p class="nota">Inclui o peso próprio do ' + v.perfil.nome + " (" + fmt(gM, 3) + " kN/m). Momento positivo comprime o banzo superior. " +
+        "Na linha de Q<sub>k</sub>, q<sub>n,Ed</sub> e q<sub>t,Ed</sub> são só as permanentes; os momentos e o corte incluem 1,5 Q<sub>k</sub> na posição mais desfavorável. " +
+        "Para a flecha usam-se as combinações de ações distribuídas com coeficientes 1,0 (combinação característica); Q<sub>k</sub> é uma verificação local e não entra nas flechas.</p>" +
       "</section>";
   }
 
@@ -387,7 +397,7 @@
     var d = r.d;
     return '<section class="cartao"><h2>Hipóteses</h2><ul class="hipoteses">' +
       (d.tipo === "IPE"
-        ? "<li>Madres de perfis IPE laminados, com o eixo forte normal à cobertura e o revestimento fixado ao banzo superior, que fica travado lateralmente.</li>" +
+        ? "<li>Madres de perfis IPE laminados, com o eixo forte normal à cobertura e o revestimento fixado ao banzo superior, que fica travado lateralmente. Esse travamento admite-se como na BB.2.1 da NP EN 1993-1-1: chapa trapezoidal ligada à madre em todas as nervuras, com rigidez de corte S que cumpra a expressão (BB.2). Com painel sandwich, ou com fixação pela crista, confirme essa rigidez com o fabricante do revestimento (ver também a EN 1993-1-3, 10.1.1(5)). Sem ela, o banzo superior comprimido sob a gravidade também tem de ser verificado ao bambeamento, o que a app não faz.</li>" +
           "<li>Bambeamento do banzo inferior verificado pelo caso geral da EC3 (6.3.2.2) entre travamentos (tirantes ou escoras), com z<sub>g</sub> = 0 e sem contar com a restrição do revestimento. São hipóteses do lado da segurança.</li>"
         : "<li>Madres " + d.tipo + " (" + OMEGAS[d.tipo].fabricante + ", " + OMEGAS[d.tipo].aco + ", f<sub>yb</sub> = " + OMEGAS[d.tipo].fyb + " MPa) com as propriedades da secção bruta do catálogo. Nas madres contínuas, a secção sobreposta resiste ao momento sobre os apoios" + (OMEGAS[d.tipo].seccoes[0].sobreposta ? "" : " (sem dados de sobreposição neste catálogo, usa-se a secção simples)") + ".</li>" +
           "<li>Flechas calculadas com o I<sub>y</sub> bruto da secção simples. A componente no plano da cobertura é resistida por flexão em torno de z (W<sub>z,min</sub>) entre travamentos.</li>" +
@@ -396,11 +406,15 @@
       "<li>Na combinação com o vento em sucção só o revestimento e a madre contam como carga permanente favorável; as instalações suspensas não.</li>" +
       (d.tipo !== "IPE" && d.esquema !== "simples" ? "<li>Sobreposição sobre os apoios de pelo menos " + (d.esquema === "continua2" ? "0,10 L" : "0,05 L") + " para cada lado. Com sobreposições menores, a secção simples no fim da sobreposição tem de ser verificada à parte.</li>" : "") +
       "<li>Vento: c<sub>pe</sub> dos Quadros 7.2 e 7.4 da NP EN 1991-1-4 para as zonas " + Acoes.POSICOES[d.posicao].zonas.join(", ") +
-        ", interpolados para A = s × L. c<sub>pi</sub> = " + coef(d.cpiMax) + " e " + coef(d.cpiMin) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1, c<sub>0</sub> = 1.</li>" +
+        ", interpolados para A = s × L. c<sub>pi</sub> = " + coef(d.cpiMax) + " e " + coef(d.cpiMin) + ". Os valores +0,2 e −0,3 só valem sem face dominante (7.2.9(6)): com portões grandes que possam ficar abertos, c<sub>pi</sub> calcula-se pela 7.2.9(5). c<sub>s</sub>c<sub>d</sub> = 1.</li>" +
+      "<li>Orografia: c<sub>0</sub> = " + fmt(d.c0, 2) + (d.c0 === 1 ? ", válido em terreno plano (declive médio a barlavento inferior a 3°, 4.3.3(2)). Perto do topo de colinas, falésias ou escarpas, q<sub>p</sub> pode aumentar muito: calcule c<sub>0</sub> pelo Anexo A.3." : ", introduzido pelo utilizador (Anexo A.3 ou estudo específico).") +
+        " Vales com afunilamento e orografia complexa, para os quais a norma remete para parecer técnico ou ensaio, ficam fora do âmbito da app.</li>" +
+      "<li>Sobrecarga: Q<sub>k</sub> = " + fmt(Acoes.SOBRECARGA_H.Qk, 1) + " kN concentrada, verificada à parte (6.3.4.2(3)P), em qualquer ponto do vão e na direção da gravidade.</li>" +
       "<li>Alturas medidas do pavimento à face inferior da cobertura. Para o vento, z<sub>e</sub> = altura a meio vão + " + fmt(ESPESSURA_COBERTURA, 2) + " m, uma espessura do revestimento tomada por excesso.</li>" +
-      "<li>Neve sem acumulações junto a platibandas, desníveis ou edifícios contíguos.</li>" +
+      "<li>Neve sem acumulações junto a platibandas, desníveis ou edifícios contíguos, e sem as situações acidentais de neve excecional (Quadro NA–A.1).</li>" +
+      (d.tipo === "IPE" ? "<li>f<sub>y</sub> de cada IPE pela EN 10025-2, conforme a espessura do banzo (NA–3.2.1(1) da NP EN 1993-1-1).</li>" : "") +
       (r.ze > 15 ? "<li><b>A altura do pavilhão (" + fmt(r.ze, 1) + " m) é superior a 15 m:</b> o valor c<sub>s</sub>c<sub>d</sub> = 1 deixa de estar garantido pela NP EN 1991-1-4, 6.2(1)a e tem de ser justificado.</li>" : "") +
-      "<li>Os coeficientes de pressão exterior foram conferidos com os Quadros 7.2, 7.4a e 7.4b da NP EN 1991-1-4. Os restantes valores dos Anexos Nacionais foram confirmados em fontes secundárias.</li>" +
+      "<li>Os valores das ações, das combinações e do aço foram conferidos com o texto da NP EN 1990, NP EN 1991-1-1, 1991-1-3, 1991-1-4 e NP EN 1993-1-1, com os respetivos Anexos Nacionais.</li>" +
       "</ul></section>";
   }
 
@@ -412,7 +426,7 @@
       : "") + "Alturas medidas do pavimento à face inferior da cobertura.";
     $("m-campo-aco").hidden = d.tipo !== "IPE";
     var erros = validar(d);
-    var zona = d.costa || d.orografia || d.altitude > 600 ? "B" : "A";
+    var zona = d.costa || d.altitude > 600 ? "B" : "A";
     $("m-zona-vento").innerHTML = "Zona de vento <b>" + zona + "</b> (v<sub>b,0</sub> = " + Acoes.VENTO_VB0[zona] + " m/s). A zona B aplica-se a menos de 5 km da costa ou acima de 600 m de altitude.";
     if (erros.length) {
       saida.innerHTML = '<section class="cartao"><h2>Dados por corrigir</h2><ul class="hipoteses">' + erros.map(function (e) { return "<li>" + e + "</li>"; }).join("") + "</ul></section>";
@@ -437,6 +451,19 @@
       return '<option value="' + a + '"' + (a === "S275" ? " selected" : "") + ">" + a + "</option>";
     }).join("");
     form.elements.grev.value = REVESTIMENTOS[0].g.toFixed(2).replace(".", ",");
+    var padrao = Memoria.doFormulario(form);
+    var guardado = Memoria.ler("madres");
+    if (guardado) {
+      Memoria.paraFormulario(form, guardado);
+      $("m-nota-exemplo").hidden = true;
+    }
+    $("repor-madres").addEventListener("click", function () {
+      Memoria.paraFormulario(form, padrao);
+      Memoria.apagar("madres");
+      estado.escolhido = null;
+      $("m-nota-exemplo").hidden = false;
+      render();
+    });
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
@@ -448,6 +475,7 @@
       if (e.target.name === "grev") form.elements.revestimento.value = "outro";
       estado.escolhido = null;
       $("m-nota-exemplo").hidden = true;
+      Memoria.gravar("madres", Memoria.doFormulario(form));
       render();
     });
     saida.addEventListener("click", function (e) {
