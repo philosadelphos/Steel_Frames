@@ -151,7 +151,26 @@ Dimensões da EN 10365 tal como as publica o fornecedor J. Justino das Neves (jj
 
 **Não verificado:** carga concentrada de manutenção sobre o painel, fixações (arrancamento, número por madre) e largura de apoio. A rigidez C<sub>D</sub> da ligação painel–madre não consta de nenhum dos catálogos: pedir aos fabricantes.
 
-## 7. Ideias anotadas para mais tarde
+## 7. Cantoneiras e perfis T (gama Masterferro)
+
+`src/js/perfis-lt.js` é gerado por `ferramentas/dados_masterferro.py` a partir das tabelas técnicas da Masterferro (Braga) em `docs/catalogos/` (fora do git): TT2.4 (cantoneiras de abas iguais, 52 secções), TT2.5 (abas desiguais, 40) e TT2.6 (T de abas iguais, 14). Os catálogos só dão as dimensões, a massa por metro e o aço (S275JR): nem raios nem propriedades. Conferência feita em 13/11/2026.
+
+- **Raios:** os da EN 10056-1 nas cantoneiras (r<sub>1</sub> por aba ou par de abas, r<sub>2</sub> = r<sub>1</sub>/2) e da EN 10055 nos T (r<sub>1</sub> = t, r<sub>2</sub> = t/2 e r<sub>3</sub>). A norma não estava disponível: os raios vêm de catálogos que a reproduzem (lista BS EN 10056-1, tabela DIN EN 10056-1 de 1998 de um prontuário alemão e, nos T de 30 a 50, um fabricante com as dimensões DIN 1024 / EN 10055). Na L 60×30 as duas fontes divergem (r<sub>1</sub> = 5 ou 6 mm): usa-se 5 mm, o da tabela DIN EN 10056-1 com que as propriedades são conferidas.
+- **Fontes consultadas** (na internet, em 13/11/2026): lista das secções e raios da BS EN 10056-1 (engineersedge.com); tabela da DIN EN 10056-1:1998 num excerto de prontuário publicado pela TU Dortmund (`b-tabelle-halbzeuge.pdf`); fichas *Equal angles* e *Unequal angles* da British Steel (2026); tabela de T 30 a T 50 da Kocaer Steel (dimensões DIN 1024, tolerâncias EN 10055).
+- **Secções fora da lista da norma:** 16 cantoneiras de abas iguais e 15 de abas desiguais. Quando a norma tem a mesma aba (ou o mesmo par de abas), usa-se o seu raio, que não depende da espessura; nas L 12, L 16, L 55, L 50×40, L 90×60, L 120×60, L 130×65, T 12 e T 16 o raio é estimado pela série vizinha. A app assinala-as.
+- **Forma dos T:** a EN 10055 tem banzo e alma inclinados (perfis da antiga DIN 1024). Com faces paralelas, a área sai 1,0 a 1,5 % acima da massa da norma e I<sub>y</sub> 5 a 8 % acima dos valores publicados. A forma foi ajustada aos valores publicados: face interior do banzo a 2 %, com t a meio da consola; faces da alma a 1,5 % cada, com t a 3/8 da alma a contar do banzo. Assim, a massa bate com a da norma de T20 a T100 (±0,4 %) e as propriedades de T30 a T50 com ±2,1 %. **Por confirmar com o texto da EN 10055** (inclinações e onde se mede t).
+- **Conferência** (`testes/verificar.js`): massa calculada contra a Masterferro em todas as secções (cantoneiras ±0,9 %, T ±0,6 %, fora as divergências abaixo); propriedades de 12 cantoneiras (A, c, I, W<sub>el</sub>, i, I<sub>u</sub>, I<sub>v</sub>, tg α) contra a tabela DIN EN 10056-1 e a British Steel (2026), com tolerância de 1,5 %; T30 a T50 com 2,5 %.
+- **Divergências do catálogo da Masterferro** (a massa publicada não corresponde à secção; não afetam o cálculo, que só usa as dimensões):
+  - L 20×20×3, L 25×25×3 e L 30×30×3: a coluna t = 3 está desalinhada uma linha. As massas 1,11, 1,35 e 1,85 kg/m são as da L 25×25×3, da L 30×30×3 e da L 35×35×3,5; as corretas são 0,88, 1,12 e 1,36 kg/m.
+  - L 150×150×15: 31,4 kg/m, quando a EN 10056-1 dá 33,8 kg/m (31,4 corresponde a uma espessura de 14 mm).
+  - L 90×60×6: 6,28 kg/m, menos do que as duas abas sem concordâncias (6,78 kg/m); calcula-se 6,84 kg/m.
+  - L 12×12×3 e T 12: as duas têm 0,525 kg/m; com os raios estimados, calcula-se 0,50 kg/m.
+  - A nota do catálogo "L35x35x3 = 35x35x3,5" foi aplicada: a secção é a L 35×35×3,5.
+- **Verificação EC3 (1.ª versão):** classe à compressão pelo Quadro 5.2 (cantoneiras: abas em consola, c = a − t − r<sub>1</sub>, e a linha própria das cantoneiras, h/t ≤ 15ε e (b + h)/2t ≤ 11,5ε; T: banzo e alma em consola) e N<sub>pl,Rd</sub> à tração e à compressão. Muitas cantoneiras correntes são de classe 4 à compressão (por exemplo, L 60×60×5 em S275); a área efetiva (EN 1993-1-5) ainda não é calculada.
+- **Por fazer:** flexão nos eixos principais (W<sub>el,u</sub>, W<sub>el,v</sub> já calculados) e bambeamento; encurvadura (v-v nas cantoneiras isoladas, por flexão-torção nos T); N<sub>u,Rd</sub> da secção útil e cantoneiras ligadas por uma aba (NP EN 1993-1-8, 3.10.3); área efetiva das secções de classe 4; I<sub>t</sub> e W<sub>pl</sub>.
+- **A pedir à Masterferro:** confirmar as massas acima e os raios das secções fora da norma.
+
+## 8. Ideias anotadas para mais tarde
 
 - Painéis de outros fabricantes (Kingspan, Hiansa, ...) e de fachada, com as respetivas tabelas.
 - Coberturas de uma água (Quadros 7.3a e 7.3b da NP EN 1991-1-4).
@@ -160,3 +179,4 @@ Dimensões da EN 10365 tal como as publica o fornecedor J. Justino das Neves (jj
 - Coberturas em terraço com platibanda ou bordos arredondados (restantes linhas do Quadro 7.2).
 - Situação acidental de neve excecional e acumulação de neve junto a platibandas e desníveis.
 - Pórtico: cutelos, bases rotuladas, ligações e placas de base, pórticos de empena.
+- Cantoneiras e T: completar a verificação EC3 (ver secção 7) e juntar as secções da EN 10056-1 e da EN 10055 que a Masterferro não vende (para identificar perfis de obras antigas).

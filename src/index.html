@@ -32,7 +32,7 @@
   <section class="vista vista-dupla" id="vista-identificar" aria-labelledby="tab-identificar">
     <form class="painel-medidas" id="form-medidas" autocomplete="off">
       <h1 class="titulo-painel">Medidas do perfil</h1>
-      <p class="nota">Meça a secção em obra e introduza os valores em milímetros. A altura e a largura bastam; as espessuras ajudam a distinguir séries parecidas. <a class="ajuda-manual" href="#manual-identificar">manual</a></p>
+      <p class="nota">Meça a secção em obra e introduza os valores em milímetros. Basta uma medida para ver os perfis compatíveis; cada medida a mais encurta a lista. <a class="ajuda-manual" href="#manual-identificar">manual</a></p>
 
       <label class="campo" for="in-forma"><span>Forma da secção</span>
         <select id="in-forma" name="forma">
@@ -41,6 +41,10 @@
           <option value="omega">Ómega enformado a frio (Superomega®, O Feliz)</option>
           <option value="C">C enformado a frio (O Feliz)</option>
           <option value="Z">Z enformado a frio (O Feliz)</option>
+          <option value="Liguais">Cantoneira de abas iguais (L, EN 10056-1)</option>
+          <option value="Ldesiguais">Cantoneira de abas desiguais (L, EN 10056-1)</option>
+          <option value="T">Perfil T de abas iguais (EN 10055)</option>
+          <option value="qualquer">Qualquer forma (procura em todas as séries)</option>
         </select></label>
 
       <figure class="esquema" aria-hidden="true">
@@ -104,21 +108,67 @@
           <text x="150" y="37" class="esquema-txt esquema-txt-s">a</text>
           <text x="88" y="79" class="esquema-txt esquema-txt-s">t</text>
         </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="Liguais" hidden>
+          <path class="esquema-perfil" d="M44 20h12v88h88v12H44z"/>
+          <g class="esquema-cota">
+            <line x1="32" y1="20" x2="32" y2="120"/><line x1="28" y1="20" x2="36" y2="20"/><line x1="28" y1="120" x2="36" y2="120"/>
+            <line x1="44" y1="132" x2="144" y2="132"/><line x1="44" y1="128" x2="44" y2="136"/><line x1="144" y1="128" x2="144" y2="136"/>
+          </g>
+          <text x="22" y="74" class="esquema-txt">a</text>
+          <text x="94" y="147" class="esquema-txt">a</text>
+          <text x="70" y="40" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="57" y1="36" x2="67" y2="36"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="Ldesiguais" hidden>
+          <path class="esquema-perfil" d="M54 20h11v89h56v11H54z"/>
+          <g class="esquema-cota">
+            <line x1="42" y1="20" x2="42" y2="120"/><line x1="38" y1="20" x2="46" y2="20"/><line x1="38" y1="120" x2="46" y2="120"/>
+            <line x1="54" y1="132" x2="121" y2="132"/><line x1="54" y1="128" x2="54" y2="136"/><line x1="121" y1="128" x2="121" y2="136"/>
+          </g>
+          <text x="32" y="74" class="esquema-txt">a</text>
+          <text x="88" y="147" class="esquema-txt">b</text>
+          <text x="79" y="40" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="66" y1="36" x2="76" y2="36"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="T" hidden>
+          <path class="esquema-perfil" d="M30 24h100v12l-42 1v89H72V37l-42-1z"/>
+          <g class="esquema-cota">
+            <line x1="30" y1="12" x2="130" y2="12"/><line x1="30" y1="8" x2="30" y2="16"/><line x1="130" y1="8" x2="130" y2="16"/>
+            <line x1="18" y1="24" x2="18" y2="126"/><line x1="14" y1="24" x2="22" y2="24"/><line x1="14" y1="126" x2="22" y2="126"/>
+          </g>
+          <text x="80" y="8" class="esquema-txt">b</text>
+          <text x="9" y="79" class="esquema-txt">h</text>
+          <text x="99" y="86" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="89" y1="82" x2="96" y2="82"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="qualquer" hidden>
+          <rect class="esquema-caixa" x="46" y="20" width="76" height="106"/>
+          <path class="esquema-perfil" d="M50 24h68v9H88v60h30v9H50v-9h30V33H50z" opacity="0.9"/>
+          <path class="esquema-fino" d="M58 118h50" stroke-width="3"/>
+          <g class="esquema-cota">
+            <line x1="34" y1="20" x2="34" y2="126"/><line x1="30" y1="20" x2="38" y2="20"/><line x1="30" y1="126" x2="38" y2="126"/>
+            <line x1="46" y1="138" x2="122" y2="138"/><line x1="46" y1="134" x2="46" y2="142"/><line x1="122" y1="134" x2="122" y2="142"/>
+          </g>
+          <text x="24" y="77" class="esquema-txt">D</text>
+          <text x="84" y="150" class="esquema-txt">d</text>
+          <text x="130" y="31" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="119" y1="28" x2="127" y2="28"/>
+        </svg>
       </figure>
 
       <div class="campos">
-        <label class="campo" for="in-h"><span>Altura <i>h</i></span>
+        <label class="campo" for="in-h" id="campo-h"><span class="rotulo">Altura <i>h</i></span>
           <span class="entrada"><input id="in-h" name="h" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
-        <label class="campo" for="in-b"><span>Largura <i>b</i></span>
+        <label class="campo" for="in-b" id="campo-b"><span class="rotulo">Largura <i>b</i></span>
           <span class="entrada"><input id="in-b" name="b" type="text" inputmode="decimal" min="0" step="0.1" required><em>mm</em></span></label>
-        <label class="campo" for="in-tw" id="campo-tw"><span>Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
+        <label class="campo" for="in-tw" id="campo-tw"><span class="rotulo">Alma <i>t<sub>w</sub></i> <small>opcional</small></span>
           <span class="entrada"><input id="in-tw" name="tw" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
-        <label class="campo" for="in-tf" id="campo-tf"><span>Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
+        <label class="campo" for="in-tf" id="campo-tf"><span class="rotulo">Banzo <i>t<sub>f</sub></i> <small>opcional</small></span>
           <span class="entrada"><input id="in-tf" name="tf" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
-        <label class="campo" for="in-t" id="campo-t" hidden><span>Espessura <i>t</i> <small>opcional</small></span>
+        <label class="campo" for="in-t" id="campo-t" hidden><span class="rotulo">Espessura <i>t</i> <small>opcional</small></span>
           <span class="entrada"><input id="in-t" name="t" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
-        <label class="campo" for="in-a" id="campo-a" hidden><span>Reforço <i>a</i> <small>opcional</small></span>
-          <span class="entrada"><input id="in-a" name="a" type="text" inputmode="decimal" min="0" step="1"><em>mm</em></span></label>
+        <label class="campo" for="in-a" id="campo-a" hidden><span class="rotulo">Reforço <i>a</i> <small>opcional</small></span>
+          <span class="entrada"><input id="in-a" name="a" type="text" inputmode="decimal" min="0" step="0.1"><em>mm</em></span></label>
       </div>
       <p class="nota" id="nota-forma" hidden></p>
 
@@ -412,6 +462,7 @@
 
 <script src="js/perfis.js"></script>
 <script src="js/perfis-u.js"></script>
+<script src="js/perfis-lt.js"></script>
 <script src="js/seccao.js"></script>
 <script src="js/ofeliz.js"></script>
 <script src="js/acoes.js"></script>

@@ -121,6 +121,7 @@ button, input, select { font: inherit; color: inherit; }
 .esquema-cota line, .esquema-guia { stroke: var(--tinta-suave); stroke-width: 1; }
 .esquema-txt { fill: var(--tinta); font: italic 600 11px var(--f-texto); text-anchor: middle; }
 .esquema-txt-s { font-size: 10px; text-anchor: start; }
+.esquema-caixa { fill: none; stroke: var(--tinta-suave); stroke-width: 1; stroke-dasharray: 4 3; }
 
 .campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
 .campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 0.86rem; font-weight: 500; }
@@ -201,6 +202,9 @@ select {
 .sec-cota { stroke: var(--tinta-suave); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; }
 .sec-txt { fill: var(--tinta); font-family: var(--f-dados); }
 .sec-txt-eixo { fill: var(--primario); font-family: var(--f-texto); font-style: italic; font-weight: 600; }
+/* Eixos principais das cantoneiras (u-u e v-v) */
+.sec-eixo-p { stroke: var(--tinta-suave); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; fill: none; }
+.sec-txt-eixo-p { fill: var(--tinta-suave); font-family: var(--f-texto); font-style: italic; font-weight: 600; }
 
 .grupos-props { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px 24px; }
 .grupo-props h3, .ec3-item h3, .cartao h2 {
@@ -220,6 +224,7 @@ select {
 .valor-grande small { font-size: 0.8rem; color: var(--tinta-suave); font-family: var(--f-texto); }
 .ec3-item .sym { text-transform: none; letter-spacing: 0; font-family: var(--f-texto); font-style: italic; }
 .ec3-item p { margin: 2px 0 0; font-size: 0.82rem; color: var(--tinta-suave); }
+.ec3 + .nota { margin-top: 14px; }
 .classe {
   display: inline-grid; place-items: center; width: 1.7em; height: 1.7em; border-radius: 4px;
   font-family: var(--f-titulo); font-weight: 700; background: var(--aco); color: var(--superficie);
@@ -237,8 +242,18 @@ select {
 .candidato[aria-current="true"] { background: var(--superficie-2); box-shadow: inset 3px 0 0 var(--primario); }
 .candidato-nome { font-family: var(--f-titulo); font-weight: 600; font-size: 1.1rem; }
 .candidato-dims { color: var(--tinta-suave); min-width: 0; }
+.candidato-forma {
+  display: inline-block; min-width: 1.6em; padding: 0 4px; margin-right: 2px; border: 1px solid var(--linha); border-radius: 4px;
+  text-align: center; color: var(--tinta); font-family: var(--f-titulo); font-weight: 600;
+}
 .barra { width: 70px; height: 6px; background: var(--superficie-2); border-radius: 3px; overflow: hidden; }
 .barra span { display: block; height: 100%; background: var(--aco); }
+/* Identificar, ecrãs estreitos: nome e barra na primeira linha, dimensões na segunda. */
+@media (max-width: 480px) {
+  #resultado .candidato { grid-template-columns: minmax(0, 1fr) 56px; row-gap: 2px; }
+  #resultado .candidato-dims { grid-column: 1 / -1; grid-row: 2; }
+  #resultado .barra { width: 56px; }
+}
 
 /* Catálogo */
 #vista-catalogo { display: flex; flex-direction: column; gap: 12px; }
