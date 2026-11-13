@@ -1,5 +1,5 @@
 /*
- * Propriedades de secções I/H laminadas e verificações base do Eurocódigo 3.
+ * Propriedades de secções laminadas (I/H, U, cantoneiras e T) e verificações base do Eurocódigo 3.
  * Unidades internas: mm, N. Os resultados são devolvidos nas unidades dos catálogos
  * (cm², cm⁴, cm³, kg/m, kN, kN·m).
  */
@@ -166,16 +166,17 @@ var Seccao = (function () {
     return pts;
   }
 
-  // Área, momentos estáticos e de inércia de um polígono (em relação à origem).
+  // Área, momentos estáticos, de inércia e produto de inércia de um polígono (em relação à origem).
   function integrar(pts) {
-    var A = 0, Sx = 0, Sy = 0, Ixx = 0, Iyy = 0;
+    var A = 0, Sx = 0, Sy = 0, Ixx = 0, Iyy = 0, Ixy = 0;
     for (var i = 0; i < pts.length; i++) {
       var x1 = pts[i][0], y1 = pts[i][1], x2 = pts[(i + 1) % pts.length][0], y2 = pts[(i + 1) % pts.length][1];
       var cr = x1 * y2 - x2 * y1;
       A += cr / 2; Sx += (x1 + x2) * cr / 6; Sy += (y1 + y2) * cr / 6;
       Iyy += (y1 * y1 + y1 * y2 + y2 * y2) * cr / 12; Ixx += (x1 * x1 + x1 * x2 + x2 * x2) * cr / 12;
+      Ixy += (x1 * y2 + 2 * x1 * y1 + 2 * x2 * y2 + x2 * y1) * cr / 24;
     }
-    return { A: A, Sx: Sx, Sy: Sy, Iyy: Iyy, Ixx: Ixx };
+    return { A: A, Sx: Sx, Sy: Sy, Iyy: Iyy, Ixx: Ixx, Ixy: Ixy };
   }
 
   // Parte do polígono com dentro(ponto) verdadeiro, recortada pela reta (Sutherland–Hodgman).
@@ -234,6 +235,102 @@ var Seccao = (function () {
     };
   }
 
+  // ----- Cantoneiras (EN 10056-1) e perfis T (EN 10055): propriedades pela integração do contorno -----
+  function aPartirDeLinhaLT(familia, l) {
+    if (familia === "Liguais") return { familia: familia, tipo: "L", nome: l[0], a: l[1], b: l[1], t: l[2], r1: l[3], r2: l[4], massa: l[5], origem: l[6] };
+    if (familia === "Ldesiguais") return { familia: familia, tipo: "L", nome: l[0], a: l[1], b: l[2], t: l[3], r1: l[4], r2: l[5], massa: l[6], origem: l[7] };
+    return { familia: familia, tipo: "T", nome: l[0], h: l[1], b: l[2], t: l[3], r1: l[4], r2: l[5], r3: l[6], massa: l[7], origem: l[8] };
+  }
+
+  // Cantoneira com o dorso das abas nos eixos: aba a (maior) vertical ao longo de x = 0, aba b horizontal ao longo
+  // de y = 0. Pontas das abas arredondadas pelo lado de dentro (r2), raiz com r1. Sentido anti-horário.
+  function contornoL(p) {
+    var v = [[0, 0], [p.b, 0], [p.b, p.t], [p.t, p.t], [p.t, p.a], [0, p.a]], raio = [0, 0, p.r2, p.r1, p.r2, 0], pts = [];
+    v.forEach(function (P, i) { pts = pts.concat(concordancia(v[(i + v.length - 1) % v.length], P, v[(i + 1) % v.length], raio[i], 12)); });
+    return pts;
+  }
+
+  // Forma dos T da EN 10055 (banzo e alma inclinados). Sem o texto da norma, a forma foi ajustada aos valores
+  // publicados (massa de T20 a T100 e propriedades de T30 a T50; ver docs/pendentes.md, secção 7): face interior do
+  // banzo com 2 % e t a meio da consola; faces da alma com 1,5 % cada e t a 3/8 da alma, a contar do banzo.
+  var FORMA_T = { banzo: 0.02, alma: 0.015, medidaAlma: 3 / 8 };
+
+  // T com a ponta da alma em y = 0 e a face superior do banzo em y = h; eixo de simetria em x = 0. Sentido anti-horário.
+  function contornoT(p) {
+    var h = p.h, b = p.b, t = p.t, sb = FORMA_T.banzo, sa = FORMA_T.alma;
+    var xm = (b + t) / 4, ym = (h - t) * (1 - FORMA_T.medidaAlma);   // onde a espessura vale t (banzo e alma)
+    function face(y) { return t / 2 + sa * (y - ym); }        // meia espessura da alma à altura y
+    function inferior(x) { return h - t - sb * (xm - x); }    // face inferior do banzo à distância x do eixo
+    // Interseção da face da alma com a face inferior do banzo: y = inferior(face(y)).
+    var yi = (h - t - sb * xm + sb * (t / 2 - sa * ym)) / (1 - sb * sa), xi = face(yi);
+    var v = [[-face(0), 0], [face(0), 0], [xi, yi], [b / 2, inferior(b / 2)], [b / 2, h], [-b / 2, h], [-b / 2, inferior(b / 2)], [-xi, yi]];
+    var raio = [p.r3, p.r3, p.r1, p.r2, 0, 0, p.r2, p.r1], pts = [];
+    v.forEach(function (P, i) { pts = pts.concat(concordancia(v[(i + v.length - 1) % v.length], P, v[(i + 1) % v.length], raio[i], 12)); });
+    return pts;
+  }
+
+  // Módulo elástico: I a dividir pela maior distância de um ponto do contorno ao eixo (de direção d, por G).
+  function distanciaMaxima(pts, G, d) {
+    var m = 0;
+    pts.forEach(function (q) { m = Math.max(m, Math.abs(-(q[0] - G[0]) * d[1] + (q[1] - G[1]) * d[0])); });
+    return m;
+  }
+
+  // Eixos: y-y horizontal e z-z vertical, por G (na cantoneira, y-y paralelo à aba menor b; no T, ao banzo).
+  // Cantoneiras: eixos principais u-u (maior inércia) e v-v; α é o ângulo de y-y para u-u.
+  function propriedadesLT(p) {
+    var pts = p.tipo === "L" ? contornoL(p) : contornoT(p), g = integrar(pts), A = g.A;
+    var xc = g.Sx / A, yc = g.Sy / A;
+    var Iy = g.Iyy - A * yc * yc, Iz = g.Ixx - A * xc * xc, Iyz = g.Ixy - A * xc * yc;
+    var G = [xc, yc];
+    var r = {
+      A: A / 1e2, G: A * 1e-6 * DENSIDADE,
+      Iy: Iy / 1e4, Iz: Iz / 1e4, iy: Math.sqrt(Iy / A) / 10, iz: Math.sqrt(Iz / A) / 10,
+      Wely: Iy / distanciaMaxima(pts, G, [1, 0]) / 1e3, Welz: Iz / distanciaMaxima(pts, G, [0, 1]) / 1e3,
+      contorno: pts, xc: xc, yc: yc
+    };
+    if (p.tipo === "L") {
+      var med = (Iy + Iz) / 2, raio = Math.sqrt(Math.pow((Iy - Iz) / 2, 2) + Iyz * Iyz);
+      var alfa = 0.5 * Math.atan2(-Iyz, (Iy - Iz) / 2);     // direção do eixo u-u a partir de y-y
+      var du = [Math.cos(alfa), Math.sin(alfa)], dv = [-Math.sin(alfa), Math.cos(alfa)];
+      r.Iu = (med + raio) / 1e4; r.Iv = (med - raio) / 1e4;
+      r.iu = Math.sqrt((med + raio) / A) / 10; r.iv = Math.sqrt((med - raio) / A) / 10;
+      r.Welu = (med + raio) / distanciaMaxima(pts, G, du) / 1e3; r.Welv = (med - raio) / distanciaMaxima(pts, G, dv) / 1e3;
+      r.alfa = alfa; r.tanAlfa = Math.tan(alfa);
+      r.cy = xc / 10; r.cz = yc / 10;                        // distâncias de G ao dorso das abas (cm)
+    } else {
+      r.e = (p.h - yc) / 10;                                 // distância de G à face superior do banzo (cm)
+      r.WelyBanzo = Iy / (p.h - yc) / 1e3;                   // na face do banzo; Wely é o mínimo (ponta da alma)
+    }
+    return r;
+  }
+
+  // Classe à compressão (Quadro 5.2). Cantoneiras: cada aba como banzo em consola, c = aba − t − r1 (9ε / 10ε / 14ε),
+  // e a linha própria das cantoneiras, h/t ≤ 15ε e (b + h)/2t ≤ 11,5ε, para a classe 3. T: banzo em consola,
+  // c = b/2 − t/2 − r1, e alma em consola, c = h − t − r1, ambos comprimidos.
+  function classificarLT(p, fy) {
+    var eps = Math.sqrt(235 / fy);
+    function classe(rel, lim) { for (var i = 0; i < lim.length; i++) if (rel <= lim[i]) return i + 1; return 4; }
+    if (p.tipo === "L") {
+      var c = p.a - p.t - p.r1, consola = classe(c / p.t / eps, [9, 10, 14]);
+      var ht = p.a / p.t, media = (p.a + p.b) / 2 / p.t, cantoneira = ht <= 15 * eps && media <= 11.5 * eps;
+      return { eps: eps, c_t: c / p.t, consola: consola, h_t: ht, bh_2t: media, cantoneira: cantoneira,
+        compressao: cantoneira ? consola : 4 };
+    }
+    var cb = p.b / 2 - p.t / 2 - p.r1, ca = p.h - p.t - p.r1;
+    var banzo = classe(cb / p.t / eps, [9, 10, 14]), alma = classe(ca / p.t / eps, [9, 10, 14]);
+    return { eps: eps, banzo: { c_t: cb / p.t, classe: banzo }, alma: { c_t: ca / p.t, classe: alma }, compressao: Math.max(banzo, alma) };
+  }
+
+  function todosLT() {
+    var lista = [];
+    if (typeof PERFIS_LT === "undefined") return lista;
+    ["Liguais", "Ldesiguais", "T"].forEach(function (fam) {
+      PERFIS_LT[fam].linhas.forEach(function (l) { lista.push(aPartirDeLinhaLT(fam, l)); });
+    });
+    return lista;
+  }
+
   function todosU() {
     var lista = [];
     if (typeof PERFIS_U === "undefined") return lista;
@@ -255,7 +352,8 @@ var Seccao = (function () {
     ACOS: ACOS, GAMMA_M0: GAMMA_M0, GAMMA_M1: GAMMA_M1,
     todos: todos, propriedades: propriedades, tensoes: tensoes,
     classificar: classificar, resistencias: resistencias,
-    todosU: todosU, propriedadesU: propriedadesU, classificarU: classificarU, contornoU: contornoU
+    todosU: todosU, propriedadesU: propriedadesU, classificarU: classificarU, contornoU: contornoU,
+    todosLT: todosLT, propriedadesLT: propriedadesLT, classificarLT: classificarLT, FORMA_T: FORMA_T
   };
 })();
 

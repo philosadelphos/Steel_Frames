@@ -1,16 +1,24 @@
-/* Interface: identificação de perfis por medidas e catálogo. Depende de perfis.js, seccao.js e enformados.js. */
+/*
+ * Interface: identificação de perfis por medidas e catálogo.
+ * Depende de perfis.js, perfis-u.js, perfis-lt.js, seccao.js e enformados.js.
+ */
 (function () {
   var FAMILIAS = Object.keys(PERFIS);
   var TODOS = Seccao.todos();
   var TODOS_U = Seccao.todosU();
   var FAMILIAS_U = Object.keys(PERFIS_U);
+  var TODOS_LT = Seccao.todosLT();
+  var FAMILIAS_LT = ["Liguais", "Ldesiguais", "T"];
   var EXEMPLO = { h: 300, b: 150 };
 
   var estado = {
     familias: FAMILIAS.slice(),
-    forma: "I",             // I ou H laminado, ou enformado a frio: "omega", "C", "Z"
+    // I ou H laminado, U laminado, enformado a frio ("omega", "C", "Z"), cantoneira ("Liguais", "Ldesiguais"),
+    // perfil T ("T") ou "qualquer" (procura em todas as séries).
+    forma: "I",
     aco: "S355",
     escolhido: null,        // perfil escolhido à mão na lista de candidatos
+    medidas: {},            // medidas guardadas de cada forma (texto dos campos)
     familiaCatalogo: "IPE"
   };
 
@@ -66,75 +74,214 @@
     return (v > 0.05 ? "+" : v < -0.05 ? "−" : "±") + s;
   }
 
-  // ----- Procura -----
-  function lerMedidas() {
-    function num(nome) {
-      var txt = String(form.elements[nome].value).trim().replace(",", ".");
+  // ----- Formas e campos -----
+  // Campo do formulário: nome, rótulo, símbolo, principal (necessário para confirmar a identificação) e o texto da
+  // sugestão "meça …". As medidas secundárias (espessuras, reforço) pesam metade no desvio: medem-se pior.
+  function campo(nome, rotulo, sim, principal, meca) {
+    return { nome: nome, rotulo: rotulo, sim: sim, principal: principal, peso: principal ? 1 : 0.5, esp: /^t/.test(nome), meca: meca };
+  }
+  var CAMPOS_IU = [campo("h", "Altura", "h", true, "a altura h"), campo("b", "Largura", "b", true, "a largura b"),
+    campo("tw", "Alma", "t<sub>w</sub>", false, "a espessura da alma t<sub>w</sub>"),
+    campo("tf", "Banzo", "t<sub>f</sub>", false, "a espessura do banzo t<sub>f</sub>")];
+  var CAMPOS_ENF = [campo("h", "Altura", "h", true, "a altura h"), campo("b", "Largura", "b", true, "a largura b"),
+    campo("t", "Espessura", "t", false, "a espessura t")];
+  var CAMPOS_CZ = CAMPOS_ENF.concat([campo("a", "Reforço", "a", false, "o reforço a")]);
+  // semOrdem: par de medidas que se compara por qualquer ordem (a maior com a maior).
+  var FORMAS = {
+    I: { curto: "I/H", nome: "I ou H", campos: CAMPOS_IU },
+    U: { curto: "U", nome: "U", campos: CAMPOS_IU },
+    omega: { curto: "Ω", nome: "ómega", campos: CAMPOS_ENF, familia: "Superomega" },
+    C: { curto: "C", nome: "C", campos: CAMPOS_CZ, familia: "C" },
+    Z: { curto: "Z", nome: "Z", campos: CAMPOS_CZ, familia: "Z" },
+    Liguais: { curto: "L", nome: "L de abas iguais", campos: [campo("a", "Aba", "a", true, "a aba a"), campo("t", "Espessura", "t", false, "a espessura t")] },
+    Ldesiguais: { curto: "L", nome: "L de abas desiguais", semOrdem: ["a", "b"], campos: [campo("a", "Aba", "a", true, "a aba a"),
+      campo("b", "Outra aba", "b", true, "a outra aba b"), campo("t", "Espessura", "t", false, "a espessura t")] },
+    T: { curto: "T", nome: "T", campos: [campo("h", "Altura", "h", true, "a altura h"), campo("b", "Largura do banzo", "b", true, "a largura do banzo b"),
+      campo("t", "Espessura", "t", false, "a espessura t")] },
+    qualquer: { curto: "", nome: "qualquer forma", semOrdem: ["h", "b"], campos: [campo("h", "Dimensão maior", "D", true, "a dimensão maior D"),
+      campo("b", "Dimensão menor", "d", true, "a dimensão menor d"), campo("t", "Espessura", "t", false, "a espessura de uma parede t")] }
+  };
+  var ENFORMADOS = ["omega", "C", "Z"];
+  var LT = ["Liguais", "Ldesiguais", "T"];
+  var NOMES_CAMPOS = ["h", "b", "tw", "tf", "t", "a"];
+  function campoDe(forma, nome) { return FORMAS[forma].campos.filter(function (k) { return k.nome === nome; })[0]; }
+
+  // Medidas introduzidas nos campos da forma (só as válidas).
+  function lerMedidas(forma) {
+    var m = {};
+    FORMAS[forma].campos.forEach(function (k) {
+      var txt = String(form.elements[k.nome].value).trim().replace(",", ".");
       var v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(txt) ? parseFloat(txt) : NaN;
-      return isFinite(v) && v > 0 ? v : null;
-    }
-    return { h: num("h"), b: num("b"), tw: num("tw"), tf: num("tf"), t: num("t"), a: num("a") };
+      if (isFinite(v) && v > 0) m[k.nome] = v;
+    });
+    return m;
   }
 
-  // ----- Perfis enformados a frio (O Feliz) -----
-  var FAMILIA_FORMA = { omega: "Superomega", C: "C", Z: "Z" };
-  function acosForma(forma) {
-    return forma === "I" || forma === "U" ? Object.keys(Seccao.ACOS) : Enformados.FAMILIAS[FAMILIA_FORMA[forma]].acos;
+  // ----- Candidatos -----
+  // Cada candidato: tipo de cálculo (I, U, enf, L, T), forma, família, perfil, G e as dimensões nominais de cada campo;
+  // D e d são a maior e a menor dimensão exterior e esp as espessuras das paredes (para "qualquer forma").
+  var cacheCandidatos = {};
+  function candidatos(forma) {
+    if (cacheCandidatos[forma]) return cacheCandidatos[forma];
+    var l = [], todas = forma === "qualquer";
+    if (forma === "I" || todas) TODOS.forEach(function (p) {
+      l.push({ tipo: "I", forma: "I", familia: p.familia, nome: p.nome, perfil: p, G: Seccao.propriedades(p).G, dims: { h: p.h, b: p.b, tw: p.tw, tf: p.tf }, esp: [p.tw, p.tf] });
+    });
+    if (forma === "U" || todas) TODOS_U.forEach(function (p) {
+      l.push({ tipo: "U", forma: "U", familia: p.familia, nome: p.nome, perfil: p, G: Seccao.propriedadesU(p).G, dims: { h: p.h, b: p.b, tw: p.tw, tf: p.tf }, esp: [p.tw, p.tf] });
+    });
+    ENFORMADOS.forEach(function (f) {
+      if (forma !== f && !todas) return;
+      Enformados.seccoes(FORMAS[f].familia).forEach(function (s) {
+        l.push({ tipo: "enf", forma: f, familia: FORMAS[f].familia, nome: s.nome, perfil: s, G: s.G, dims: { h: s.h, b: s.b, t: s.t, a: s.a || undefined }, esp: [s.t] });
+      });
+    });
+    TODOS_LT.forEach(function (p) {
+      if (forma !== p.familia && !todas) return;
+      l.push({ tipo: p.tipo, forma: p.familia, familia: p.familia, nome: p.nome, perfil: p, G: Seccao.propriedadesLT(p).G,
+        dims: p.tipo === "L" ? { a: p.a, b: p.b, t: p.t } : { h: p.h, b: p.b, t: p.t }, esp: [p.t] });
+    });
+    l.forEach(function (c) { var d1 = c.dims.h || c.dims.a; c.D = Math.max(d1, c.dims.b); c.d = Math.min(d1, c.dims.b); });
+    return (cacheCandidatos[forma] = l);
   }
-  // Mostra os campos, o esboço e as classes de aço da forma escolhida.
-  function atualizarForma(forma, aco) {
+
+  // Tolerância de compatibilidade de cada medida: laminagem mais erro de medição.
+  function tolerancia(nominal, esp) { return esp ? Math.max(0.25, 0.1 * nominal) : Math.max(1.5, 0.03 * nominal); }
+  function maisPerto(v, lista) { return lista.reduce(function (a, b) { return Math.abs(v - b) / b < Math.abs(v - a) / a ? b : a; }); }
+
+  // Compara as medidas introduzidas com um candidato: desvio relativo médio quadrático só nas medidas introduzidas,
+  // compatibilidade (todas dentro da tolerância), termos (medida, valor nominal comparado) e as dimensões nominais
+  // dos campos ainda por medir (para sugerir a medida que distingue os candidatos).
+  function comparar(forma, m, c) {
+    var F = FORMAS[forma], termos = [], restantes = {}, feitos = {};
+    var nominal = forma === "qualquer" ? { h: c.D, b: c.d, t: c.esp } : c.dims;
+    function termo(nome, medido, p) { termos.push({ campo: campoDe(forma, nome), m: medido, p: p }); }
+    if (F.semOrdem) {
+      var n1 = F.semOrdem[0], n2 = F.semOrdem[1], p1 = nominal[n1], p2 = nominal[n2];   // p1 ≥ p2
+      if (m[n1] && m[n2]) {
+        var trocado = m[n1] < m[n2];
+        termo(trocado ? n2 : n1, Math.max(m[n1], m[n2]), p1);
+        termo(trocado ? n1 : n2, Math.min(m[n1], m[n2]), p2);
+      } else if (m[n1] || m[n2]) {
+        // Uma só medida: na cantoneira, compara com a aba mais parecida; em "qualquer forma", a dimensão maior com a
+        // maior e a menor com a menor, como diz o rótulo.
+        var nm = m[n1] ? n1 : n2, outro = nm === n1 ? n2 : n1, v = m[nm];
+        var p = forma === "qualquer" ? nominal[nm] : maisPerto(v, [p1, p2]);
+        termo(nm, v, p);
+        restantes[outro] = forma === "qualquer" ? nominal[outro] : p === p1 ? p2 : p1;
+      } else { restantes[n1] = p1; restantes[n2] = p2; }
+      feitos[n1] = feitos[n2] = true;
+    }
+    F.campos.forEach(function (k) {
+      var p = nominal[k.nome];
+      if (feitos[k.nome] || p === undefined) return;
+      if (m[k.nome]) termo(k.nome, m[k.nome], Array.isArray(p) ? maisPerto(m[k.nome], p) : p);
+      else restantes[k.nome] = p;
+    });
+    var soma = 0, peso = 0, compativel = true;
+    termos.forEach(function (x) {
+      var d = (x.m - x.p) / x.p;
+      soma += x.campo.peso * d * d; peso += x.campo.peso;
+      if (Math.abs(x.m - x.p) > tolerancia(x.p, x.campo.esp)) compativel = false;
+    });
+    return { desvio: peso ? Math.sqrt(soma / peso) : 0, compativel: compativel, termos: termos, restantes: restantes };
+  }
+
+  // Compatíveis primeiro, depois pelo desvio e, com o mesmo desvio, o mais leve.
+  function procurar(forma, m) {
+    return candidatos(forma)
+      .filter(function (c) { return c.tipo !== "I" || forma === "qualquer" || estado.familias.indexOf(c.familia) !== -1; })
+      .map(function (c) { return { c: c, r: comparar(forma, m, c) }; })
+      .sort(function (x, y) { return (y.r.compativel - x.r.compativel) || (x.r.desvio - y.r.desvio) || (x.c.G - y.c.G); });
+  }
+
+  // Valores com as mesmas casas decimais; com decimais, separados por ponto e vírgula (a vírgula é a decimal).
+  function listaValores(vals) {
+    vals = vals.slice().sort(function (a, b) { return a - b; });
+    var casas = vals.some(function (v) { return Math.abs(v * 10 - Math.round(v * 10)) > 1e-9; }) ? 2 : vals.some(function (v) { return v % 1; }) ? 1 : 0;
+    var f = vals.map(function (v) { return fmt(v, casas); }), sep = casas ? "; " : ", ";
+    if (f.length > 6) return "de " + f[0] + " a " + f[f.length - 1] + " mm (" + f.length + " valores)";
+    return (f.length > 1 ? f.slice(0, -1).join(sep) + " ou " + f[f.length - 1] : f[0]) + " mm";
+  }
+
+  // Medida por introduzir com mais valores nominais diferentes entre os compatíveis (a que mais encurta a lista),
+  // dando preferência às dimensões exteriores, que se medem melhor do que as espessuras.
+  function sugestao(forma, compat, m) {
+    var melhor = null, formas = [], familias = [], txt = [];
+    FORMAS[forma].campos.forEach(function (k) {
+      if (m[k.nome]) return;
+      var vals = [];
+      compat.forEach(function (x) { [].concat(x.r.restantes[k.nome]).forEach(function (v) { if (v && vals.indexOf(v) < 0) vals.push(v); }); });
+      if (vals.length < 2) return;
+      if (!melhor || (k.principal && !melhor.k.principal) || (k.principal === melhor.k.principal && vals.length > melhor.vals.length)) melhor = { k: k, vals: vals };
+    });
+    compat.forEach(function (x) {
+      if (formas.indexOf(x.c.forma) < 0) formas.push(x.c.forma);
+      if (familias.indexOf(x.c.familia) < 0) familias.push(x.c.familia);
+    });
+    if (melhor) txt.push("Para os distinguir, meça " + melhor.k.meca + ": " + listaValores(melhor.vals) + ".");
+    if (formas.length > 1) txt.push("Há candidatos de formas diferentes (" + formas.map(function (f) { return FORMAS[f].nome; }).join(", ") + "): escolher a forma no seletor também encurta a lista.");
+    else if (familias.indexOf("UPN") >= 0 && familias.indexOf("UPE") >= 0) txt.push("Veja se as faces interiores dos banzos são inclinadas (UPN) ou paralelas (UPE).");
+    if (!txt.length) txt.push("Têm as mesmas medidas nominais: confirme a série pela marcação, pelo projeto ou pelo fornecedor.");
+    return txt.join(" ");
+  }
+
+  // ----- Forma escolhida: campos, esquema e classes de aço -----
+  function acosForma(forma) {
+    return ENFORMADOS.indexOf(forma) >= 0 ? Enformados.FAMILIAS[FORMAS[forma].familia].acos : Object.keys(Seccao.ACOS);
+  }
+  var NOTAS_FORMA = {
+    U: "UPN (banzos inclinados, t<sub>f</sub> medida a meio do banzo) e UPE (banzos paralelos), da EN 10365. A C enformada a frio, com reforços nas pontas dos banzos, é outra série.",
+    omega: "Meça a altura total h e a largura total b, nas pontas das abas inferiores.",
+    C: "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.",
+    Liguais: "Meça a aba a por fora, do dorso à ponta, e a espessura t perto da ponta. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
+    Ldesiguais: "As abas podem ser introduzidas por qualquer ordem. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
+    T: "Altura h do banzo à ponta da alma e largura b do banzo; nos T da EN 10055, h = b e o banzo e a alma têm a mesma espessura t. Banzo e alma são ligeiramente inclinados: meça t a meio. Gama da Masterferro (S275JR).",
+    qualquer: "Procura em todas as séries: I/H, U, ómega, C, Z, cantoneiras e T. As duas dimensões exteriores podem ir por qualquer ordem; a espessura é a de uma parede qualquer (alma, banzo ou aba)."
+  };
+  NOTAS_FORMA.Z = NOTAS_FORMA.C;
+
+  // Mostra os campos, o esboço e as classes de aço da forma escolhida. Ao mudar para cantoneira ou T, propõe o aço
+  // do catálogo (S275).
+  function atualizarForma(forma, aco, mudou) {
     estado.forma = forma;
-    var lista = acosForma(forma), padrao = forma === "I" || forma === "U" ? "S355" : "S350GD";
-    estado.aco = lista.indexOf(aco) >= 0 ? aco : padrao;
+    var lista = acosForma(forma), enf = ENFORMADOS.indexOf(forma) >= 0, lt = LT.indexOf(forma) >= 0;
+    var padrao = enf ? "S350GD" : lt ? "S275" : "S355";
+    estado.aco = lista.indexOf(aco) >= 0 && !(mudou && lt) ? aco : padrao;
     $("in-aco").innerHTML = lista.map(function (a) {
       return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + (Seccao.ACOS[a] ? " · " + Seccao.ACOS[a].norma : " · EN 10346") + "</option>";
     }).join("");
-    var enf = forma !== "I" && forma !== "U";
-    $("campo-tw").hidden = enf; $("campo-tf").hidden = enf; $("grupo-familias").hidden = forma !== "I";
-    $("campo-t").hidden = !enf; $("campo-a").hidden = !(forma === "C" || forma === "Z");
-    Array.prototype.forEach.call(document.querySelectorAll(".esquema svg[data-forma]"), function (svg) {
-      svg.hidden = svg.getAttribute("data-forma") !== forma;
+    // Os campos da forma passam para a frente, pela ordem da forma (é também a ordem do teclado).
+    var caixa = $("campo-h").parentNode;
+    FORMAS[forma].campos.slice().reverse().forEach(function (k) { caixa.insertBefore($("campo-" + k.nome), caixa.firstChild); });
+    NOMES_CAMPOS.forEach(function (n) {
+      var k = campoDe(forma, n), el = $("campo-" + n), input = form.elements[n];
+      el.hidden = !k;
+      input.required = !!(k && k.principal);
+      if (k) el.querySelector(".rotulo").innerHTML = k.rotulo + " <i>" + k.sim + "</i>" + (k.principal ? "" : " <small>opcional</small>");
     });
-    $("nota-forma").hidden = forma === "I";
-    $("nota-forma").innerHTML = forma === "U"
-      ? "UPN (banzos inclinados, t<sub>f</sub> medida a meio do banzo) e UPE (banzos paralelos), da EN 10365. A C enformada a frio, com reforços nas pontas dos banzos, é outra série."
-      : forma === "omega"
-      ? "Meça a altura total h e a largura total b, nas pontas das abas inferiores."
-      : "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.";
+    $("grupo-familias").hidden = forma !== "I";
+    // Num SVG, a propriedade hidden não existe: é preciso mudar o atributo.
+    Array.prototype.forEach.call(document.querySelectorAll(".esquema svg[data-forma]"), function (svg) {
+      svg.toggleAttribute("hidden", svg.getAttribute("data-forma") !== forma);
+    });
+    $("nota-forma").hidden = !NOTAS_FORMA[forma];
+    $("nota-forma").innerHTML = NOTAS_FORMA[forma] || "";
   }
 
-  // Perfis U laminados: mesmo critério dos perfis I e H (espessuras com metade do peso).
-  function procurarU(m) {
-    return TODOS_U.map(function (p) {
-      var soma = Math.pow((m.h - p.h) / p.h, 2) + Math.pow((m.b - p.b) / p.b, 2), peso = 2;
-      if (m.tw) { soma += 0.5 * Math.pow((m.tw - p.tw) / p.tw, 2); peso += 0.5; }
-      if (m.tf) { soma += 0.5 * Math.pow((m.tf - p.tf) / p.tf, 2); peso += 0.5; }
-      return { perfil: p, desvio: Math.sqrt(soma / peso) };
-    }).sort(function (a, b) { return a.desvio - b.desvio; });
+  // Cada forma guarda as suas medidas: ao trocar, guardam-se as da forma anterior e repõem-se as da nova.
+  function guardarMedidasForma() {
+    var v = {};
+    FORMAS[estado.forma].campos.forEach(function (k) { if (form.elements[k.nome].value) v[k.nome] = form.elements[k.nome].value; });
+    estado.medidas[estado.forma] = v;
   }
-
-  // Desvio relativo médio quadrático, como nos laminados: espessura e reforço pesam metade.
-  function procurarEnformado(m) {
-    var fam = FAMILIA_FORMA[estado.forma];
-    return Enformados.seccoes(fam).map(function (s) {
-      var soma = Math.pow((m.h - s.h) / s.h, 2) + Math.pow((m.b - s.b) / s.b, 2), peso = 2;
-      if (m.t) { soma += 0.5 * Math.pow((m.t - s.t) / s.t, 2); peso += 0.5; }
-      if (m.a && s.a) { soma += 0.5 * Math.pow((m.a - s.a) / s.a, 2); peso += 0.5; }
-      return { perfil: s, familia: fam, desvio: Math.sqrt(soma / peso) };
-    }).sort(function (a, b) { return a.desvio - b.desvio || a.perfil.G - b.perfil.G; });
-  }
-
-  // Desvio relativo médio quadrático; as espessuras pesam metade (medição menos fiável).
-  function procurar(m) {
-    return TODOS
-      .filter(function (p) { return estado.familias.indexOf(p.familia) !== -1; })
-      .map(function (p) {
-        var soma = Math.pow((m.h - p.h) / p.h, 2) + Math.pow((m.b - p.b) / p.b, 2), peso = 2;
-        if (m.tw) { soma += 0.5 * Math.pow((m.tw - p.tw) / p.tw, 2); peso += 0.5; }
-        if (m.tf) { soma += 0.5 * Math.pow((m.tf - p.tf) / p.tf, 2); peso += 0.5; }
-        return { perfil: p, desvio: Math.sqrt(soma / peso) };
-      })
-      .sort(function (a, b) { return a.desvio - b.desvio; });
+  function trocarForma(forma, valores) {
+    guardarMedidasForma();
+    form.elements.forma.value = forma;
+    atualizarForma(forma, estado.aco, true);
+    var v = valores || estado.medidas[forma] || {};
+    NOMES_CAMPOS.forEach(function (n) { form.elements[n].value = v[n] === undefined ? "" : v[n]; });
+    estado.escolhido = null;
   }
 
   function avaliar(desvio) {
@@ -243,39 +390,6 @@
       "</section>";
   }
 
-  function renderU(m) {
-    var lista = procurarU(m), melhor = lista[0];
-    var atual = estado.escolhido && lista.filter(function (c) { return c.perfil.nome === estado.escolhido; })[0] || melhor;
-    var p = atual.perfil, pr = Seccao.propriedadesU(p), av = avaliar(atual.desvio);
-    var desvios = '<div class="desvios">' +
-      "<span>h <b>" + fmt(p.h, 0) + "</b> (" + fmtDelta(m.h - p.h) + " mm)</span>" +
-      "<span>b <b>" + fmt(p.b, 0) + "</b> (" + fmtDelta(m.b - p.b) + " mm)</span>" +
-      (m.tw ? "<span>t<sub>w</sub> <b>" + fmt(p.tw, 1) + "</b> (" + fmtDelta(m.tw - p.tw) + " mm)</span>" : "") +
-      (m.tf ? "<span>t<sub>f</sub> <b>" + fmt(p.tf, 1) + "</b> (" + fmtDelta(m.tf - p.tf) + " mm)</span>" : "") + "</div>";
-    var segundo = lista[1], alerta = "";
-    if (atual === melhor && segundo && segundo.perfil.familia !== p.familia && segundo.desvio - melhor.desvio < 0.02) {
-      alerta = '<p class="alerta">' + p.nome + " e " + segundo.perfil.nome + " têm dimensões exteriores parecidas. Veja se as faces interiores dos banzos são inclinadas (UPN) ou paralelas (UPE), ou meça t<sub>w</sub>.</p>";
-    }
-    var candidatos = lista.slice(0, 6).map(function (c) {
-      var q = c.perfil, prox = Math.max(0, 1 - c.desvio / 0.15);
-      return '<li><button type="button" class="candidato" data-nome="' + q.nome + '" aria-current="' + (q === p) + '">' +
-        '<span class="candidato-nome">' + q.nome + "</span>" +
-        '<span class="candidato-dims">' + fmt(q.h, 0) + " × " + fmt(q.b, 0) + " · t<sub>w</sub> " + fmt(q.tw, 1) + " · t<sub>f</sub> " + fmt(q.tf, 1) + "</span>" +
-        '<span class="barra" title="Desvio médio ' + fmt(c.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span></button></li>';
-    }).join("");
-    resultado.innerHTML = '<section class="cartao">' +
-        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + p.nome + "</h2>" +
-          '<span class="familia-perfil">' + PERFIS_U[p.familia].descricao + "</span>" +
-          '<span class="selo ' + av.cls + '">' + av.txt + "</span></div>" +
-        desvios + alerta +
-        '<div class="corpo-resultado">' +
-          '<figure class="desenho">' + desenhoU(p, pr) + "<figcaption>Secção à escala, dimensões nominais em mm" + (p.inclinacao ? "; faces interiores dos banzos com inclinação de " + fmt(p.inclinacao * 100, 0) + " %" : "") + "</figcaption></figure>" +
-          blocoPropriedadesU(p, pr) +
-        "</div></section>" +
-      blocoEC3U(p, pr) +
-      '<section class="cartao"><h2>Perfis mais próximos</h2><ul class="candidatos">' + candidatos + "</ul></section>";
-  }
-
   // Secção enformada à escala: linha média com a espessura nominal (unidades do SVG = mm).
   function desenhoEnformado(fam, s) {
     var pts;
@@ -347,43 +461,6 @@
       "</section>";
   }
 
-  function renderEnformado(m) {
-    var lista = procurarEnformado(m), melhor = lista[0];
-    var atual = estado.escolhido && lista.filter(function (c) { return c.perfil.nome === estado.escolhido; })[0] || melhor;
-    var s = atual.perfil, fam = atual.familia, av = avaliar(atual.desvio);
-    var desvios = '<div class="desvios">' +
-      "<span>h <b>" + fmt(s.h, 0) + "</b> (" + fmtDelta(m.h - s.h) + " mm)</span>" +
-      "<span>b <b>" + fmt(s.b, 0) + "</b> (" + fmtDelta(m.b - s.b) + " mm)</span>" +
-      (m.t ? "<span>t <b>" + fmt(s.t, 1) + "</b> (" + fmtDelta(m.t - s.t) + " mm)</span>" : "") +
-      (m.a && s.a ? "<span>a <b>" + fmt(s.a, 0) + "</b> (" + fmtDelta(m.a - s.a) + " mm)</span>" : "") +
-      "</div>";
-    var mesmas = lista.filter(function (c) { return c.perfil.h === s.h && c.perfil.b === s.b; });
-    var alerta = !m.t && mesmas.length > 1
-      ? '<p class="alerta">Há ' + mesmas.length + " espessuras com " + fmt(s.h, 0) + " × " + fmt(s.b, 0) + " mm (" + mesmas.map(function (c) { return fmt(c.perfil.t, 1); }).join(", ") + " mm). Meça a espessura t para escolher.</p>"
-      : "";
-    var candidatos = lista.slice(0, 6).map(function (c) {
-      var q = c.perfil, prox = Math.max(0, 1 - c.desvio / 0.15);
-      return '<li><button type="button" class="candidato" data-nome="' + q.nome + '" aria-current="' + (q === s) + '">' +
-        '<span class="candidato-nome">' + q.nome + "</span>" +
-        '<span class="candidato-dims">' + fmt(q.h, 0) + " × " + fmt(q.b, 0) + (q.a ? " · a " + fmt(q.a, 0) : "") + " · t " + fmt(q.t, 1) + " · " + fmt(q.G, 2) + " kg/m</span>" +
-        '<span class="barra" title="Desvio médio ' + fmt(c.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span>' +
-        "</button></li>";
-    }).join("");
-    resultado.innerHTML =
-      '<section class="cartao">' +
-        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + s.nome + "</h2>" +
-          '<span class="familia-perfil">' + Enformados.FAMILIAS[fam].descricao + "</span>" +
-          '<span class="selo ' + av.cls + '">' + av.txt + "</span></div>" +
-        desvios + alerta +
-        '<div class="corpo-resultado">' +
-          '<figure class="desenho">' + desenhoEnformado(fam, s) + "<figcaption>Secção à escala (linha média), dimensões nominais em mm</figcaption></figure>" +
-          blocoPropriedadesEnformado(fam, s, estado.aco) +
-        "</div>" +
-      "</section>" +
-      blocoEC3Enformado(fam, s, estado.aco) +
-      '<section class="cartao"><h2>Secções mais próximas</h2><ul class="candidatos">' + candidatos + "</ul></section>";
-  }
-
   // ----- Resultado -----
   function linhaProp(simbolo, valor, unidade, casas) {
     return "<dt>" + simbolo + "</dt><dd>" + fmt(valor, casas) + '</dd><dd class="un">' + unidade + "</dd>";
@@ -432,60 +509,196 @@
       "</div></section>";
   }
 
+  // ----- Cantoneiras e perfis T -----
+  // Desenho à escala a partir do contorno calculado (mm; no SVG o y cresce para baixo). Cantoneira com o dorso das abas
+  // à esquerda e em baixo; T com o banzo em cima. Eixos y-y e z-z por G e, nas cantoneiras, os principais u-u e v-v.
+  function desenhoLT(p, pr) {
+    var L = p.tipo === "L", B = p.b, H = L ? p.a : p.h, M = Math.max(B, H), fs = M * 0.05, tr = fs * 0.35;
+    var x0 = L ? 0 : -B / 2, xc = pr.xc, yc = -pr.yc, caixa = [x0, -H, x0 + B, 0];
+    function junta(x, y) { caixa[0] = Math.min(caixa[0], x); caixa[1] = Math.min(caixa[1], y); caixa[2] = Math.max(caixa[2], x); caixa[3] = Math.max(caixa[3], y); }
+    function traco(x, y) { return "M" + (x - tr) + " " + (y + tr) + "L" + (x + tr) + " " + (y - tr); }
+    function texto(cls, x, y, t, extra) { junta(x - fs, y - fs); junta(x + fs, y + fs * 0.4); return '<text class="' + cls + '" x="' + x.toFixed(2) + '" y="' + y.toFixed(2) + '" font-size="' + fs.toFixed(2) + '"' + (extra || "") + ">" + t + "</text>"; }
+    var d = pr.contorno.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(2) + " " + (-q[1]).toFixed(2); }).join("") + "Z";
+    // Cota horizontal (b) em baixo na cantoneira e em cima no T; cota vertical (a ou h) à esquerda.
+    var cb = L ? M * 0.16 : -H - M * 0.16, yb = L ? 0 : -H, sb = L ? 1 : -1, ch = x0 - M * 0.16;
+    var cotas = "M" + x0 + " " + (yb + sb * M * 0.03) + "V" + (cb + sb * M * 0.03) + "M" + (x0 + B) + " " + (yb + sb * M * 0.03) + "V" + (cb + sb * M * 0.03) +
+      "M" + x0 + " " + cb + "H" + (x0 + B) + "M" + (x0 - M * 0.03) + " " + (-H) + "H" + (ch - M * 0.03) + "M" + (x0 - M * 0.03) + " 0H" + (ch - M * 0.03) +
+      "M" + ch + " " + (-H) + "V0" + traco(x0, cb) + traco(x0 + B, cb) + traco(ch, -H) + traco(ch, 0);
+    junta(ch - M * 0.03, cb);
+    var txt = texto("sec-txt", x0 + B / 2, L ? cb + fs * 1.1 : cb - fs * 0.45, fmt(B, 0), ' text-anchor="middle"');
+    junta(ch - fs * 1.2, -H / 2);
+    txt += '<text class="sec-txt" font-size="' + fs.toFixed(2) + '" text-anchor="middle" transform="translate(' + (ch - fs * 0.45).toFixed(2) + " " + (-H / 2).toFixed(2) + ') rotate(-90)">' + fmt(H, 0) + "</text>";
+    // Espessura: junto à aba vertical da cantoneira, ou à alma do T.
+    var xt = L ? p.t + M * 0.04 : p.t / 2 + M * 0.04, yt = L ? -H + M * 0.1 : -H * 0.3;
+    txt += texto("sec-txt", xt, yt, "t " + fmt(p.t, p.t % 1 ? 1 : 0), ' font-style="italic"');
+    var e = M * 0.08, eixos = "M" + (x0 - e) + " " + yc + "H" + (x0 + B + e) + "M" + xc + " " + (-H - e) + "V" + e;
+    junta(x0 - e, yc); junta(x0 + B + e, yc); junta(xc, -H - e); junta(xc, e);
+    txt += texto("sec-txt-eixo", x0 + B + M * 0.1, yc + fs * 0.35, "y") + texto("sec-txt-eixo", xc, L ? -H - M * 0.1 : e + fs * 1.1, "z", ' text-anchor="middle"');
+    var principais = "";
+    if (L) {
+      var l = M * 0.45, c = Math.cos(pr.alfa), s = Math.sin(pr.alfa), lt = l + fs * 0.8;
+      // u = (cos α, sen α) e v = (−sen α, cos α), com y para cima; no SVG o sinal de y troca.
+      principais = "M" + (xc - l * c) + " " + (yc + l * s) + "L" + (xc + l * c) + " " + (yc - l * s) +
+        "M" + (xc + l * s) + " " + (yc + l * c) + "L" + (xc - l * s) + " " + (yc - l * c);
+      txt += texto("sec-txt-eixo-p", xc + lt * c, yc - lt * s + fs * 0.35, "u", ' text-anchor="middle"') +
+        texto("sec-txt-eixo-p", xc - lt * s, yc - lt * c + fs * 0.35, "v", ' text-anchor="middle"');
+    }
+    var mg = M * 0.04, vb = [caixa[0] - mg, caixa[1] - mg, caixa[2] - caixa[0] + 2 * mg, caixa[3] - caixa[1] + 2 * mg];
+    return '<svg viewBox="' + vb.map(function (v) { return v.toFixed(2); }).join(" ") + '" role="img" aria-label="Secção ' + p.nome + ' à escala">' +
+      '<path class="sec-forma" d="' + d + '"/>' + (principais ? '<path class="sec-eixo-p" d="' + principais + '"/>' : "") +
+      '<path class="sec-eixo" d="' + eixos + '"/><path class="sec-cota" d="' + cotas + '"/>' + txt + "</svg>";
+  }
+
+  var ORIGEM_RAIOS = {
+    aba: "secção fora da lista da norma: raios da mesma aba",
+    estimado: "aba que a norma não tem: raios estimados"
+  };
+
+  function blocoPropriedadesLT(p, pr) {
+    var L = p.tipo === "L", iguais = p.familia === "Liguais";
+    var geo = (L ? linhaProp("a", p.a, "mm", 0) + (iguais ? "" : linhaProp("b", p.b, "mm", 0)) : linhaProp("h", p.h, "mm", 0) + linhaProp("b", p.b, "mm", 0)) +
+      linhaProp("t", p.t, "mm", p.t % 1 ? 1 : 0) + linhaProp("r<sub>1</sub>", p.r1, "mm", 1) + linhaProp("r<sub>2</sub>", p.r2, "mm", 2) +
+      (L ? "" : linhaProp("r<sub>3</sub>", p.r3, "mm", 1)) + linhaProp("A", pr.A, "cm²") + linhaProp("G", pr.G, "kg/m", 2);
+    var y = linhaProp("I<sub>y</sub>", pr.Iy, "cm⁴") + linhaProp("W<sub>el,y</sub>", pr.Wely, "cm³") + linhaProp("i<sub>y</sub>", pr.iy, "cm") +
+      (L ? linhaProp("c<sub>z</sub>", pr.cz, "cm", 2) : linhaProp("e", pr.e, "cm", 2));
+    var z = linhaProp("I<sub>z</sub>", pr.Iz, "cm⁴") + linhaProp("W<sub>el,z</sub>", pr.Welz, "cm³") + linhaProp("i<sub>z</sub>", pr.iz, "cm") +
+      (L ? linhaProp("c<sub>y</sub>", pr.cy, "cm", 2) : "");
+    var grupos = '<div class="grupo-props"><h3>Geometria</h3><dl class="lista-props">' + geo + "</dl></div>" +
+      (iguais ? '<div class="grupo-props"><h3>Eixos y-y = z-z</h3><dl class="lista-props">' + y + "</dl></div>"
+        : '<div class="grupo-props"><h3>Eixo y-y</h3><dl class="lista-props">' + y + "</dl></div>" +
+          '<div class="grupo-props"><h3>Eixo z-z</h3><dl class="lista-props">' + z + "</dl></div>");
+    if (L) {
+      grupos += '<div class="grupo-props"><h3>Eixos principais</h3><dl class="lista-props">' +
+        linhaProp("I<sub>u</sub>", pr.Iu, "cm⁴") + linhaProp("W<sub>el,u</sub>", pr.Welu, "cm³") + linhaProp("i<sub>u</sub>", pr.iu, "cm") +
+        linhaProp("I<sub>v</sub>", pr.Iv, "cm⁴") + linhaProp("W<sub>el,v</sub>", pr.Welv, "cm³") + linhaProp("i<sub>v</sub>", pr.iv, "cm") +
+        linhaProp("tg α", pr.tanAlfa, "", 3) + linhaProp("α", pr.alfa * 180 / Math.PI, "°", 1) + "</dl></div>";
+    }
+    return '<div class="grupos-props">' + grupos + "</div>";
+  }
+
+  // Primeira versão: classe à compressão e N_pl,Rd da secção (tração e compressão), sem flexão nem encurvadura.
+  function blocoEC3LT(p, pr) {
+    var L = p.tipo === "L", tens = Seccao.tensoes(estado.aco, p.t), fy = tens.fy, cl = Seccao.classificarLT(p, fy);
+    var N = pr.A * 1e2 * fy / Seccao.GAMMA_M0 / 1e3;
+    function classe(c) { return '<span class="classe' + (c === 4 ? " classe-4" : "") + '">' + c + "</span>"; }
+    var regra = L
+      ? "Abas em consola: c/t = " + fmt(cl.c_t, 1) + " (c = a − t − r<sub>1</sub>; 9ε / 10ε / 14ε). Cantoneira: h/t = " + fmt(cl.h_t, 1) +
+        (cl.h_t <= 15 * cl.eps ? " ≤ " : " > ") + "15ε = " + fmt(15 * cl.eps, 1) + " e (b + h)/2t = " + fmt(cl.bh_2t, 1) +
+        (cl.bh_2t <= 11.5 * cl.eps ? " ≤ " : " > ") + "11,5ε = " + fmt(11.5 * cl.eps, 1)
+      : "Banzo c/t = " + fmt(cl.banzo.c_t, 1) + " (c = b/2 − t/2 − r<sub>1</sub>) · Alma c/t = " + fmt(cl.alma.c_t, 1) + " (c = h − t − r<sub>1</sub>); consolas: 9ε / 10ε / 14ε";
+    var comp = cl.compressao <= 3
+      ? '<div class="valor-grande">' + fmt(N, 0) + " <small>kN</small></div><p>A · f<sub>y</sub> / γ<sub>M0</sub> (6.2.4), sem encurvadura</p>"
+      : '<div class="valor-grande">—</div><p>Secção de classe 4: a resistência exige a área efetiva (EN 1993-1-5), ainda não calculada.</p>';
+    return '<section class="cartao"><h2>Verificação da secção · ' + estado.aco + "</h2>" +
+      '<div class="ec3">' +
+        '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>y</sub> = ' + fy + " <small>MPa</small></div><p>f<sub>u</sub> = " + tens.fu +
+          " MPa · t = " + fmt(p.t, p.t % 1 ? 1 : 0) + " mm (" + (tens.escalao[0] ? tens.escalao[0] + " < " : "") + "t ≤ " + tens.escalao[1] + ", " + Seccao.ACOS[estado.aco].norma + ") · ε = " + fmt(cl.eps, 3) + "</p></div>" +
+        '<div class="ec3-item"><h3>Classe à compressão</h3><div class="valor-grande">' + classe(cl.compressao) + "</div><p>" + regra + "</p></div>" +
+        '<div class="ec3-item"><h3>Tração <span class="sym">N<sub>pl,Rd</sub></span></h3><div class="valor-grande">' + fmt(N, 0) + " <small>kN</small></div><p>A · f<sub>y</sub> / γ<sub>M0</sub> (6.2.3(2)a), secção bruta</p></div>" +
+        '<div class="ec3-item"><h3>Compressão <span class="sym">N<sub>c,Rd</sub></span></h3>' + comp + "</div>" +
+      "</div>" +
+      '<p class="nota">Primeira versão: sem flexão nem encurvadura' + (L ? " (a cantoneira isolada encurva em torno de v-v, com i<sub>v</sub> = " + fmt(pr.iv, 2) + " cm)" : "") +
+        ". Na tração falta N<sub>u,Rd</sub> = 0,9 A<sub>net</sub> f<sub>u</sub> / γ<sub>M2</sub> (6.2.3(2)b), que depende da furação" +
+        (L ? "; nas cantoneiras ligadas por uma só aba, ver a NP EN 1993-1-8, 3.10.3. A linha das cantoneiras do Quadro 5.2 não se aplica quando a cantoneira está em contacto contínuo com outros elementos." : ".") + "</p>" +
+      "</section>";
+  }
+
+  // ----- Resultado: candidatos e perfil escolhido -----
+  function descricaoMedidas(forma, m) {
+    return FORMAS[forma].campos.filter(function (k) { return m[k.nome]; }).map(function (k) {
+      return "<i>" + k.sim + "</i> = " + fmt(m[k.nome], m[k.nome] % 1 ? 1 : 0) + " mm";
+    }).join(", ");
+  }
+
+  function resumo(c) {
+    var p = c.perfil, d = c.dims;
+    if (c.tipo === "I" || c.tipo === "U") return fmt(d.h, 0) + " × " + fmt(d.b, 0) + " · t<sub>w</sub> " + fmt(d.tw, 1) + " · t<sub>f</sub> " + fmt(d.tf, 1);
+    if (c.tipo === "enf") return fmt(d.h, 0) + " × " + fmt(d.b, 0) + (d.a ? " · a " + fmt(d.a, 0) : "") + " · t " + fmt(d.t, 1) + " · " + fmt(c.G, 2) + " kg/m";
+    return fmt(c.G, 2) + " kg/m" + (p.origem === "EN" ? "" : " · fora da " + PERFIS_LT[p.familia].norma);
+  }
+
+  function linhaCandidato(x, atual, qualquer) {
+    var c = x.c, prox = Math.max(0, 1 - x.r.desvio / 0.15);
+    return '<li><button type="button" class="candidato" data-nome="' + c.nome + '" aria-current="' + (c === atual.c) + '">' +
+      '<span class="candidato-nome">' + c.nome + "</span>" +
+      '<span class="candidato-dims">' + (qualquer ? '<span class="candidato-forma">' + FORMAS[c.forma].curto + "</span> " : "") + resumo(c) + "</span>" +
+      '<span class="barra" title="Desvio médio ' + fmt(x.r.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span>' +
+      "</button></li>";
+  }
+
+  // Lista dos candidatos: com dois ou mais compatíveis, todos (até 12) e a medida que os distingue; senão, os mais próximos.
+  function cartaoCandidatos(forma, lista, compat, m, atual) {
+    var n = compat.length, mostrar = n >= 2 ? compat.slice(0, 12) : lista.slice(0, 6), med = descricaoMedidas(forma, m);
+    var titulo = n >= 2 ? n + " perfis compatíveis" : "Perfis mais próximos";
+    var sub = n >= 2 ? "Compatíveis com " + med + ", por ordem de desvio nas medidas introduzidas."
+      : n === 1 ? "Só o primeiro é compatível com " + med + "."
+      : "Nenhum perfil é compatível com " + med + ", dentro das tolerâncias de laminagem e de medição.";
+    return '<section class="cartao"><h2>' + titulo + '</h2><p class="nota">' + sub + "</p>" +
+      (n >= 2 ? '<p class="alerta">' + sugestao(forma, compat, m) + "</p>" : "") +
+      '<ul class="candidatos">' + mostrar.map(function (x) { return linhaCandidato(x, atual, forma === "qualquer"); }).join("") + "</ul>" +
+      (n > mostrar.length ? '<p class="nota">E mais ' + (n - mostrar.length) + ". Acrescente medidas para encurtar a lista.</p>" : "") +
+      "</section>";
+  }
+
+  function selo(x, n, faltam) {
+    if (!x.r.compativel) return x.r.desvio <= 0.08 ? { txt: "Próximo, fora da tolerância", cls: "selo-aviso" } : { txt: "Sem correspondência clara", cls: "selo-mau" };
+    if (n > 1) return { txt: "Um de " + n + " compatíveis", cls: "selo-aviso" };
+    if (faltam) return { txt: "Único compatível", cls: "selo-ok" };
+    return avaliar(x.r.desvio);
+  }
+
+  // Cartão do perfil (cabeçalho, desenho e propriedades) e cartão das resistências, conforme o tipo.
+  function cartoesDetalhe(x, n, faltam) {
+    var c = x.c, p = c.perfil, sl = selo(x, n, faltam), descricao, figura, props, ec3, legenda = "Secção à escala, dimensões nominais em mm";
+    if (c.tipo === "I") {
+      var pr = Seccao.propriedades(p);
+      descricao = PERFIS[p.familia].descricao; figura = desenho(p); props = blocoPropriedades(p, pr); ec3 = blocoEC3(p, pr);
+    } else if (c.tipo === "U") {
+      var pu = Seccao.propriedadesU(p);
+      descricao = PERFIS_U[p.familia].descricao; figura = desenhoU(p, pu); props = blocoPropriedadesU(p, pu); ec3 = blocoEC3U(p, pu);
+      if (p.inclinacao) legenda += "; faces interiores dos banzos com inclinação de " + fmt(p.inclinacao * 100, 0) + " %";
+    } else if (c.tipo === "enf") {
+      // Em "qualquer forma" o aço escolhido é de laminados: as madres O Feliz usam o seu (S350GD, se existir).
+      var acos = Enformados.FAMILIAS[c.familia].acos, aco = acos.indexOf(estado.aco) >= 0 ? estado.aco : acos.indexOf("S350GD") >= 0 ? "S350GD" : acos[acos.length - 1];
+      descricao = Enformados.FAMILIAS[c.familia].descricao; figura = desenhoEnformado(c.familia, p);
+      props = blocoPropriedadesEnformado(c.familia, p, aco); ec3 = blocoEC3Enformado(c.familia, p, aco);
+      legenda = "Secção à escala (linha média), dimensões nominais em mm";
+    } else {
+      var pl = Seccao.propriedadesLT(p);
+      descricao = PERFIS_LT[p.familia].descricao + " · " + PERFIS_LT[p.familia].norma; figura = desenhoLT(p, pl); props = blocoPropriedadesLT(p, pl); ec3 = blocoEC3LT(p, pl);
+      if (ORIGEM_RAIOS[p.origem]) legenda += "; " + ORIGEM_RAIOS[p.origem];
+      if (c.tipo === "T") legenda += "; banzo e alma ligeiramente inclinados";
+    }
+    var desvios = '<div class="desvios">' + x.r.termos.map(function (t) {
+      return "<span>" + t.campo.sim + " <b>" + fmt(t.p, t.p % 1 ? 1 : 0) + "</b> (" + fmtDelta(t.m - t.p) + " mm)</span>";
+    }).join("") + "</div>";
+    return '<section class="cartao">' +
+        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + c.nome + "</h2>" +
+          '<span class="familia-perfil">' + descricao + "</span>" +
+          '<span class="selo ' + sl.cls + '">' + sl.txt + "</span></div>" +
+        desvios +
+        '<div class="corpo-resultado">' +
+          '<figure class="desenho">' + figura + "<figcaption>" + legenda + "</figcaption></figure>" + props +
+        "</div>" +
+      "</section>" + ec3;
+  }
+
   function render() {
-    var m = lerMedidas();
-    if (!m.h || !m.b) {
-      resultado.innerHTML = '<section class="cartao"><p class="nota">Introduza a altura e a largura do perfil para ver as séries que correspondem.</p></section>';
+    var forma = estado.forma, m = lerMedidas(forma);
+    if (!Object.keys(m).length) {
+      resultado.innerHTML = '<section class="cartao"><p class="nota">Introduza pelo menos uma medida, em milímetros, para ver os perfis compatíveis. Cada medida a mais encurta a lista.</p></section>';
       return;
     }
-    if (estado.forma === "U") { renderU(m); return; }
-    if (estado.forma !== "I") { renderEnformado(m); return; }
-    if (!estado.familias.length) {
+    if (forma === "I" && !estado.familias.length) {
       resultado.innerHTML = '<section class="cartao"><p class="nota">Selecione pelo menos uma série de perfis.</p></section>';
       return;
     }
-    var lista = procurar(m);
-    var melhor = lista[0];
-    var atual = estado.escolhido && lista.filter(function (c) { return c.perfil.nome === estado.escolhido; })[0] || melhor;
-    var p = atual.perfil, pr = Seccao.propriedades(p), av = avaliar(atual.desvio);
-
-    var desvios = '<div class="desvios">' +
-      "<span>h <b>" + fmt(p.h, 0) + "</b> (" + fmtDelta(m.h - p.h) + " mm)</span>" +
-      "<span>b <b>" + fmt(p.b, 0) + "</b> (" + fmtDelta(m.b - p.b) + " mm)</span>" +
-      (m.tw ? "<span>t<sub>w</sub> <b>" + fmt(p.tw, 1) + "</b> (" + fmtDelta(m.tw - p.tw) + " mm)</span>" : "") +
-      (m.tf ? "<span>t<sub>f</sub> <b>" + fmt(p.tf, 1) + "</b> (" + fmtDelta(m.tf - p.tf) + " mm)</span>" : "") +
-      "</div>";
-
-    var alerta = "";
-    var segundo = lista[1];
-    if (atual === melhor && segundo && !m.tf && segundo.desvio - melhor.desvio < 0.02) {
-      alerta = '<p class="alerta">' + p.nome + " e " + segundo.perfil.nome +
-        " têm dimensões exteriores parecidas. Meça a espessura do banzo (t<sub>f</sub> " + fmt(p.tf, 1) +
-        " vs " + fmt(segundo.perfil.tf, 1) + " mm) para confirmar.</p>";
-    }
-
-    var candidatos = lista.slice(0, 6).map(function (c) {
-      var q = c.perfil, prox = Math.max(0, 1 - c.desvio / 0.15);
-      return '<li><button type="button" class="candidato" data-nome="' + q.nome + '" aria-current="' + (q === p) + '">' +
-        '<span class="candidato-nome">' + q.nome + "</span>" +
-        '<span class="candidato-dims">' + fmt(q.h, 0) + " × " + fmt(q.b, 0) + " · t<sub>w</sub> " + fmt(q.tw, 1) + " · t<sub>f</sub> " + fmt(q.tf, 1) + "</span>" +
-        '<span class="barra" title="Desvio médio ' + fmt(c.desvio * 100, 1) + ' %"><span style="width:' + (prox * 100).toFixed(0) + '%"></span></span>' +
-        "</button></li>";
-    }).join("");
-
-    resultado.innerHTML =
-      '<section class="cartao">' +
-        '<div class="cabeca-resultado"><h2 class="nome-perfil">' + p.nome + "</h2>" +
-          '<span class="familia-perfil">' + PERFIS[p.familia].descricao + "</span>" +
-          '<span class="selo ' + av.cls + '">' + av.txt + "</span></div>" +
-        desvios + alerta +
-        '<div class="corpo-resultado">' +
-          '<figure class="desenho">' + desenho(p) + "<figcaption>Secção à escala, dimensões nominais em mm</figcaption></figure>" +
-          blocoPropriedades(p, pr) +
-        "</div>" +
-      "</section>" +
-      blocoEC3(p, pr) +
-      '<section class="cartao"><h2>Perfis mais próximos</h2><ul class="candidatos">' + candidatos + "</ul></section>";
+    var lista = procurar(forma, m), compat = lista.filter(function (x) { return x.r.compativel; });
+    var atual = estado.escolhido && lista.filter(function (x) { return x.c.nome === estado.escolhido; })[0] || lista[0];
+    var faltam = FORMAS[forma].campos.some(function (k) { return k.principal && !m[k.nome]; });
+    var detalhe = cartoesDetalhe(atual, compat.length, faltam), cand = cartaoCandidatos(forma, lista, compat, m, atual);
+    // Com vários compatíveis, a lista vem primeiro: ainda falta escolher.
+    resultado.innerHTML = compat.length >= 2 ? cand + detalhe : detalhe + cand;
   }
 
   // ----- Catálogo -----
@@ -529,9 +742,37 @@
     $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
   }
 
+  // Cantoneiras e T: propriedades calculadas (raios da norma; * fora da lista da norma).
+  var ROTULOS_CATALOGO = { Liguais: "L iguais", Ldesiguais: "L desiguais", T: "T" };
+  function renderCatalogoLT(fam) {
+    var d = PERFIS_LT[fam], iguais = fam === "Liguais", desiguais = fam === "Ldesiguais";
+    $("catalogo-desc").innerHTML = d.descricao + " · gama da Masterferro (S275JR) com os raios da " + d.norma +
+      (fam === "T" ? " · forma ajustada aos valores publicados" : "") + " · * secção fora da lista da norma (raios da mesma aba ou estimados)";
+    var colunas = iguais
+      ? [["Perfil", ""], ["a", "mm"], ["t", "mm"], ["r<sub>1</sub>", "mm"], ["A", "cm²"], ["G", "kg/m"], ["c", "cm"], ["I<sub>y</sub> = I<sub>z</sub>", "cm⁴"],
+        ["W<sub>el</sub>", "cm³"], ["i<sub>y</sub>", "cm"], ["I<sub>u</sub>", "cm⁴"], ["i<sub>u</sub>", "cm"], ["I<sub>v</sub>", "cm⁴"], ["i<sub>v</sub>", "cm"], ["W<sub>el,v</sub>", "cm³"]]
+      : desiguais
+      ? [["Perfil", ""], ["a", "mm"], ["b", "mm"], ["t", "mm"], ["r<sub>1</sub>", "mm"], ["A", "cm²"], ["G", "kg/m"], ["c<sub>z</sub>", "cm"], ["c<sub>y</sub>", "cm"],
+        ["I<sub>y</sub>", "cm⁴"], ["W<sub>el,y</sub>", "cm³"], ["I<sub>z</sub>", "cm⁴"], ["W<sub>el,z</sub>", "cm³"], ["I<sub>u</sub>", "cm⁴"], ["I<sub>v</sub>", "cm⁴"], ["i<sub>v</sub>", "cm"], ["tg α", ""]]
+      : [["Perfil", ""], ["h", "mm"], ["b", "mm"], ["t", "mm"], ["r<sub>1</sub>", "mm"], ["r<sub>2</sub>", "mm"], ["r<sub>3</sub>", "mm"], ["A", "cm²"], ["G", "kg/m"], ["e", "cm"],
+        ["I<sub>y</sub>", "cm⁴"], ["W<sub>el,y</sub>", "cm³"], ["i<sub>y</sub>", "cm"], ["I<sub>z</sub>", "cm⁴"], ["W<sub>el,z</sub>", "cm³"], ["i<sub>z</sub>", "cm"]];
+    var cab = "<thead><tr>" + colunas.map(function (c) { return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>"; }).join("") + "</tr></thead>";
+    var corpo = TODOS_LT.filter(function (p) { return p.familia === fam; }).map(function (p) {
+      var pr = Seccao.propriedadesLT(p), t = fmt(p.t, p.t % 1 ? 1 : 0);
+      var v = iguais
+        ? [fmt(p.a, 0), t, fmt(p.r1, 1), fmt(pr.A), fmt(pr.G, 2), fmt(pr.cz, 2), fmt(pr.Iy), fmt(pr.Wely), fmt(pr.iy), fmt(pr.Iu), fmt(pr.iu), fmt(pr.Iv), fmt(pr.iv), fmt(pr.Welv)]
+        : desiguais
+        ? [fmt(p.a, 0), fmt(p.b, 0), t, fmt(p.r1, 1), fmt(pr.A), fmt(pr.G, 2), fmt(pr.cz, 2), fmt(pr.cy, 2), fmt(pr.Iy), fmt(pr.Wely), fmt(pr.Iz), fmt(pr.Welz), fmt(pr.Iu), fmt(pr.Iv), fmt(pr.iv), fmt(pr.tanAlfa, 3)]
+        : [fmt(p.h, 0), fmt(p.b, 0), t, fmt(p.r1, 1), fmt(p.r2, 1), fmt(p.r3, 1), fmt(pr.A), fmt(pr.G, 2), fmt(pr.e, 2), fmt(pr.Iy), fmt(pr.Wely), fmt(pr.iy), fmt(pr.Iz), fmt(pr.Welz), fmt(pr.iz)];
+      return '<tr data-nome="' + p.nome + '" data-familia="' + fam + '" tabindex="0"><td>' + p.nome + (p.origem === "EN" ? "" : " *") + "</td><td>" + v.join("</td><td>") + "</td></tr>";
+    }).join("");
+    $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+  }
+
   function renderCatalogo() {
     var fam = estado.familiaCatalogo;
     if (FAMILIAS_U.indexOf(fam) >= 0) { renderCatalogoU(fam); return; }
+    if (FAMILIAS_LT.indexOf(fam) >= 0) { renderCatalogoLT(fam); return; }
     var ofeliz = FAMILIAS_OFELIZ.indexOf(fam) >= 0;
     if (ofeliz) { renderCatalogoOFeliz(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
@@ -555,48 +796,43 @@
 
   function abrirNoIdentificador(nome, familia) {
     function v(x) { return String(x).replace(".", ","); }
+    var forma, valores, q;
     if (FAMILIAS_U.indexOf(familia) >= 0) {
-      var u = TODOS_U.filter(function (q) { return q.nome === nome; })[0];
-      if (!u) return;
-      form.elements.forma.value = "U";
-      atualizarForma("U", estado.aco);
-      form.elements.h.value = v(u.h); form.elements.b.value = v(u.b); form.elements.tw.value = v(u.tw); form.elements.tf.value = v(u.tf);
-      estado.escolhido = nome;
-      $("nota-exemplo").hidden = true;
-      mostrar("identificar");
-      render();
-      window.scrollTo(0, 0);
-      return;
+      q = TODOS_U.filter(function (x) { return x.nome === nome; })[0];
+      if (!q) return;
+      forma = "U"; valores = { h: v(q.h), b: v(q.b), tw: v(q.tw), tf: v(q.tf) };
+    } else if (FAMILIAS_OFELIZ.indexOf(familia) >= 0) {
+      q = Enformados.seccoes(familia).filter(function (x) { return x.nome === nome; })[0];
+      if (!q) return;
+      forma = familia === "Superomega" ? "omega" : familia;
+      valores = { h: v(q.h), b: v(q.b), t: v(q.t), a: q.a ? v(q.a) : undefined };
+    } else if (FAMILIAS_LT.indexOf(familia) >= 0) {
+      q = TODOS_LT.filter(function (x) { return x.nome === nome; })[0];
+      if (!q) return;
+      forma = familia;
+      valores = q.tipo === "T" ? { h: v(q.h), b: v(q.b), t: v(q.t) } : familia === "Liguais" ? { a: v(q.a), t: v(q.t) } : { a: v(q.a), b: v(q.b), t: v(q.t) };
+    } else {
+      q = TODOS.filter(function (x) { return x.nome === nome; })[0];
+      if (!q) return;
+      forma = "I"; valores = { h: v(q.h), b: v(q.b), tw: v(q.tw), tf: v(q.tf) };
+      if (estado.familias.indexOf(q.familia) === -1) {
+        estado.familias.push(q.familia);
+        document.querySelector('#fichas-familias input[value="' + q.familia + '"]').checked = true;
+      }
     }
-    if (FAMILIAS_OFELIZ.indexOf(familia) >= 0) {
-      var s = Enformados.seccoes(familia).filter(function (q) { return q.nome === nome; })[0];
-      if (!s) return;
-      var forma = familia === "Superomega" ? "omega" : familia;
-      form.elements.forma.value = forma;
-      atualizarForma(forma, estado.aco);
-      form.elements.h.value = v(s.h); form.elements.b.value = v(s.b); form.elements.t.value = v(s.t);
-      form.elements.a.value = s.a ? v(s.a) : "";
-      estado.escolhido = nome;
-      $("nota-exemplo").hidden = true;
-      mostrar("identificar");
-      render();
-      window.scrollTo(0, 0);
-      return;
-    }
-    var p = TODOS.filter(function (q) { return q.nome === nome; })[0];
-    if (!p) return;
-    if (estado.forma !== "I") { form.elements.forma.value = "I"; atualizarForma("I", estado.aco); }
-    form.elements.h.value = v(p.h); form.elements.b.value = v(p.b);
-    form.elements.tw.value = v(p.tw); form.elements.tf.value = v(p.tf);
-    if (estado.familias.indexOf(p.familia) === -1) {
-      estado.familias.push(p.familia);
-      document.querySelector('#fichas-familias input[value="' + p.familia + '"]').checked = true;
-    }
-    estado.escolhido = null;
+    trocarForma(forma, valores);
+    estado.escolhido = nome;
     $("nota-exemplo").hidden = true;
+    gravarIdentificar();
     mostrar("identificar");
     render();
     window.scrollTo(0, 0);
+  }
+
+  // Memória do Identificar: a forma, o aço e as medidas de cada forma.
+  function gravarIdentificar() {
+    guardarMedidasForma();
+    Memoria.gravar("identificar", { campos: Memoria.doFormulario(form), medidas: estado.medidas, familias: estado.familias });
   }
 
   // ----- Vistas -----
@@ -626,8 +862,8 @@
     $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
       return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
     }).join("");
-    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_U, FAMILIAS_OFELIZ).map(function (f) {
-      return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + f + "</label>";
+    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_U, FAMILIAS_OFELIZ, FAMILIAS_LT).map(function (f) {
+      return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + (ROTULOS_CATALOGO[f] || f) + "</label>";
     }).join("");
     atualizarForma("I", estado.aco);
 
@@ -635,22 +871,23 @@
     form.elements.b.value = EXEMPLO.b;
     var padrao = Memoria.doFormulario(form);
     var guardado = Memoria.ler("identificar");
-    function aplicar(v, familias) {
+    function aplicar(v, familias, medidas) {
       Memoria.paraFormulario(form, v);
-      // A lista das classes de aço depende da forma guardada.
+      // A lista das classes de aço e os campos dependem da forma guardada.
       atualizarForma(form.elements.forma.value, v.aco);
+      estado.medidas = medidas || {};
+      guardarMedidasForma();
       estado.familias = FAMILIAS.filter(function (f) { return !familias || familias.indexOf(f) !== -1; });
       Array.prototype.forEach.call(form.querySelectorAll("#fichas-familias input"), function (i) {
         i.checked = estado.familias.indexOf(i.value) !== -1;
       });
     }
     if (guardado) {
-      aplicar(guardado.campos, guardado.familias);
+      aplicar(guardado.campos, guardado.familias, guardado.medidas);
       $("nota-exemplo").hidden = true;
     }
-    function gravar() { Memoria.gravar("identificar", { campos: Memoria.doFormulario(form), familias: estado.familias }); }
     $("repor-identificar").addEventListener("click", function () {
-      aplicar(padrao, null);
+      aplicar(padrao, null, null);
       Memoria.apagar("identificar");
       estado.escolhido = null;
       $("nota-exemplo").hidden = false;
@@ -660,7 +897,7 @@
     form.addEventListener("submit", function (e) { e.preventDefault(); });
     form.addEventListener("input", function (e) {
       if (e.target.name === "aco") estado.aco = e.target.value;
-      else if (e.target.name === "forma") { atualizarForma(e.target.value, estado.aco); estado.escolhido = null; }
+      else if (e.target.name === "forma") trocarForma(e.target.value);
       else if (e.target.type === "checkbox") {
         estado.familias = Array.prototype.filter.call(form.querySelectorAll("#fichas-familias input"), function (i) { return i.checked; })
           .map(function (i) { return i.value; });
@@ -668,7 +905,7 @@
         estado.escolhido = null;
         $("nota-exemplo").hidden = true;
       }
-      gravar();
+      gravarIdentificar();
       render();
     });
     resultado.addEventListener("click", function (e) {

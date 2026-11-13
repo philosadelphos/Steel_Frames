@@ -31,7 +31,7 @@
       <h2>1. Como a app está organizada</h2>
       <p>São quatro separadores de trabalho, que se usam por esta ordem num pavilhão novo:</p>
       <ul>
-        <li><b>Identificar perfil</b> — a partir das medidas tiradas em obra, encontra o perfil normalizado mais provável (I/H, U ou enformado a frio) e mostra as propriedades e as resistências da secção.</li>
+        <li><b>Identificar perfil</b> — a partir das medidas tiradas em obra, mostra os perfis normalizados compatíveis (I/H, U, enformados a frio, cantoneiras e T) e, para o escolhido, as propriedades e as resistências da secção.</li>
         <li><b>Madres</b> — define o pavilhão, o local e as cargas, calcula a neve e o vento, e escolhe a madre mais leve que verifica. Também verifica o painel de revestimento contra a tabela do fabricante.</li>
         <li><b>Pórtico</b> — usa a geometria, o local, as ações e o peso das madres do separador Madres e escolhe o par pilar/travessa mais leve. Qualquer mudança nas Madres passa logo para o Pórtico.</li>
         <li><b>Catálogo</b> — tabelas das séries; tocar numa linha abre o perfil no Identificar.</li>
@@ -64,16 +64,42 @@
         </svg>
         <figcaption>Medidas a tirar em obra. Nos U, a espessura do banzo do UPN é medida a meio da largura; o UPE tem banzos paralelos.</figcaption>
       </figure>
-      <p>A altura <i>h</i> e a largura <i>b</i> chegam para encontrar o perfil; as espessuras desempatam séries parecidas (por exemplo, HEA e HEB com a mesma altura nominal têm larguras iguais e espessuras diferentes). A app compara as medidas com todas as secções das séries escolhidas e ordena-as pelo desvio, com uma tolerância que cobre as tolerâncias de laminagem e o erro de medição.</p>
+      <figure class="manual-fig">
+        <svg viewBox="0 0 480 270" role="img" aria-labelledby="mn-f1b">
+          <title id="mn-f1b">Cantoneira de abas desiguais com as dimensões a, b e t, os eixos y, z, u e v, e perfil T com as dimensões h, b e t</title>
+          <path class="mn-aco" d="M80,40 H96 V200 Q96,208 104,208 H200 Q204,208 204,212 V224 H80 Z"/>
+          <line class="mn-trac" x1="60" y1="170" x2="226" y2="170"/><text class="mn-txt" x="230" y="175">y</text>
+          <line class="mn-trac" x1="110" y1="26" x2="110" y2="246"/><text class="mn-txt" x="104" y="264">z</text>
+          <line class="mn-fina" x1="44" y1="207" x2="196" y2="121"/><text class="mn-txt-s" x="200" y="120">u</text>
+          <line class="mn-fina" x1="76" y1="109" x2="144" y2="231"/><text class="mn-txt-s" x="66" y="106">v</text>
+          <path class="mn-fina" d="M150,170 A40,40 0 0 0 144.8,150.3"/><text class="mn-txt-s" x="156" y="163">α</text>
+          <line class="mn-cota" x1="60" y1="40" x2="60" y2="224"/><text class="mn-txt" x="40" y="136">a</text>
+          <line class="mn-cota" x1="80" y1="246" x2="204" y2="246"/><text class="mn-txt" x="160" y="264">b</text>
+          <text class="mn-txt" x="83" y="33">t</text>
+          <path class="mn-aco" d="M280,40 H440 V56 L372,58 Q366,58 366,64 V220 Q366,224 362,224 H354 Q350,224 350,220 V64 Q350,58 344,58 L280,56 Z"/>
+          <line class="mn-cota" x1="280" y1="24" x2="440" y2="24"/><text class="mn-txt" x="354" y="18">b</text>
+          <line class="mn-cota" x1="262" y1="40" x2="262" y2="224"/><text class="mn-txt" x="244" y="136">h</text>
+          <text class="mn-txt" x="374" y="150">t</text>
+          <text class="mn-txt-s" x="380" y="190">banzo e alma</text>
+          <text class="mn-txt-s" x="380" y="207">ligeiramente</text>
+          <text class="mn-txt-s" x="380" y="224">inclinados</text>
+        </svg>
+        <figcaption>Cantoneira (EN 10056-1) e perfil T (EN 10055). Na cantoneira de abas desiguais, a é a aba maior; os eixos principais u-u (maior inércia) e v-v fazem o ângulo α com y-y e z-z. Nas de abas iguais, α = 45°.</figcaption>
+      </figure>
+      <p>Comece pela forma da secção: os campos e o esquema mudam com ela. Se não souber a forma, escolha <i>Qualquer forma</i>: a app procura em todas as séries com a dimensão exterior maior <i>D</i>, a menor <i>d</i> e a espessura de uma parede qualquer.</p>
+      <p><b>Basta uma medida para ver os candidatos.</b> A app compara só as medidas já introduzidas e mostra os perfis compatíveis, isto é, aqueles em que cada medida fica dentro da tolerância: o maior de 1,5 mm e 3 % nas dimensões exteriores, e o maior de 0,25 mm e 10 % nas espessuras (cobre as tolerâncias de laminagem e o erro de medição). Ordena-os pelo desvio relativo médio nessas medidas (as espessuras e o reforço pesam metade) e, com o mesmo desvio, pelo mais leve. Cada medida a mais encurta a lista. Enquanto houver mais de um compatível, a app indica quantos são e a medida que melhor os distingue (com os valores possíveis), dando preferência às dimensões exteriores; quando os candidatos são de formas diferentes, sugere escolher a forma. Tocar num candidato mostra as propriedades dele.</p>
+      <p>Nas cantoneiras de abas desiguais e em <i>Qualquer forma</i>, as duas dimensões podem ser introduzidas por qualquer ordem: a maior compara-se com a aba (ou dimensão) maior. Com uma só aba medida, compara-se com a aba mais parecida.</p>
       <h3>Cuidados</h3>
       <ul>
         <li>Meça <i>h</i> e <i>b</i> em vários pontos e use a média; a pintura e a ferrugem aumentam as espessuras aparentes.</li>
         <li>Num perfil já montado, confirme se é laminado (concordâncias arredondadas entre alma e banzo) ou soldado (cordões de soldadura): um perfil soldado não está no catálogo e as propriedades calculam-se à parte.</li>
-        <li>A classe do aço não se vê: sem certificado ou ensaio, use a mais baixa plausível para a época da obra.</li>
+        <li>Nas cantoneiras, meça a aba por fora (do dorso à ponta) e a espessura perto da ponta, longe da concordância da raiz. Nos T da EN 10055, o banzo e a alma são ligeiramente inclinados: meça a espessura a meio.</li>
+        <li>A classe do aço não se vê: sem certificado ou ensaio, use a mais baixa plausível para a época da obra. As cantoneiras e os T da gama da Masterferro são S275JR.</li>
         <li>f<sub>y</sub> depende da espessura (EN 10025-2, escalões t ≤ 16 / 40 / 63 / 80 mm), como manda o NA–3.2.1(1). A app usa a maior espessura da secção (o banzo), do lado da segurança.</li>
       </ul>
       <h3>O que a app calcula</h3>
-      <p>As propriedades dos laminados calculam-se a partir das dimensões nominais da EN 10365, incluindo as concordâncias (A, I, W<sub>el</sub>, W<sub>pl</sub>, i, I<sub>t</sub>, I<sub>w</sub>), e conferem-se com os catálogos. Seguem-se a classe da secção (Quadro 5.2 da NP EN 1993-1-1) e as resistências da secção (6.2): N<sub>pl,Rd</sub>, M<sub>c,Rd</sub> e V<sub>pl,Rd</sub>. Nos enformados a frio (Superomega®, C e Z da O Feliz) usam-se as propriedades efetivas do fabricante, que já descontam a encurvadura local das paredes finas.</p>
+      <p>As propriedades dos laminados calculam-se a partir das dimensões nominais, incluindo as concordâncias (A, I, W<sub>el</sub>, W<sub>pl</sub>, i, I<sub>t</sub>, I<sub>w</sub>), e conferem-se com os catálogos. Seguem-se a classe da secção (Quadro 5.2 da NP EN 1993-1-1) e as resistências da secção (6.2): N<sub>pl,Rd</sub>, M<sub>c,Rd</sub> e V<sub>pl,Rd</sub>. Nos enformados a frio (Superomega®, C e Z da O Feliz) usam-se as propriedades efetivas do fabricante, que já descontam a encurvadura local das paredes finas.</p>
+      <p><b>Cantoneiras e perfis T.</b> As séries são as da gama da Masterferro (cantoneiras de abas iguais e desiguais e T de abas iguais), com os raios de concordância da EN 10056-1 e da EN 10055; nas poucas secções fora da lista da norma, usa-se o raio da mesma aba ou um raio estimado, e a app assinala-o. As propriedades vêm da integração do contorno real: A, G, I, W<sub>el</sub> e i nos eixos y-y e z-z e, nas cantoneiras, os eixos principais (I<sub>u</sub>, I<sub>v</sub>, i<sub>u</sub>, i<sub>v</sub>, W<sub>el,u</sub>, W<sub>el,v</sub> e tg α). Nos T, a forma do banzo e da alma inclinados foi ajustada aos valores publicados. A verificação, nesta primeira versão, dá a classe à compressão (nas cantoneiras, abas em consola e a linha própria das cantoneiras do Quadro 5.2: h/t ≤ 15ε e (b + h)/2t ≤ 11,5ε; nos T, banzo e alma em consola) e N<sub>pl,Rd</sub> à tração e à compressão da secção. Não inclui a flexão, a encurvadura (numa cantoneira isolada, em torno de v-v) nem a resistência da secção útil à tração, que depende da furação e, nas cantoneiras ligadas por uma só aba, da NP EN 1993-1-8, 3.10.3.</p>
     </article>
 
     <article class="manual-cap" id="manual-geometria">
@@ -386,6 +412,9 @@
         <dt>q<sub>k</sub>, Q<sub>k</sub></dt><dd>sobrecarga de cobertura distribuída e concentrada</dd>
         <dt>ψ<sub>0</sub></dt><dd>coeficiente de combinação</dd>
         <dt>W<sub>el</sub>, W<sub>pl</sub>, W<sub>eff</sub></dt><dd>módulos de flexão elástico, plástico e efetivo</dd>
+        <dt>a, b, t</dt><dd>abas e espessura de uma cantoneira</dd>
+        <dt>I<sub>u</sub>, I<sub>v</sub>, α</dt><dd>momentos de inércia nos eixos principais de uma cantoneira e ângulo entre y-y e u-u</dd>
+        <dt>D, d</dt><dd>dimensões exteriores maior e menor (procura em qualquer forma)</dd>
         <dt>χ<sub>LT</sub></dt><dd>coeficiente de redução ao bambeamento</dd>
         <dt>C<sub>D</sub>, K</dt><dd>rigidez de rotação do revestimento e mola lateral equivalente no banzo livre</dd>
         <dt>k<sub>h</sub></dt><dd>fator da carga lateral no banzo livre das madres C e Z</dd>
