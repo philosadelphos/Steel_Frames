@@ -44,6 +44,9 @@
           <option value="Liguais">Cantoneira de abas iguais (L, EN 10056-1)</option>
           <option value="Ldesiguais">Cantoneira de abas desiguais (L, EN 10056-1)</option>
           <option value="T">Perfil T de abas iguais (EN 10055)</option>
+          <option value="SHS">Tubo quadrado (SHS, EN 10219)</option>
+          <option value="RHS">Tubo retangular (RHS, EN 10219)</option>
+          <option value="CHS">Tubo redondo (CHS, EN 10219)</option>
           <option value="qualquer">Qualquer forma (procura em todas as séries)</option>
         </select></label>
 
@@ -140,6 +143,37 @@
           <text x="9" y="79" class="esquema-txt">h</text>
           <text x="99" y="86" class="esquema-txt esquema-txt-s">t</text>
           <line class="esquema-guia" x1="89" y1="82" x2="96" y2="82"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="SHS" hidden>
+          <path class="esquema-perfil" fill-rule="evenodd" d="M50 30h60a10 10 0 0 1 10 10v80a10 10 0 0 1-10 10H50a10 10 0 0 1-10-10V40a10 10 0 0 1 10-10zM55 40h50a5 5 0 0 1 5 5v70a5 5 0 0 1-5 5H55a5 5 0 0 1-5-5V45a5 5 0 0 1 5-5z"/>
+          <g class="esquema-cota">
+            <line x1="40" y1="18" x2="120" y2="18"/><line x1="40" y1="14" x2="40" y2="22"/><line x1="120" y1="14" x2="120" y2="22"/>
+          </g>
+          <text x="80" y="13" class="esquema-txt">b</text>
+          <text x="128" y="84" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="115" y1="80" x2="125" y2="80"/>
+          <line class="esquema-guia" x1="50" y1="137" x2="110" y2="137" stroke-dasharray="3 2"/>
+          <text x="80" y="148" class="esquema-txt" style="font-size: 9px">face plana &lt; b</text>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="RHS" hidden>
+          <path class="esquema-perfil" fill-rule="evenodd" d="M58 20h44a10 10 0 0 1 10 10v90a10 10 0 0 1-10 10H58a10 10 0 0 1-10-10V30a10 10 0 0 1 10-10zM63 30h34a5 5 0 0 1 5 5v80a5 5 0 0 1-5 5H63a5 5 0 0 1-5-5V35a5 5 0 0 1 5-5z"/>
+          <g class="esquema-cota">
+            <line x1="48" y1="10" x2="112" y2="10"/><line x1="48" y1="6" x2="48" y2="14"/><line x1="112" y1="6" x2="112" y2="14"/>
+            <line x1="34" y1="20" x2="34" y2="130"/><line x1="30" y1="20" x2="38" y2="20"/><line x1="30" y1="130" x2="38" y2="130"/>
+          </g>
+          <text x="80" y="7" class="esquema-txt">b</text>
+          <text x="24" y="79" class="esquema-txt">h</text>
+          <text x="120" y="79" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="107" y1="75" x2="117" y2="75"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="CHS" hidden>
+          <path class="esquema-perfil" fill-rule="evenodd" d="M30 80a50 50 0 1 0 100 0a50 50 0 1 0-100 0zM39 80a41 41 0 1 0 82 0a41 41 0 1 0-82 0z"/>
+          <g class="esquema-cota">
+            <line x1="30" y1="18" x2="130" y2="18"/><line x1="30" y1="14" x2="30" y2="22"/><line x1="130" y1="14" x2="130" y2="22"/>
+          </g>
+          <text x="80" y="13" class="esquema-txt">D</text>
+          <text x="138" y="84" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="126" y1="80" x2="135" y2="80"/>
         </svg>
         <svg viewBox="0 0 160 150" role="img" data-forma="qualquer" hidden>
           <rect class="esquema-caixa" x="46" y="20" width="76" height="106"/>
@@ -456,13 +490,14 @@
 </main>
 
 <footer class="rodape">
-  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação, resistência e bambeamento, γ<sub>M0</sub> = γ<sub>M1</sub> = 1,0) · EN 10025-2/-3 (f<sub>y</sub> e f<sub>u</sub> por escalão de espessura, NA–3.2.1(1)) e EN 10346 (classes de aço) · NP EN 1990, NP EN 1991-1-1, 1991-1-3 e 1991-1-4 + Anexos Nacionais (ações e combinações) · EN 1993-1-3:2006 (madres enformadas a frio, valores recomendados) · catálogos e desenhos O Feliz (Superomega®, madres C e Z).</p>
+  <p><strong>Referências:</strong> EN 10365:2017 (dimensões) · NP EN 1993-1-1:2010 + Anexo Nacional (classificação, resistência e bambeamento, γ<sub>M0</sub> = γ<sub>M1</sub> = 1,0) · EN 10025-2/-3 (f<sub>y</sub> e f<sub>u</sub> por escalão de espessura, NA–3.2.1(1)) e EN 10346 (classes de aço) · NP EN 1990, NP EN 1991-1-1, 1991-1-3 e 1991-1-4 + Anexos Nacionais (ações e combinações) · EN 1993-1-3:2006 (madres enformadas a frio, valores recomendados) · EN 10219-1/-2 (perfis ocos enformados a frio: aço, cantos e propriedades pelo Anexo B) · catálogos e desenhos O Feliz (Superomega®, madres C e Z); catálogos Masterferro (cantoneiras e T) e Ferpinta, HIASA e Nordesfer (tubos).</p>
   <p>Propriedades dos perfis laminados calculadas a partir das dimensões nominais, incluindo as concordâncias. Valores dos Anexos Nacionais conferidos com o texto das normas. Ferramenta de apoio ao pré-dimensionamento: não substitui o projeto de estruturas por técnico habilitado.</p>
 </footer>
 
 <script src="js/perfis.js"></script>
 <script src="js/perfis-u.js"></script>
 <script src="js/perfis-lt.js"></script>
+<script src="js/perfis-tubulares.js"></script>
 <script src="js/seccao.js"></script>
 <script src="js/ofeliz.js"></script>
 <script src="js/acoes.js"></script>

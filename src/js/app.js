@@ -1,6 +1,6 @@
 /*
  * Interface: identificação de perfis por medidas e catálogo.
- * Depende de perfis.js, perfis-u.js, perfis-lt.js, seccao.js e enformados.js.
+ * Depende de perfis.js, perfis-u.js, perfis-lt.js, perfis-tubulares.js, seccao.js e enformados.js.
  */
 (function () {
   var FAMILIAS = Object.keys(PERFIS);
@@ -9,12 +9,14 @@
   var FAMILIAS_U = Object.keys(PERFIS_U);
   var TODOS_LT = Seccao.todosLT();
   var FAMILIAS_LT = ["Liguais", "Ldesiguais", "T"];
+  var TODOS_TUBOS = Seccao.todosTubos();
+  var FAMILIAS_TUBOS = ["SHS", "RHS", "CHS"];
   var EXEMPLO = { h: 300, b: 150 };
 
   var estado = {
     familias: FAMILIAS.slice(),
     // I ou H laminado, U laminado, enformado a frio ("omega", "C", "Z"), cantoneira ("Liguais", "Ldesiguais"),
-    // perfil T ("T") ou "qualquer" (procura em todas as séries).
+    // perfil T ("T"), tubo quadrado, retangular ou redondo ("SHS", "RHS", "CHS") ou "qualquer" (todas as séries).
     forma: "I",
     aco: "S355",
     escolhido: null,        // perfil escolhido à mão na lista de candidatos
@@ -98,11 +100,16 @@
       campo("b", "Outra aba", "b", true, "a outra aba b"), campo("t", "Espessura", "t", false, "a espessura t")] },
     T: { curto: "T", nome: "T", campos: [campo("h", "Altura", "h", true, "a altura h"), campo("b", "Largura do banzo", "b", true, "a largura do banzo b"),
       campo("t", "Espessura", "t", false, "a espessura t")] },
+    SHS: { curto: "□", nome: "tubo quadrado", campos: [campo("b", "Lado", "b", true, "o lado b"), campo("t", "Espessura", "t", false, "a espessura t")] },
+    RHS: { curto: "▭", nome: "tubo retangular", semOrdem: ["h", "b"], campos: [campo("h", "Lado", "h", true, "o lado h"),
+      campo("b", "Outro lado", "b", true, "o outro lado b"), campo("t", "Espessura", "t", false, "a espessura t")] },
+    CHS: { curto: "○", nome: "tubo redondo", campos: [campo("h", "Diâmetro", "D", true, "o diâmetro D"), campo("t", "Espessura", "t", false, "a espessura t")] },
     qualquer: { curto: "", nome: "qualquer forma", semOrdem: ["h", "b"], campos: [campo("h", "Dimensão maior", "D", true, "a dimensão maior D"),
       campo("b", "Dimensão menor", "d", true, "a dimensão menor d"), campo("t", "Espessura", "t", false, "a espessura de uma parede t")] }
   };
   var ENFORMADOS = ["omega", "C", "Z"];
   var LT = ["Liguais", "Ldesiguais", "T"];
+  var TUBOS = ["SHS", "RHS", "CHS"];
   var NOMES_CAMPOS = ["h", "b", "tw", "tf", "t", "a"];
   function campoDe(forma, nome) { return FORMAS[forma].campos.filter(function (k) { return k.nome === nome; })[0]; }
 
@@ -141,7 +148,15 @@
       l.push({ tipo: p.tipo, forma: p.familia, familia: p.familia, nome: p.nome, perfil: p, G: Seccao.propriedadesLT(p).G,
         dims: p.tipo === "L" ? { a: p.a, b: p.b, t: p.t } : { h: p.h, b: p.b, t: p.t }, esp: [p.t] });
     });
-    l.forEach(function (c) { var d1 = c.dims.h || c.dims.a; c.D = Math.max(d1, c.dims.b); c.d = Math.min(d1, c.dims.b); });
+    TODOS_TUBOS.forEach(function (p) {
+      if (forma !== p.forma && !todas) return;
+      l.push({ tipo: "tubo", forma: p.forma, familia: p.forma, nome: p.nome, perfil: p, G: Seccao.propriedadesTubo(p).G,
+        dims: p.forma === "CHS" ? { h: p.d, t: p.t } : p.forma === "SHS" ? { b: p.b, t: p.t } : { h: p.h, b: p.b, t: p.t }, esp: [p.t] });
+    });
+    l.forEach(function (c) {
+      var d1 = c.dims.h || c.dims.a || c.dims.b, d2 = c.dims.b === undefined ? d1 : c.dims.b;
+      c.D = Math.max(d1, d2); c.d = Math.min(d1, d2);
+    });
     return (cacheCandidatos[forma] = l);
   }
 
@@ -222,13 +237,33 @@
     if (melhor) txt.push("Para os distinguir, meça " + melhor.k.meca + ": " + listaValores(melhor.vals) + ".");
     if (formas.length > 1) txt.push("Há candidatos de formas diferentes (" + formas.map(function (f) { return FORMAS[f].nome; }).join(", ") + "): escolher a forma no seletor também encurta a lista.");
     else if (familias.indexOf("UPN") >= 0 && familias.indexOf("UPE") >= 0) txt.push("Veja se as faces interiores dos banzos são inclinadas (UPN) ou paralelas (UPE).");
-    if (!txt.length) txt.push("Têm as mesmas medidas nominais: confirme a série pela marcação, pelo projeto ou pelo fornecedor.");
+    if (!txt.length) {
+      // Todas as medidas já introduzidas: se os compatíveis diferem numa delas, é por menos do que a tolerância.
+      var difere = null;
+      FORMAS[forma].campos.forEach(function (k) {
+        var vals = [];
+        compat.forEach(function (x) { x.r.termos.forEach(function (t) { if (t.campo.nome === k.nome && vals.indexOf(t.p) < 0) vals.push(t.p); }); });
+        if (vals.length > 1 && !difere) difere = { k: k, vals: vals };
+      });
+      txt.push(difere
+        ? "Diferem em " + difere.k.sim.replace(/<[^>]+>/g, "") + " (" + listaValores(difere.vals) + "), menos do que a tolerância de medição: meça " + difere.k.meca + " com mais rigor" + (forma === "CHS" ? " (por exemplo, o perímetro a dividir por π)" : "") + "."
+        : "Têm as mesmas medidas nominais: confirme a série pela marcação, pelo projeto ou pelo fornecedor.");
+    }
     return txt.join(" ");
   }
 
   // ----- Forma escolhida: campos, esquema e classes de aço -----
   function acosForma(forma) {
-    return ENFORMADOS.indexOf(forma) >= 0 ? Enformados.FAMILIAS[FORMAS[forma].familia].acos : Object.keys(Seccao.ACOS);
+    return ENFORMADOS.indexOf(forma) >= 0 ? Enformados.FAMILIAS[FORMAS[forma].familia].acos
+      : TUBOS.indexOf(forma) >= 0 ? Object.keys(Seccao.ACOS_H) : Object.keys(Seccao.ACOS);
+  }
+  // Aço de um tubo quando a classe escolhida é de laminados (em "qualquer forma"): a da mesma tensão (S235 → S235H).
+  function acoTubo(aco) {
+    if (Seccao.ACOS_H[aco]) return aco;
+    return Seccao.ACOS_H[aco + "H"] ? aco + "H" : "S355H";
+  }
+  function nomeAco(a) {
+    return Seccao.ACOS[a] ? Seccao.ACOS[a].norma : Seccao.ACOS_H[a] ? Seccao.ACOS_H[a].norma : "EN 10346";
   }
   var NOTAS_FORMA = {
     U: "UPN (banzos inclinados, t<sub>f</sub> medida a meio do banzo) e UPE (banzos paralelos), da EN 10365. A C enformada a frio, com reforços nas pontas dos banzos, é outra série.",
@@ -236,8 +271,11 @@
     C: "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.",
     Liguais: "Meça a aba a por fora, do dorso à ponta, e a espessura t perto da ponta. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
     Ldesiguais: "As abas podem ser introduzidas por qualquer ordem. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
+    SHS: "Meça o lado de face a face exterior, abraçando o tubo (craveira ou duas réguas), e não a face plana visível, que é mais curta: faltam os dois cantos redondos. A espessura não se vê de fora: sem ela, a lista começa pela mais fina da gama.",
+    RHS: "Os lados podem ser introduzidos por qualquer ordem. Meça de face a face exterior, não a face plana visível (mais curta, sem os cantos). Sem a espessura, a lista começa pela mais fina da gama.",
+    CHS: "Meça o diâmetro exterior (ou o perímetro, a dividir por π). A espessura só se mede na ponta do tubo: sem ela, a lista começa pela mais fina da gama.",
     T: "Altura h do banzo à ponta da alma e largura b do banzo; nos T da EN 10055, h = b e o banzo e a alma têm a mesma espessura t. Banzo e alma são ligeiramente inclinados: meça t a meio. Gama da Masterferro (S275JR).",
-    qualquer: "Procura em todas as séries: I/H, U, ómega, C, Z, cantoneiras e T. As duas dimensões exteriores podem ir por qualquer ordem; a espessura é a de uma parede qualquer (alma, banzo ou aba)."
+    qualquer: "Procura em todas as séries: I/H, U, ómega, C, Z, cantoneiras, T e tubos. As duas dimensões exteriores podem ir por qualquer ordem (num tubo redondo, as duas são o diâmetro); a espessura é a de uma parede qualquer (alma, banzo, aba ou parede do tubo)."
   };
   NOTAS_FORMA.Z = NOTAS_FORMA.C;
 
@@ -246,10 +284,11 @@
   function atualizarForma(forma, aco, mudou) {
     estado.forma = forma;
     var lista = acosForma(forma), enf = ENFORMADOS.indexOf(forma) >= 0, lt = LT.indexOf(forma) >= 0;
-    var padrao = enf ? "S350GD" : lt ? "S275" : "S355";
+    var semH = aco && Seccao.ACOS[String(aco).replace(/H$/, "")] ? String(aco).replace(/H$/, "") : "S355";
+    var padrao = enf ? "S350GD" : lt ? "S275" : TUBOS.indexOf(forma) >= 0 ? acoTubo(aco || "S355") : semH;
     estado.aco = lista.indexOf(aco) >= 0 && !(mudou && lt) ? aco : padrao;
     $("in-aco").innerHTML = lista.map(function (a) {
-      return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + (Seccao.ACOS[a] ? " · " + Seccao.ACOS[a].norma : " · EN 10346") + "</option>";
+      return '<option value="' + a + '"' + (a === estado.aco ? " selected" : "") + ">" + a + " · " + nomeAco(a) + "</option>";
     }).join("");
     // Os campos da forma passam para a frente, pela ordem da forma (é também a ordem do teclado).
     var caixa = $("campo-h").parentNode;
@@ -603,6 +642,91 @@
       "</section>";
   }
 
+  // ----- Perfis ocos (EN 10219) -----
+  // Série normalizada (EN 10219-2, Anexo C) ou gama de fabricante.
+  var NOMES_FONTES = { F: "Ferpinta", H: "HIASA", N: "Nordesfer" };
+  function serieTubo(p, curto) {
+    var fab = p.fontes.split("").map(function (c) { return NOMES_FONTES[c]; }).join(", ");
+    if (p.en === 2) return curto ? "série EN 10219-2" : "série normalizada (EN 10219-2, Anexo C) · " + fab;
+    if (p.en === 1) return curto ? "série EN, t de fabricante" : "tamanho da série normalizada, espessura só de fabricante (" + fab + ")";
+    return curto ? "gama " + fab : "gama de fabricante (" + fab + "), fora da série normalizada";
+  }
+
+  // Tubo à escala (mm; y para baixo no SVG): anel circular ou retângulo de cantos arredondados (ro por fora, ri por dentro).
+  function desenhoTubo(p) {
+    var B = p.b, H = p.h, M = Math.max(B, H), fs = M * 0.05, tr = fs * 0.35, x0 = -B / 2, y0 = -H / 2;
+    function retangulo(w, h, r) {
+      var x = -w / 2, y = -h / 2;
+      return "M" + (x + r) + " " + y + "H" + (x + w - r) + "A" + r + " " + r + " 0 0 1 " + (x + w) + " " + (y + r) + "V" + (y + h - r) +
+        "A" + r + " " + r + " 0 0 1 " + (x + w - r) + " " + (y + h) + "H" + (x + r) + "A" + r + " " + r + " 0 0 1 " + x + " " + (y + h - r) +
+        "V" + (y + r) + "A" + r + " " + r + " 0 0 1 " + (x + r) + " " + y + "Z";
+    }
+    function circulo(r) { return "M" + (-r) + " 0A" + r + " " + r + " 0 1 0 " + r + " 0A" + r + " " + r + " 0 1 0 " + (-r) + " 0Z"; }
+    var d = p.forma === "CHS" ? circulo(p.d / 2) + circulo(p.d / 2 - p.t) : retangulo(B, H, p.ro) + retangulo(B - 2 * p.t, H - 2 * p.t, p.ri);
+    var cb = y0 - M * 0.16, ch = x0 - M * 0.16;
+    function traco(x, y) { return "M" + (x - tr) + " " + (y + tr) + "L" + (x + tr) + " " + (y - tr); }
+    var cotas = "M" + x0 + " " + (y0 - M * 0.03) + "V" + (cb - M * 0.03) + "M" + (-x0) + " " + (y0 - M * 0.03) + "V" + (cb - M * 0.03) + "M" + x0 + " " + cb + "H" + (-x0) +
+      traco(x0, cb) + traco(-x0, cb);
+    if (p.forma !== "CHS") cotas += "M" + (x0 - M * 0.03) + " " + y0 + "H" + (ch - M * 0.03) + "M" + (x0 - M * 0.03) + " " + (-y0) + "H" + (ch - M * 0.03) +
+      "M" + ch + " " + y0 + "V" + (-y0) + traco(ch, y0) + traco(ch, -y0);
+    var e = M * 0.08, eixos = "M" + (x0 - e) + " 0H" + (-x0 + e) + "M0 " + (y0 - e) + "V" + (-y0 + e);
+    var vb = [x0 - M * 0.27, y0 - M * 0.27, B + M * 0.27 + M * 0.2, H + M * 0.27 + M * 0.22];
+    return '<svg viewBox="' + vb.map(function (v) { return v.toFixed(2); }).join(" ") + '" role="img" aria-label="Secção ' + p.nome + ' à escala">' +
+      '<path class="sec-forma" fill-rule="evenodd" d="' + d + '"/><path class="sec-eixo" d="' + eixos + '"/><path class="sec-cota" d="' + cotas + '"/>' +
+      '<text class="sec-txt" x="0" y="' + (cb - fs * 0.45).toFixed(2) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle">' + (p.forma === "CHS" ? "Ø " : "") + fmt(B, B % 1 ? 1 : 0) + "</text>" +
+      (p.forma === "CHS" ? "" : '<text class="sec-txt" font-size="' + fs.toFixed(2) + '" text-anchor="middle" transform="translate(' + (ch - fs * 0.45).toFixed(2) + ' 0) rotate(-90)">' + fmt(H, H % 1 ? 1 : 0) + "</text>") +
+      '<text class="sec-txt" font-style="italic" x="' + (B / 2 - p.t - M * 0.02).toFixed(2) + '" y="' + (H * 0.12).toFixed(2) + '" font-size="' + (fs * 0.9).toFixed(2) + '" text-anchor="end">t ' + fmt(p.t, p.t % 1 ? 1 : 0) + "</text>" +
+      '<text class="sec-txt-eixo" x="' + (-x0 + M * 0.1).toFixed(2) + '" y="' + (fs * 0.35).toFixed(2) + '" font-size="' + fs.toFixed(2) + '">y</text>' +
+      '<text class="sec-txt-eixo" x="0" y="' + (-y0 + M * 0.1 + fs * 0.7).toFixed(2) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle">z</text></svg>';
+  }
+
+  function blocoPropriedadesTubo(p, pr) {
+    var chs = p.forma === "CHS", rhs = p.forma === "RHS", t = fmt(p.t, p.t % 1 ? 1 : 0);
+    var geo = (chs ? linhaProp("D", p.d, "mm", p.d % 1 ? 1 : 0) : (rhs ? linhaProp("h", p.h, "mm", 0) : "") + linhaProp("b", p.b, "mm", 0)) +
+      "<dt>t</dt><dd>" + t + '</dd><dd class="un">mm</dd>' +
+      (chs ? "" : linhaProp("r<sub>o</sub>", p.ro, "mm", 1) + linhaProp("r<sub>i</sub>", p.ri, "mm", 1)) +
+      linhaProp("A", pr.A, "cm²") + linhaProp("G", pr.G, "kg/m", 2) + linhaProp("A<sub>L</sub>", pr.AL, "m²/m", 3);
+    var y = linhaProp("I" + (chs ? "" : "<sub>y</sub>"), pr.Iy, "cm⁴") + linhaProp("W<sub>el" + (chs ? "" : ",y") + "</sub>", pr.Wely, "cm³") +
+      linhaProp("W<sub>pl" + (chs ? "" : ",y") + "</sub>", pr.Wply, "cm³") + linhaProp("i" + (chs ? "" : "<sub>y</sub>"), pr.iy, "cm");
+    var z = linhaProp("I<sub>z</sub>", pr.Iz, "cm⁴") + linhaProp("W<sub>el,z</sub>", pr.Welz, "cm³") + linhaProp("W<sub>pl,z</sub>", pr.Wplz, "cm³") + linhaProp("i<sub>z</sub>", pr.iz, "cm");
+    return '<div class="grupos-props">' +
+      '<div class="grupo-props"><h3>Geometria</h3><dl class="lista-props">' + geo + "</dl></div>" +
+      '<div class="grupo-props"><h3>' + (rhs ? "Eixo forte y-y" : "Eixos y-y = z-z") + '</h3><dl class="lista-props">' + y + "</dl></div>" +
+      (rhs ? '<div class="grupo-props"><h3>Eixo fraco z-z</h3><dl class="lista-props">' + z + "</dl></div>" : "") +
+      '<div class="grupo-props"><h3>Torção</h3><dl class="lista-props">' + linhaProp("I<sub>t</sub>", pr.It, "cm⁴") + linhaProp("C<sub>t</sub>", pr.Ct, "cm³") + "</dl></div>" +
+      "</div>";
+  }
+
+  // Resistências da secção (6.2): classe, N_pl,Rd, M_c,Rd e V_pl,Rd; sem encurvadura, torção nem interação.
+  function blocoEC3Tubo(p, pr, aco) {
+    var tens = Seccao.tensoes(aco, p.t), fy = tens.fy, cl = Seccao.classificarTubo(p, fy), chs = p.forma === "CHS", rhs = p.forma === "RHS";
+    function classe(c) { return '<span class="classe' + (c === 4 ? " classe-4" : "") + '">' + c + "</span>"; }
+    function item(titulo, v, un, nota, ok) {
+      return '<div class="ec3-item"><h3>' + titulo + "</h3>" + (ok
+        ? '<div class="valor-grande">' + fmt(v, v < 10 ? 2 : 0) + " <small>" + un + "</small></div><p>" + nota + "</p>"
+        : '<div class="valor-grande">—</div><p>Secção de classe 4: a resistência exige a secção efetiva (EN 1993-1-5), ainda não calculada.</p>') + "</div>";
+    }
+    function M(W, c, eixo) { return item("Flexão <span class=\"sym\">M<sub>c" + eixo + ",Rd</sub></span>", W * fy / 1e3, "kN·m", (c <= 2 ? "W<sub>pl</sub>" : "W<sub>el</sub>") + " · f<sub>y</sub> / γ<sub>M0</sub> (6.2.5)", c <= 3); }
+    var regra = chs ? "d/t = " + fmt(cl.d_t, 1) + "; limites 50ε² / 70ε² / 90ε² = " + [50, 70, 90].map(function (k) { return fmt(k * cl.eps * cl.eps, 1); }).join(" / ")
+      : "c/t = " + fmt(cl.cH_t, 1) + (rhs ? " (lado h) e " + fmt(cl.cB_t, 1) + " (lado b)" : "") + ", com c = lado − 3t; compressão: 33ε / 38ε / 42ε";
+    var N = pr.A * 1e2 * fy / Seccao.GAMMA_M0 / 1e3;
+    return '<section class="cartao"><h2>Verificação da secção · ' + aco + "</h2>" +
+      '<div class="ec3">' +
+        '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>y</sub> = ' + fy + " <small>MPa</small></div><p>f<sub>u</sub> = " + tens.fu + " MPa · t = " + fmt(p.t, p.t % 1 ? 1 : 0) +
+          " mm · " + Seccao.ACOS_H[aco].norma + " (" + Seccao.ACOS_H[aco].subgraus + ") · ε = " + fmt(cl.eps, 3) + "</p></div>" +
+        '<div class="ec3-item"><h3>Classe</h3><div class="valor-grande">' + classe(cl.compressao) + (rhs ? " " + classe(cl.flexaoY) + " " + classe(cl.flexaoZ) : chs ? "" : " " + classe(cl.flexaoY)) +
+          "</div><p>" + (rhs ? "Compressão, flexão em y-y e em z-z. " : chs ? "" : "Compressão e flexão. ") + regra + "</p></div>" +
+        item("Tração <span class=\"sym\">N<sub>pl,Rd</sub></span>", N, "kN", "A · f<sub>y</sub> / γ<sub>M0</sub> (6.2.3(2)a), secção bruta", true) +
+        item("Compressão <span class=\"sym\">N<sub>c,Rd</sub></span>", N, "kN", "A · f<sub>y</sub> / γ<sub>M0</sub> (6.2.4), sem encurvadura", cl.compressao <= 3) +
+        M(cl.flexaoY <= 2 ? pr.Wply : pr.Wely, cl.flexaoY, rhs ? ",y" : "") +
+        (rhs ? M(cl.flexaoZ <= 2 ? pr.Wplz : pr.Welz, cl.flexaoZ, ",z") : "") +
+        item("Corte <span class=\"sym\">V<sub>pl" + (rhs ? ",z" : "") + ",Rd</sub></span>", pr.Avz * 1e2 * fy / Math.sqrt(3) / Seccao.GAMMA_M0 / 1e3, "kN",
+          (chs ? "A<sub>v</sub> = 2A/π" : "A<sub>v</sub> = A h/(b + h)") + " (6.2.6(3)" + (chs ? "g" : "f") + ")", true) +
+      "</div>" +
+      '<p class="nota">Primeira versão: resistências da secção, sem encurvadura, torção nem interação de esforços. Enformado a frio sem tratamento térmico: curva de encurvadura c (Quadro 6.2), quando for calculada.</p>' +
+      "</section>";
+  }
+
   // ----- Resultado: candidatos e perfil escolhido -----
   function descricaoMedidas(forma, m) {
     return FORMAS[forma].campos.filter(function (k) { return m[k.nome]; }).map(function (k) {
@@ -614,6 +738,7 @@
     var p = c.perfil, d = c.dims;
     if (c.tipo === "I" || c.tipo === "U") return fmt(d.h, 0) + " × " + fmt(d.b, 0) + " · t<sub>w</sub> " + fmt(d.tw, 1) + " · t<sub>f</sub> " + fmt(d.tf, 1);
     if (c.tipo === "enf") return fmt(d.h, 0) + " × " + fmt(d.b, 0) + (d.a ? " · a " + fmt(d.a, 0) : "") + " · t " + fmt(d.t, 1) + " · " + fmt(c.G, 2) + " kg/m";
+    if (c.tipo === "tubo") return fmt(c.G, 2) + " kg/m · " + serieTubo(p, true);
     return fmt(c.G, 2) + " kg/m" + (p.origem === "EN" ? "" : " · fora da " + PERFIS_LT[p.familia].norma);
   }
 
@@ -663,6 +788,11 @@
       descricao = Enformados.FAMILIAS[c.familia].descricao; figura = desenhoEnformado(c.familia, p);
       props = blocoPropriedadesEnformado(c.familia, p, aco); ec3 = blocoEC3Enformado(c.familia, p, aco);
       legenda = "Secção à escala (linha média), dimensões nominais em mm";
+    } else if (c.tipo === "tubo") {
+      var pt = Seccao.propriedadesTubo(p), at = acoTubo(estado.aco);
+      descricao = PERFIS_TUBULARES[p.forma].descricao + " · EN 10219 · " + serieTubo(p, false);
+      figura = desenhoTubo(p); props = blocoPropriedadesTubo(p, pt); ec3 = blocoEC3Tubo(p, pt, at);
+      if (p.forma !== "CHS") legenda += "; cantos de cálculo da EN 10219-2 (Anexo B)";
     } else {
       var pl = Seccao.propriedadesLT(p);
       descricao = PERFIS_LT[p.familia].descricao + " · " + PERFIS_LT[p.familia].norma; figura = desenhoLT(p, pl); props = blocoPropriedadesLT(p, pl); ec3 = blocoEC3LT(p, pl);
@@ -743,7 +873,26 @@
   }
 
   // Cantoneiras e T: propriedades calculadas (raios da norma; * fora da lista da norma).
-  var ROTULOS_CATALOGO = { Liguais: "L iguais", Ldesiguais: "L desiguais", T: "T" };
+  var ROTULOS_CATALOGO = { Liguais: "L iguais", Ldesiguais: "L desiguais", T: "T", SHS: "Tubo □", RHS: "Tubo ▭", CHS: "Tubo ○" };
+
+  // Tubos: propriedades pelo Anexo B da EN 10219-2; série normalizada (Anexo C) ou gama de fabricante.
+  function renderCatalogoTubos(fam) {
+    var chs = fam === "CHS", rhs = fam === "RHS";
+    $("catalogo-desc").innerHTML = PERFIS_TUBULARES[fam].descricao + " · EN 10219, enformados a frio · gama Ferpinta, HIASA e Nordesfer · propriedades pelo Anexo B da EN 10219-2" +
+      " · <b>EN</b>: série normalizada (Anexo C); <b>EN*</b>: tamanho da série com espessura de fabricante; sem marca: gama de fabricante";
+    var colunas = [["Perfil", ""], ["Série", ""]].concat(chs ? [["D", "mm"]] : rhs ? [["h", "mm"], ["b", "mm"]] : [["b", "mm"]]).concat([["t", "mm"], ["A", "cm²"], ["G", "kg/m"],
+      ["I" + (rhs ? "<sub>y</sub>" : ""), "cm⁴"], ["W<sub>el" + (rhs ? ",y" : "") + "</sub>", "cm³"], ["W<sub>pl" + (rhs ? ",y" : "") + "</sub>", "cm³"], ["i" + (rhs ? "<sub>y</sub>" : ""), "cm"]])
+      .concat(rhs ? [["I<sub>z</sub>", "cm⁴"], ["W<sub>el,z</sub>", "cm³"], ["i<sub>z</sub>", "cm"]] : []).concat([["I<sub>t</sub>", "cm⁴"], ["Fabricantes", ""]]);
+    var cab = "<thead><tr>" + colunas.map(function (c) { return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>"; }).join("") + "</tr></thead>";
+    var corpo = TODOS_TUBOS.filter(function (p) { return p.forma === fam; }).map(function (p) {
+      var pr = Seccao.propriedadesTubo(p), t = fmt(p.t, p.t % 1 ? 1 : 0);
+      var v = [p.en === 2 ? "EN" : p.en === 1 ? "EN*" : ""].concat(chs ? [fmt(p.d, p.d % 1 ? 1 : 0)] : rhs ? [fmt(p.h, 0), fmt(p.b, 0)] : [fmt(p.b, 0)])
+        .concat([t, fmt(pr.A), fmt(pr.G, 2), fmt(pr.Iy), fmt(pr.Wely), fmt(pr.Wply), fmt(pr.iy)])
+        .concat(rhs ? [fmt(pr.Iz), fmt(pr.Welz), fmt(pr.iz)] : []).concat([fmt(pr.It), p.fontes.split("").map(function (c) { return NOMES_FONTES[c]; }).join(", ")]);
+      return '<tr data-nome="' + p.nome + '" data-familia="' + fam + '" tabindex="0"><td>' + p.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
+    }).join("");
+    $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+  }
   function renderCatalogoLT(fam) {
     var d = PERFIS_LT[fam], iguais = fam === "Liguais", desiguais = fam === "Ldesiguais";
     $("catalogo-desc").innerHTML = d.descricao + " · gama da Masterferro (S275JR) com os raios da " + d.norma +
@@ -773,6 +922,7 @@
     var fam = estado.familiaCatalogo;
     if (FAMILIAS_U.indexOf(fam) >= 0) { renderCatalogoU(fam); return; }
     if (FAMILIAS_LT.indexOf(fam) >= 0) { renderCatalogoLT(fam); return; }
+    if (FAMILIAS_TUBOS.indexOf(fam) >= 0) { renderCatalogoTubos(fam); return; }
     var ofeliz = FAMILIAS_OFELIZ.indexOf(fam) >= 0;
     if (ofeliz) { renderCatalogoOFeliz(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
@@ -811,6 +961,11 @@
       if (!q) return;
       forma = familia;
       valores = q.tipo === "T" ? { h: v(q.h), b: v(q.b), t: v(q.t) } : familia === "Liguais" ? { a: v(q.a), t: v(q.t) } : { a: v(q.a), b: v(q.b), t: v(q.t) };
+    } else if (FAMILIAS_TUBOS.indexOf(familia) >= 0) {
+      q = TODOS_TUBOS.filter(function (x) { return x.nome === nome; })[0];
+      if (!q) return;
+      forma = familia;
+      valores = familia === "CHS" ? { h: v(q.d), t: v(q.t) } : familia === "SHS" ? { b: v(q.b), t: v(q.t) } : { h: v(q.h), b: v(q.b), t: v(q.t) };
     } else {
       q = TODOS.filter(function (x) { return x.nome === nome; })[0];
       if (!q) return;
@@ -862,7 +1017,7 @@
     $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
       return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
     }).join("");
-    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_U, FAMILIAS_OFELIZ, FAMILIAS_LT).map(function (f) {
+    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_U, FAMILIAS_OFELIZ, FAMILIAS_LT, FAMILIAS_TUBOS).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + (ROTULOS_CATALOGO[f] || f) + "</label>";
     }).join("");
     atualizarForma("I", estado.aco);

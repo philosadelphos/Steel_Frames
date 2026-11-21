@@ -1,5 +1,6 @@
 /*
- * Propriedades de secções laminadas (I/H, U, cantoneiras e T) e verificações base do Eurocódigo 3.
+ * Propriedades de secções laminadas (I/H, U, cantoneiras e T) e de perfis ocos (EN 10219), e verificações base do
+ * Eurocódigo 3.
  * Unidades internas: mm, N. Os resultados são devolvidos nas unidades dos catálogos
  * (cm², cm⁴, cm³, kg/m, kN, kN·m).
  */
@@ -18,6 +19,14 @@ var Seccao = (function () {
     S275: { norma: "EN 10025-2", fy: [275, 265, 255, 245], fu: 410 },
     S355: { norma: "EN 10025-2", fy: [355, 345, 335, 325], fu: 470 },
     S460: { norma: "EN 10025-3", fy: [460, 440, 430, 410], fu: 540 }
+  };
+
+  // Perfis ocos enformados a frio, EN 10219-1 (Quadro A.3, segundo o catálogo da Ferpinta): fy para t ≤ 16 e
+  // 16 < t ≤ 40 mm; fu para t < 3 e 3 ≤ t ≤ 40 mm. Os sub-graus (JRH, J0H, J2H, K2H) só mudam a tenacidade.
+  var ACOS_H = {
+    S235H: { norma: "EN 10219-1", subgraus: "S235JRH", fy: [235, 225], fu: [360, 360] },
+    S275H: { norma: "EN 10219-1", subgraus: "S275J0H, S275J2H", fy: [275, 265], fu: [430, 410] },
+    S355H: { norma: "EN 10219-1", subgraus: "S355J0H, S355J2H, S355K2H", fy: [355, 345], fu: [510, 470] }
   };
 
   // Concordância (área, centróide e inércia própria) de cada um dos 4 cantos arredondados.
@@ -86,6 +95,8 @@ var Seccao = (function () {
 
   // t: espessura nominal do elemento mais espesso da secção (o banzo, nos perfis I e H).
   function tensoes(classeAco, t) {
+    var h = ACOS_H[classeAco];
+    if (h) return { fy: h.fy[t <= 16 ? 0 : 1], fu: h.fu[t < 3 ? 0 : 1], escalao: t <= 16 ? [0, 16] : [16, 40] };
     var a = ACOS[classeAco], i = 0;
     while (i < ESCALOES_T.length - 1 && t > ESCALOES_T[i]) i++;
     return { fy: a.fy[i], fu: a.fu, escalao: [i ? ESCALOES_T[i - 1] : 0, ESCALOES_T[i]] };
@@ -331,6 +342,79 @@ var Seccao = (function () {
     return lista;
   }
 
+  // ----- Perfis ocos estruturais enformados a frio (EN 10219): fórmulas do Anexo B da EN 10219-2 -----
+  // Cantos dos SHS e RHS para o cálculo (Anexo B): ro = 2,0 / 2,5 / 3,0 T e ri = 1,0 / 1,5 / 2,0 T para T ≤ 6, ≤ 10 e
+  // > 10 mm. É o meio dos intervalos do catálogo da Ferpinta (1,6–2,4 T, 2,0–3,0 T e 2,4–3,6 T).
+  function raiosTubo(t) { return t <= 6 ? [2 * t, t] : t <= 10 ? [2.5 * t, 1.5 * t] : [3 * t, 2 * t]; }
+
+  function aPartirDeLinhaTubo(forma, l) {
+    var f = function (v) { return String(v).replace(".", ","); };
+    if (forma === "CHS") return { familia: "CHS", tipo: "tubo", forma: "CHS", nome: "CHS " + f(l[0]) + "×" + f(l[1]), d: l[0], h: l[0], b: l[0], t: l[1], fontes: l[2], en: l[3] };
+    var rhs = forma === "RHS", h = l[0], b = rhs ? l[1] : l[0], t = rhs ? l[2] : l[1], r = raiosTubo(t);
+    return { familia: forma, tipo: "tubo", forma: forma, nome: forma + " " + f(h) + "×" + f(b) + "×" + f(t), h: h, b: b, t: t, ro: r[0], ri: r[1],
+      fontes: rhs ? l[3] : l[2], en: rhs ? l[4] : l[3] };
+  }
+
+  function propriedadesTubo(p) {
+    var t = p.t, r;
+    if (p.forma === "CHS") {
+      var D = p.d, d = D - 2 * t, A = Math.PI * (D * D - d * d) / 4, I = Math.PI * (Math.pow(D, 4) - Math.pow(d, 4)) / 64;
+      var Wel = 2 * I / D, Wpl = (Math.pow(D, 3) - Math.pow(d, 3)) / 6;
+      return { A: A / 1e2, G: A * 1e-6 * DENSIDADE, Iy: I / 1e4, Iz: I / 1e4, Wely: Wel / 1e3, Welz: Wel / 1e3, Wply: Wpl / 1e3, Wplz: Wpl / 1e3,
+        iy: Math.sqrt(I / A) / 10, iz: Math.sqrt(I / A) / 10, It: 2 * I / 1e4, Ct: 2 * Wel / 1e3,
+        Avz: 2 * A / Math.PI / 1e2, Avy: 2 * A / Math.PI / 1e2, AL: Math.PI * D / 1e3 };   // 6.2.6(3)g
+    }
+    var H = p.h, B = p.b, ro = p.ro, ri = p.ri;
+    var Ag = (1 - Math.PI / 4) * ro * ro, Ax = (1 - Math.PI / 4) * ri * ri, k = (10 - 3 * Math.PI) / (12 - 3 * Math.PI);
+    var Ig = (1 / 3 - Math.PI / 16 - 1 / (3 * (12 - 3 * Math.PI))) * Math.pow(ro, 4), Ixx = (1 / 3 - Math.PI / 16 - 1 / (3 * (12 - 3 * Math.PI))) * Math.pow(ri, 4);
+    function eixo(L, M) {   // L: dimensão na direção da flexão; M: a outra
+      var hg = L / 2 - k * ro, hx = (L - 2 * t) / 2 - k * ri;
+      return {
+        I: M * Math.pow(L, 3) / 12 - (M - 2 * t) * Math.pow(L - 2 * t, 3) / 12 - 4 * (Ig + Ag * hg * hg) + 4 * (Ixx + Ax * hx * hx),
+        Wpl: M * L * L / 4 - (M - 2 * t) * Math.pow(L - 2 * t, 2) / 4 - 4 * Ag * hg + 4 * Ax * hx
+      };
+    }
+    var A2 = 2 * t * (B + H - 2 * t) - (4 - Math.PI) * (ro * ro - ri * ri), y = eixo(H, B), z = eixo(B, H);
+    var Rc = (ro + ri) / 2, hm = 2 * ((B - t) + (H - t)) - 2 * Rc * (4 - Math.PI), Ah = (B - t) * (H - t) - Rc * Rc * (4 - Math.PI), K = 2 * Ah * t / hm;
+    var It = Math.pow(t, 3) * hm / 3 + 2 * K * Ah;
+    r = {
+      A: A2 / 1e2, G: A2 * 1e-6 * DENSIDADE, Iy: y.I / 1e4, Iz: z.I / 1e4, Wely: 2 * y.I / H / 1e3, Welz: 2 * z.I / B / 1e3,
+      Wply: y.Wpl / 1e3, Wplz: z.Wpl / 1e3, iy: Math.sqrt(y.I / A2) / 10, iz: Math.sqrt(z.I / A2) / 10,
+      It: It / 1e4, Ct: It / (t + K / t) / 1e3,
+      Avz: A2 * H / (B + H) / 1e2, Avy: A2 * B / (B + H) / 1e2,   // 6.2.6(3)f: carga paralela a H (z) e a B (y)
+      AL: 2 * (H + B - 4 * ro + Math.PI * ro) / 1e3
+    };
+    return r;
+  }
+
+  // Classe (Quadro 5.2). SHS e RHS: paredes interiores com c = lado − 3t (nota do quadro para perfis ocos); à flexão
+  // em y-y, as paredes de lado H fletem (72ε / 83ε / 124ε) e as de lado B ficam comprimidas (33ε / 38ε / 42ε).
+  // CHS: d/t ≤ 50ε², 70ε², 90ε² (à compressão, acima de 90ε² é classe 4).
+  function classificarTubo(p, fy) {
+    var eps = Math.sqrt(235 / fy);
+    function classe(rel, lim) { for (var i = 0; i < lim.length; i++) if (rel <= lim[i]) return i + 1; return 4; }
+    if (p.forma === "CHS") {
+      var dt = p.d / p.t, c = classe(dt / (eps * eps), [50, 70, 90]);
+      return { eps: eps, d_t: dt, compressao: c, flexaoY: c, flexaoZ: c };
+    }
+    var cH = (p.h - 3 * p.t) / p.t, cB = (p.b - 3 * p.t) / p.t;
+    var comp = Math.max(classe(cH / eps, [33, 38, 42]), classe(cB / eps, [33, 38, 42]));
+    return {
+      eps: eps, cH_t: cH, cB_t: cB, compressao: comp,
+      flexaoY: Math.max(classe(cH / eps, [72, 83, 124]), classe(cB / eps, [33, 38, 42])),
+      flexaoZ: Math.max(classe(cB / eps, [72, 83, 124]), classe(cH / eps, [33, 38, 42]))
+    };
+  }
+
+  function todosTubos() {
+    var lista = [];
+    if (typeof PERFIS_TUBULARES === "undefined") return lista;
+    ["CHS", "SHS", "RHS"].forEach(function (f) {
+      PERFIS_TUBULARES[f].linhas.forEach(function (l) { lista.push(aPartirDeLinhaTubo(f, l)); });
+    });
+    return lista;
+  }
+
   function todosU() {
     var lista = [];
     if (typeof PERFIS_U === "undefined") return lista;
@@ -353,7 +437,8 @@ var Seccao = (function () {
     todos: todos, propriedades: propriedades, tensoes: tensoes,
     classificar: classificar, resistencias: resistencias,
     todosU: todosU, propriedadesU: propriedadesU, classificarU: classificarU, contornoU: contornoU,
-    todosLT: todosLT, propriedadesLT: propriedadesLT, classificarLT: classificarLT, FORMA_T: FORMA_T
+    todosLT: todosLT, propriedadesLT: propriedadesLT, classificarLT: classificarLT, FORMA_T: FORMA_T,
+    ACOS_H: ACOS_H, todosTubos: todosTubos, propriedadesTubo: propriedadesTubo, classificarTubo: classificarTubo, raiosTubo: raiosTubo
   };
 })();
 
