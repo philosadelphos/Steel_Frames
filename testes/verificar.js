@@ -1,10 +1,11 @@
 /*
  * Compara as propriedades calculadas com os valores publicados nos catálogos
- * de perfis (ArcelorMittal, Sections and Merchant Bars; cantoneiras e T: ver abaixo). Correr com: node testes/verificar.js
+ * de perfis (ArcelorMittal, Sections and Merchant Bars; cantoneiras, T e tubos: ver abaixo). Correr com: node testes/verificar.js
  */
 global.PERFIS = require("../src/js/perfis.js");
 global.PERFIS_U = require("../src/js/perfis-u.js");
 global.PERFIS_LT = require("../src/js/perfis-lt.js");
+global.PERFIS_TUBULARES = require("../src/js/perfis-tubulares.js");
 var Seccao = require("../src/js/seccao.js");
 
 var REFERENCIAS = {
@@ -152,6 +153,62 @@ esperar("L 120×120×10 S275 classe compressão ((b + h)/2t = 12 > 11,5ε)", Sec
 esperar("L 200×100×10 S355 classe compressão (h/t = 20 > 15ε)", Seccao.classificarLT(porNomeLT["L 200×100×10"], 355).compressao, 4);
 esperar("L 60×60×6 S355 classe compressão (h/t = 10 > 11,5ε)", Seccao.classificarLT(porNomeLT["L 60×60×6"], 355).compressao, 4);
 esperar("T 50 S275 classe compressão", Seccao.classificarLT(porNomeLT["T 50"], 275).compressao, 1);
+
+// ----- Perfis ocos estruturais (EN 10219): Ferpinta, HIASA e Nordesfer -----
+// Propriedades pelas fórmulas do Anexo B da EN 10219-2 contra os catálogos (testes/referencias-tubulares.json,
+// gerado por ferramentas/dados_tubulares.py). A Ferpinta dá A, I, W e i: confere-se tudo, linha a linha; os seus
+// valores têm 2 a 3 casas decimais, por isso aceita-se também meia unidade da última casa (0,006).
+(function () {
+  var REF = require("./referencias-tubulares.json"), porChave = {};
+  Seccao.todosTubos().forEach(function (p) { porChave[p.forma + "|" + p.h + "|" + (p.forma === "CHS" ? "" : p.b) + "|" + p.t] = p; });
+  var maxF = {}, piorF = {}, nF = 0, faltam = 0, maxH = 0, maxN = 0, nH = 0, nN = 0, divNordesfer = 0, nComumN = 0;
+  REF.linhas.forEach(function (r) {
+    var p = porChave[r.forma + "|" + r.d1 + "|" + (r.forma === "CHS" ? "" : r.d2) + "|" + r.t];
+    if (!p) { faltam++; return; }
+    var pr = Seccao.propriedadesTubo(p), dm = Math.abs(pr.G / r.massa - 1);
+    if (r.fonte === "Ferpinta") {
+      nF++;
+      [["massa", pr.G, r.massa], ["A", pr.A, r.A], ["I", pr.Iy, r.I], ["W", pr.Wely, r.W], ["i", pr.iy, r.i], ["Iz", pr.Iz, r.Iz], ["Wz", pr.Welz, r.Wz], ["iz", pr.iz, r.iz]]
+        .forEach(function (q) {
+          if (q[2] === null || q[2] === undefined) return;
+          var d = Math.abs(q[1] - q[2]) <= 0.006 ? 0 : Math.abs(q[1] / q[2] - 1), k = r.forma + " " + q[0];
+          if (!(k in maxF) || d > maxF[k]) { maxF[k] = d; piorF[k] = p.nome; }
+        });
+    } else if (r.comum) {
+      if (r.fonte === "Nordesfer") { nComumN++; if (dm > 0.03) divNordesfer++; }
+    } else if (r.fonte === "HIASA") { nH++; maxH = Math.max(maxH, dm); }
+    else { nN++; maxN = Math.max(maxN, dm); }
+  });
+  verificados++; if (faltam) falhas++;
+  console.log((faltam ? "FALHA" : "ok   ") + "  Tubos: todas as linhas dos catálogos têm secção nos dados (" + faltam + " em falta)");
+  Object.keys(maxF).sort().forEach(function (k) {
+    dentro("Ferpinta " + k + ": maior desvio para lá do arredondamento (" + nF + " linhas" + (maxF[k] ? "; pior " + piorF[k] : "") + ")", 1 + maxF[k], 1, 0.005);
+  });
+  dentro("HIASA: maior desvio de G nas secções só da HIASA (" + nH + ")", 1 + maxH, 1, 0.035);
+  dentro("Nordesfer: maior desvio de G nas secções só da Nordesfer (" + nN + ")", 1 + maxN, 1, 0.03);
+  console.log("info   Nordesfer: " + divNordesfer + " de " + nComumN + " linhas comuns com a Ferpinta ou a HIASA divergem mais de 3 % (catálogo com colunas desalinhadas); "
+    + REF.divergencias.length + " linhas só da Nordesfer ficaram de fora pelo mesmo motivo.");
+
+  var tubo = {};
+  Seccao.todosTubos().forEach(function (p) { tubo[p.nome] = p; });
+  // Raios de cálculo (Anexo B): ro = 2 T e ri = T até 6 mm; 2,5 T e 1,5 T até 10 mm; 3 T e 2 T acima.
+  esperar("SHS 100×100×5: ro", tubo["SHS 100×100×5"].ro, 10);
+  esperar("SHS 100×100×8: ri", tubo["SHS 100×100×8"].ri, 12);
+  // Série normalizada (EN 10219-2, Anexo C) e gama de fabricante.
+  esperar("SHS 100×100×5 na série EN 10219-2", tubo["SHS 100×100×5"].en, 2);
+  esperar("SHS 130×130×5 só gama de fabricante", tubo["SHS 130×130×5"].en, 0);
+  esperar("SHS 65×65×3 só na HIASA", tubo["SHS 65×65×3"].fontes + "/" + tubo["SHS 65×65×3"].en, "H/0");
+  esperar("RHS 150×130×5 só gama de fabricante", tubo["RHS 150×130×5"].en, 0);
+  // Aço EN 10219-1: fy até 16 mm; fu com t < 3 mm e 3 ≤ t ≤ 40 mm.
+  esperar("S355H fy com t = 10 mm", Seccao.tensoes("S355H", 10).fy, 355);
+  esperar("S355H fu com t = 2,5 mm", Seccao.tensoes("S355H", 2.5).fu, 510);
+  esperar("S275H fu com t = 5 mm", Seccao.tensoes("S275H", 5).fu, 410);
+  // Classe (Quadro 5.2): c = b − 3t nos SHS/RHS; d/t com ε² nos CHS.
+  esperar("SHS 200×200×5 S355H classe compressão (c/t = 37 > 42ε = 34,2)", Seccao.classificarTubo(tubo["SHS 200×200×5"], 355).compressao, 4);
+  esperar("SHS 100×100×5 S355H classe compressão (c/t = 17)", Seccao.classificarTubo(tubo["SHS 100×100×5"], 355).compressao, 1);
+  esperar("CHS 219,1×3 S355H classe (d/t = 73 > 70ε² = 46)", Seccao.classificarTubo(tubo["CHS 219,1×3"], 355).compressao, 4);
+  esperar("CHS 88,9×4 S275H classe (d/t = 22)", Seccao.classificarTubo(tubo["CHS 88,9×4"], 275).compressao, 1);
+})();
 
 console.log("\n" + (verificados - falhas) + "/" + verificados + " verificações dentro da tolerância");
 process.exit(falhas ? 1 : 0);

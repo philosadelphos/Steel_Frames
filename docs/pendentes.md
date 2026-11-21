@@ -170,7 +170,28 @@ Dimensões da EN 10365 tal como as publica o fornecedor J. Justino das Neves (jj
 - **Por fazer:** flexão nos eixos principais (W<sub>el,u</sub>, W<sub>el,v</sub> já calculados) e bambeamento; encurvadura (v-v nas cantoneiras isoladas, por flexão-torção nos T); N<sub>u,Rd</sub> da secção útil e cantoneiras ligadas por uma aba (NP EN 1993-1-8, 3.10.3); área efetiva das secções de classe 4; I<sub>t</sub> e W<sub>pl</sub>.
 - **A pedir à Masterferro:** confirmar as massas acima e os raios das secções fora da norma.
 
-## 8. Ideias anotadas para mais tarde
+## 8. Perfis ocos estruturais (tubos EN 10219)
+
+`src/js/perfis-tubulares.js` e `testes/referencias-tubulares.json` são gerados por `ferramentas/dados_tubulares.py` a partir de `docs/catalogos/` (fora do git). Conferência feita em 21/11/2026.
+
+- **Fontes:**
+  - Ferpinta, «Tubo estrutural EN 10219-1/2»: redondos, quadrados e retangulares, com massa, A, I, W e i. É a base da gama.
+  - HIASA (Grupo Gonvarri), «Tubos cuadrados» (UNE-EN 10219): quadrados de 16 a 100 mm, só com o peso.
+  - Nordesfer, «Tabela técnica de tubos»: só as tabelas «Estrutural», com o peso.
+- **Extração:** o gerador lê o PDF da Ferpinta diretamente. Comparado com o CSV que veio com o pedido (`tubulares_para_steel_frames/`), os valores são iguais em todas as linhas comuns, mas o CSV deixou de fora 8 linhas: CHS 33,7×4, 35×4, 38×4, 76,1×8, 80×2 e 88,9×8, e RHS 63,5×31,8×5 e 101,6×76,2×6.
+- **Gama na app:** 507 redondos, 301 quadrados e 850 retangulares. 465 + 224 + 847 são da Ferpinta; 73 quadrados só da HIASA (por exemplo, 52, 55, 65 e 75 mm e as espessuras de 1,0 e 1,2 mm); 48 só da Nordesfer.
+- **Cantos de cálculo:** os do Anexo B da EN 10219-2 (r<sub>o</sub> = 2,0 / 2,5 / 3,0 T e r<sub>i</sub> = 1,0 / 1,5 / 2,0 T para T ≤ 6, ≤ 10 e > 10 mm), que são o meio dos intervalos do catálogo da Ferpinta.
+- **Conferência** (`testes/verificar.js`):
+  - Ferpinta: massa, A, I, W e i (e I<sub>z</sub>, W<sub>z</sub>, i<sub>z</sub> nos retangulares) batem com o Anexo B até ao arredondamento do catálogo, em todas as 1538 linhas. O catálogo foi calculado com as mesmas fórmulas.
+  - HIASA: as massas das secções só da HIASA ficam a menos de 3,1 % das calculadas (até 3 % nos tubos finos, provavelmente outros raios).
+  - Nordesfer: a tabela tem colunas desalinhadas. 31 das 312 linhas comuns com a Ferpinta ou a HIASA divergem mais de 3 % (por exemplo, SHS 60×60×4: 7,35 kg/m publicado, 6,71 calculado). As 14 linhas só da Nordesfer que divergem (CHS 273 e 323,9, com as massas deslocadas uma coluna) ficaram de fora; as que entram batem a menos de 1,9 %.
+- **Série normalizada:** tamanhos e espessuras do Anexo C da EN 10219-2:2006 («limited range of standard sizes»), guardados em `ferramentas/en10219-2_anexo_c.json` só como designações. Fonte: cópia da BS EN 10219-2:2006 publicada no site do fabricante Profisol. **Por conferir com a edição em vigor (EN 10219-2:2019).** Os tamanhos do levantamento da Continental ficam como gama de fabricante: 110 × 110, 125 × 125, 130 × 130, 175 × 175, 150 × 130 e 65 × 65 (este só na HIASA).
+- **Aço:** S235H, S275H e S355H com os valores da EN 10219-1 reproduzidos no catálogo da Ferpinta: R<sub>eH</sub> 235 / 275 / 355 MPa (t ≤ 16 mm) e R<sub>m</sub> 360 / 430 / 510 MPa (t < 3 mm) ou 360 / 410 / 470 MPa (3 ≤ t ≤ 40 mm). Para 16 < t ≤ 40 mm usam-se 225 / 265 / 345 MPa (EN 10219-1, a conferir); a gama vai até 12,5 mm, por isso não chega a ser usado.
+- **Verificação EC3 (1.ª versão):** classe (Quadro 5.2: c = lado − 3t; CHS d/t ≤ 50ε², 70ε², 90ε²), N<sub>pl,Rd</sub> à tração e à compressão, M<sub>c,Rd</sub> e V<sub>pl,Rd</sub> (A<sub>v</sub> = A h/(b + h) ou 2A/π).
+- **Por fazer:** encurvadura (curva c, enformados a frio sem tratamento térmico), torção, interação de esforços, secção efetiva das classes 4, ligações (EN 1993-1-8, capítulo 7).
+- **A pedir aos fabricantes:** à HIASA, os raios dos cantos que usa no peso; à Nordesfer, a tabela corrigida.
+
+## 9. Ideias anotadas para mais tarde
 
 - Painéis de outros fabricantes (Kingspan, Hiansa, ...) e de fachada, com as respetivas tabelas.
 - Coberturas de uma água (Quadros 7.3a e 7.3b da NP EN 1991-1-4).
