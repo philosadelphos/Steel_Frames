@@ -469,7 +469,8 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
         <select id="in-forma" name="forma">
           <option value="I" selected>I ou H laminado (IPE, HEA, HEB, HEM)</option>
           <option value="U">U laminado (UPN, UPE)</option>
-          <option value="omega">Ómega enformado a frio (Superomega® O Feliz, Madremax® Constálica)</option>
+          <option value="omega">Ómega enformado a frio (Superomega®, O Feliz)</option>
+          <option value="madremax">Ómega enformado a frio (Madremax®, Constálica)</option>
           <option value="C">C enformado a frio (O Feliz)</option>
           <option value="Z">Z enformado a frio (O Feliz)</option>
           <option value="Liguais">Cantoneira de abas iguais (L, EN 10056-1)</option>
@@ -517,6 +518,18 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
           <text x="2" y="80" class="esquema-txt">h</text>
           <text x="104" y="22" class="esquema-txt esquema-txt-s">t</text>
           <line class="esquema-guia" x1="96" y1="28" x2="102" y2="20"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="madremax" hidden>
+          <path class="esquema-fino" d="M12 116l14-4 12 4h14l14-82h28l14 82h14l12-4 14 4"/>
+          <g class="esquema-cota">
+            <line x1="12" y1="132" x2="148" y2="132"/><line x1="12" y1="128" x2="12" y2="136"/><line x1="148" y1="128" x2="148" y2="136"/>
+            <line x1="4" y1="34" x2="4" y2="118"/><line x1="1" y1="34" x2="7" y2="34"/><line x1="1" y1="118" x2="7" y2="118"/>
+          </g>
+          <text x="80" y="146" class="esquema-txt">b</text>
+          <text x="12" y="80" class="esquema-txt">h</text>
+          <text x="112" y="70" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="104" y1="70" x2="110" y2="66"/>
+          <text x="14" y="100" class="esquema-txt esquema-txt-s" style="font-size: 8px">aba em V</text>
         </svg>
         <svg viewBox="0 0 160 150" role="img" data-forma="C" hidden>
           <path class="esquema-fino" d="M116 44V22H54v106h62v-22"/>
@@ -1020,7 +1033,7 @@ h3.sub { margin-top: 18px; margin-bottom: 8px; }
       </ul>
       <h3>O que a app calcula</h3>
       <p>As propriedades dos laminados calculam-se a partir das dimensões nominais, incluindo as concordâncias (A, I, W<sub>el</sub>, W<sub>pl</sub>, i, I<sub>t</sub>, I<sub>w</sub>), e conferem-se com os catálogos. Seguem-se a classe da secção (Quadro 5.2 da NP EN 1993-1-1) e as resistências da secção (6.2): N<sub>pl,Rd</sub>, M<sub>c,Rd</sub> e V<sub>pl,Rd</sub>. Nos enformados a frio (Superomega®, C e Z da O Feliz) usam-se as propriedades efetivas do fabricante, que já descontam a encurvadura local das paredes finas.</p>
-      <p><b>Madremax® (Constálica).</b> As nove secções em ómega do catálogo (de 50×1,5 a 300×3,0, aço S350GD) entram na forma <i>Ómega</i>, ao lado do Superomega®, para identificar madres existentes. Meça a altura total H e a largura total nas pontas das abas (a cota b<sub>3</sub> do catálogo); a designação não é a altura (o Madremax 300 tem H = 279 mm e b<sub>3</sub> = 311 mm). A app mostra as propriedades que o fabricante dá, que são <b>só da secção bruta</b>, incluindo as das disposições com duas madres (encaixadas e costas com costas), mas não calcula resistências: nas paredes finas a secção efetiva é menor e a bruta sobrestima a resistência. Por isso as Madremax não entram no separador Madres; para as verificar, é preciso pedir à Constálica as propriedades efetivas.</p>
+      <p><b>Madremax® (Constálica).</b> As nove secções em ómega do catálogo (de 50×1,5 a 300×3,0, aço S350GD) têm forma própria no seletor (<i>Ómega enformado a frio (Madremax®, Constálica)</i>), separada do Superomega®, porque a geometria (abas dobradas em V) e o catálogo são outros. Servem para identificar madres existentes. Meça a altura total H e a largura total nas pontas das abas (a cota b<sub>3</sub> do catálogo); a designação não é a altura (o Madremax 300 tem H = 279 mm e b<sub>3</sub> = 311 mm). A app mostra as propriedades que o fabricante dá, que são <b>só da secção bruta</b>, incluindo as das disposições com duas madres (encaixadas e costas com costas), mas não calcula resistências: nas paredes finas a secção efetiva é menor e a bruta sobrestima a resistência. Por isso as Madremax não entram no separador Madres; para as verificar, é preciso pedir à Constálica as propriedades efetivas.</p>
       <p><b>Tubos (perfis ocos enformados a frio, EN 10219).</b> Redondos (CHS), quadrados (SHS) e retangulares (RHS) da gama da Ferpinta, com os tamanhos que só a HIASA ou a Nordesfer têm (por exemplo, o 65 × 65 da HIASA). Cada tubo diz se é da <b>série normalizada</b> (tamanho e espessura do Anexo C da EN 10219-2), se só o tamanho é da série, ou se é só <b>gama de fabricante</b> (por exemplo, 110 × 110, 125 × 125, 130 × 130, 175 × 175 e 150 × 130). As propriedades calculam-se pelas fórmulas do Anexo B da EN 10219-2, com os cantos de cálculo da norma: raio exterior 2,0 t, 2,5 t ou 3,0 t e interior 1,0 t, 1,5 t ou 2,0 t, para t ≤ 6 mm, ≤ 10 mm e acima (é o meio dos intervalos do catálogo da Ferpinta). Aço S235H, S275H ou S355H (EN 10219-1; os sub-graus JRH, J0H, J2H e K2H só mudam a tenacidade), com f<sub>u</sub> mais alto abaixo de 3 mm. A verificação dá a classe (paredes com c = lado − 3t; nos redondos, d/t com ε²), N<sub>pl,Rd</sub> à tração e à compressão, M<sub>c,Rd</sub> e V<sub>pl,Rd</sub>, sem encurvadura, torção nem interação de esforços.</p>
       <p><b>Cantoneiras e perfis T.</b> As séries são as da gama da Masterferro (cantoneiras de abas iguais e desiguais e T de abas iguais), com os raios de concordância da EN 10056-1 e da EN 10055; nas poucas secções fora da lista da norma, usa-se o raio da mesma aba ou um raio estimado, e a app assinala-o. As propriedades vêm da integração do contorno real: A, G, I, W<sub>el</sub> e i nos eixos y-y e z-z e, nas cantoneiras, os eixos principais (I<sub>u</sub>, I<sub>v</sub>, i<sub>u</sub>, i<sub>v</sub>, W<sub>el,u</sub>, W<sub>el,v</sub> e tg α). Nos T, a forma do banzo e da alma inclinados foi ajustada aos valores publicados. A verificação, nesta primeira versão, dá a classe à compressão (nas cantoneiras, abas em consola e a linha própria das cantoneiras do Quadro 5.2: h/t ≤ 15ε e (b + h)/2t ≤ 11,5ε; nos T, banzo e alma em consola) e N<sub>pl,Rd</sub> à tração e à compressão da secção. Não inclui a flexão, a encurvadura (numa cantoneira isolada, em torno de v-v) nem a resistência da secção útil à tração, que depende da furação e, nas cantoneiras ligadas por uma só aba, da NP EN 1993-1-8, 3.10.3.</p>
     </article>
@@ -4008,7 +4021,8 @@ if (typeof module !== "undefined") module.exports = Portico;
   var FORMAS = {
     I: { curto: "I/H", nome: "I ou H", campos: CAMPOS_IU },
     U: { curto: "U", nome: "U", campos: CAMPOS_IU },
-    omega: { curto: "Ω", nome: "ómega", campos: CAMPOS_ENF, familia: "Superomega" },
+    omega: { curto: "Ω", nome: "ómega Superomega", campos: CAMPOS_ENF, familia: "Superomega" },
+    madremax: { curto: "Ω", nome: "ómega Madremax", campos: CAMPOS_ENF },
     C: { curto: "C", nome: "C", campos: CAMPOS_CZ, familia: "C" },
     Z: { curto: "Z", nome: "Z", campos: CAMPOS_CZ, familia: "Z" },
     Liguais: { curto: "L", nome: "L de abas iguais", campos: [campo("a", "Aba", "a", true, "a aba a"), campo("t", "Espessura", "t", false, "a espessura t")] },
@@ -4058,10 +4072,11 @@ if (typeof module !== "undefined") module.exports = Portico;
       Enformados.seccoes(FORMAS[f].familia).forEach(function (s) {
         l.push({ tipo: "enf", forma: f, familia: FORMAS[f].familia, nome: s.nome, perfil: s, G: s.G, dims: { h: s.h, b: s.b, t: s.t, a: s.a || undefined }, esp: [s.t] });
       });
-      // Madremax (Constálica): também ómega; b é a largura total nas pontas das abas (b3 do catálogo).
-      if (f === "omega" && typeof MADREMAX !== "undefined") MADREMAX.seccoes.forEach(function (m) {
-        l.push({ tipo: "madremax", forma: f, familia: "Madremax", nome: m.nome, perfil: m, G: m.G, dims: { h: m.H, b: m.b3, t: m.t }, esp: [m.t] });
-      });
+    });
+    // Madremax (Constálica): ómega com outra geometria e outro catálogo, numa forma própria; b é a largura total nas
+    // pontas das abas (b3 do catálogo).
+    if ((forma === "madremax" || todas) && typeof MADREMAX !== "undefined") MADREMAX.seccoes.forEach(function (m) {
+      l.push({ tipo: "madremax", forma: "madremax", familia: "Madremax", nome: m.nome, perfil: m, G: m.G, dims: { h: m.H, b: m.b3, t: m.t }, esp: [m.t] });
     });
     TODOS_LT.forEach(function (p) {
       if (forma !== p.familia && !todas) return;
@@ -4175,6 +4190,7 @@ if (typeof module !== "undefined") module.exports = Portico;
 
   // ----- Forma escolhida: campos, esquema e classes de aço -----
   function acosForma(forma) {
+    if (forma === "madremax") return [MADREMAX.aco];
     return ENFORMADOS.indexOf(forma) >= 0 ? Enformados.FAMILIAS[FORMAS[forma].familia].acos
       : TUBOS.indexOf(forma) >= 0 ? Object.keys(Seccao.ACOS_H) : Object.keys(Seccao.ACOS);
   }
@@ -4188,7 +4204,8 @@ if (typeof module !== "undefined") module.exports = Portico;
   }
   var NOTAS_FORMA = {
     U: "UPN (banzos inclinados, t<sub>f</sub> medida a meio do banzo) e UPE (banzos paralelos), da EN 10365. A C enformada a frio, com reforços nas pontas dos banzos, é outra série.",
-    omega: "Meça a altura total h e a largura total b, nas pontas das abas inferiores. Séries: Superomega® (O Feliz) e Madremax® (Constálica; no catálogo, b é a cota b3).",
+    omega: "Meça a altura total h e a largura total b, nas pontas das abas inferiores. Superomega® da O Feliz; a Madremax® da Constálica tem forma própria no seletor.",
+    madremax: "Madremax® da Constálica: ómega com as abas dobradas em V. Meça a altura total h e a largura total b nas pontas das abas (cota b3 do catálogo); a designação não é a altura (a Madremax 300 tem h = 279 mm). O catálogo só dá a secção bruta.",
     C: "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.",
     Liguais: "Meça a aba a por fora, do dorso à ponta, e a espessura t perto da ponta. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
     Ldesiguais: "As abas podem ser introduzidas por qualquer ordem. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
@@ -4204,7 +4221,7 @@ if (typeof module !== "undefined") module.exports = Portico;
   // do catálogo (S275).
   function atualizarForma(forma, aco, mudou) {
     estado.forma = forma;
-    var lista = acosForma(forma), enf = ENFORMADOS.indexOf(forma) >= 0, lt = LT.indexOf(forma) >= 0;
+    var lista = acosForma(forma), enf = ENFORMADOS.indexOf(forma) >= 0 || forma === "madremax", lt = LT.indexOf(forma) >= 0;
     var semH = aco && Seccao.ACOS[String(aco).replace(/H$/, "")] ? String(aco).replace(/H$/, "") : "S355";
     var padrao = enf ? "S350GD" : lt ? "S275" : TUBOS.indexOf(forma) >= 0 ? acoTubo(aco || "S355") : semH;
     estado.aco = lista.indexOf(aco) >= 0 && !(mudou && lt) ? aco : padrao;
@@ -4950,7 +4967,7 @@ if (typeof module !== "undefined") module.exports = Portico;
     } else if (familia === "Madremax") {
       q = MADREMAX.seccoes.filter(function (x) { return x.nome === nome; })[0];
       if (!q) return;
-      forma = "omega"; valores = { h: v(q.H), b: v(q.b3), t: v(q.t) };
+      forma = "madremax"; valores = { h: v(q.H), b: v(q.b3), t: v(q.t) };
     } else if (FAMILIAS_LT.indexOf(familia) >= 0) {
       q = TODOS_LT.filter(function (x) { return x.nome === nome; })[0];
       if (!q) return;

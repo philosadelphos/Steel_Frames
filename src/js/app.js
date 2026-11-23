@@ -92,7 +92,8 @@
   var FORMAS = {
     I: { curto: "I/H", nome: "I ou H", campos: CAMPOS_IU },
     U: { curto: "U", nome: "U", campos: CAMPOS_IU },
-    omega: { curto: "Ω", nome: "ómega", campos: CAMPOS_ENF, familia: "Superomega" },
+    omega: { curto: "Ω", nome: "ómega Superomega", campos: CAMPOS_ENF, familia: "Superomega" },
+    madremax: { curto: "Ω", nome: "ómega Madremax", campos: CAMPOS_ENF },
     C: { curto: "C", nome: "C", campos: CAMPOS_CZ, familia: "C" },
     Z: { curto: "Z", nome: "Z", campos: CAMPOS_CZ, familia: "Z" },
     Liguais: { curto: "L", nome: "L de abas iguais", campos: [campo("a", "Aba", "a", true, "a aba a"), campo("t", "Espessura", "t", false, "a espessura t")] },
@@ -142,10 +143,11 @@
       Enformados.seccoes(FORMAS[f].familia).forEach(function (s) {
         l.push({ tipo: "enf", forma: f, familia: FORMAS[f].familia, nome: s.nome, perfil: s, G: s.G, dims: { h: s.h, b: s.b, t: s.t, a: s.a || undefined }, esp: [s.t] });
       });
-      // Madremax (Constálica): também ómega; b é a largura total nas pontas das abas (b3 do catálogo).
-      if (f === "omega" && typeof MADREMAX !== "undefined") MADREMAX.seccoes.forEach(function (m) {
-        l.push({ tipo: "madremax", forma: f, familia: "Madremax", nome: m.nome, perfil: m, G: m.G, dims: { h: m.H, b: m.b3, t: m.t }, esp: [m.t] });
-      });
+    });
+    // Madremax (Constálica): ómega com outra geometria e outro catálogo, numa forma própria; b é a largura total nas
+    // pontas das abas (b3 do catálogo).
+    if ((forma === "madremax" || todas) && typeof MADREMAX !== "undefined") MADREMAX.seccoes.forEach(function (m) {
+      l.push({ tipo: "madremax", forma: "madremax", familia: "Madremax", nome: m.nome, perfil: m, G: m.G, dims: { h: m.H, b: m.b3, t: m.t }, esp: [m.t] });
     });
     TODOS_LT.forEach(function (p) {
       if (forma !== p.familia && !todas) return;
@@ -259,6 +261,7 @@
 
   // ----- Forma escolhida: campos, esquema e classes de aço -----
   function acosForma(forma) {
+    if (forma === "madremax") return [MADREMAX.aco];
     return ENFORMADOS.indexOf(forma) >= 0 ? Enformados.FAMILIAS[FORMAS[forma].familia].acos
       : TUBOS.indexOf(forma) >= 0 ? Object.keys(Seccao.ACOS_H) : Object.keys(Seccao.ACOS);
   }
@@ -272,7 +275,8 @@
   }
   var NOTAS_FORMA = {
     U: "UPN (banzos inclinados, t<sub>f</sub> medida a meio do banzo) e UPE (banzos paralelos), da EN 10365. A C enformada a frio, com reforços nas pontas dos banzos, é outra série.",
-    omega: "Meça a altura total h e a largura total b, nas pontas das abas inferiores. Séries: Superomega® (O Feliz) e Madremax® (Constálica; no catálogo, b é a cota b3).",
+    omega: "Meça a altura total h e a largura total b, nas pontas das abas inferiores. Superomega® da O Feliz; a Madremax® da Constálica tem forma própria no seletor.",
+    madremax: "Madremax® da Constálica: ómega com as abas dobradas em V. Meça a altura total h e a largura total b nas pontas das abas (cota b3 do catálogo); a designação não é a altura (a Madremax 300 tem h = 279 mm). O catálogo só dá a secção bruta.",
     C: "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.",
     Liguais: "Meça a aba a por fora, do dorso à ponta, e a espessura t perto da ponta. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
     Ldesiguais: "As abas podem ser introduzidas por qualquer ordem. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
@@ -288,7 +292,7 @@
   // do catálogo (S275).
   function atualizarForma(forma, aco, mudou) {
     estado.forma = forma;
-    var lista = acosForma(forma), enf = ENFORMADOS.indexOf(forma) >= 0, lt = LT.indexOf(forma) >= 0;
+    var lista = acosForma(forma), enf = ENFORMADOS.indexOf(forma) >= 0 || forma === "madremax", lt = LT.indexOf(forma) >= 0;
     var semH = aco && Seccao.ACOS[String(aco).replace(/H$/, "")] ? String(aco).replace(/H$/, "") : "S355";
     var padrao = enf ? "S350GD" : lt ? "S275" : TUBOS.indexOf(forma) >= 0 ? acoTubo(aco || "S355") : semH;
     estado.aco = lista.indexOf(aco) >= 0 && !(mudou && lt) ? aco : padrao;
@@ -1034,7 +1038,7 @@
     } else if (familia === "Madremax") {
       q = MADREMAX.seccoes.filter(function (x) { return x.nome === nome; })[0];
       if (!q) return;
-      forma = "omega"; valores = { h: v(q.H), b: v(q.b3), t: v(q.t) };
+      forma = "madremax"; valores = { h: v(q.H), b: v(q.b3), t: v(q.t) };
     } else if (FAMILIAS_LT.indexOf(familia) >= 0) {
       q = TODOS_LT.filter(function (x) { return x.nome === nome; })[0];
       if (!q) return;
