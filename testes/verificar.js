@@ -210,5 +210,32 @@ esperar("T 50 S275 classe compressão", Seccao.classificarLT(porNomeLT["T 50"], 
   esperar("CHS 88,9×4 S275H classe (d/t = 22)", Seccao.classificarTubo(tubo["CHS 88,9×4"], 275).compressao, 1);
 })();
 
+// ----- Madremax® (Constálica): coerência interna do catálogo (só dá a secção bruta) -----
+// Raios de giração e módulos a partir de I, A e das cotas; massa com 7850 kg/m³; área ≈ desenvolvimento × t;
+// disposições duplas (encaixada e costas com costas) com o dobro da área e de I_z, e a encaixada com o dobro de I_y.
+(function () {
+  var M = require("../src/js/madremax.js"), max = {};
+  function reg(k, v, ref) { var d = Math.abs(v / ref - 1); max[k] = Math.max(max[k] || 0, d); }
+  verificados++;
+  var nove = M.seccoes.length === 9;
+  if (!nove) falhas++;
+  console.log((nove ? "ok   " : "FALHA") + "  Madremax: 9 secções no catálogo (" + M.seccoes.length + ")");
+  M.seccoes.forEach(function (s) {
+    reg("i_y = √(I_y/A)", Math.sqrt(s.Iy / s.A), s.iy);
+    reg("i_z = √(I_z/A)", Math.sqrt(s.Iz / s.A), s.iz);
+    reg("W_z = I_z/(b3/2)", s.Iz / (s.b3 / 20), s.Wz);
+    reg("W_y = I_y/máx(y1; H − y1)", s.Iy / (Math.max(s.y1, s.H - s.y1) / 10), s.Wy);
+    reg("G = 0,785 A", 0.785 * s.A, s.G);
+    reg("A = desenvolvimento × t", s.desenv * s.t / 100, s.A);
+    var e = s.duplas.encaixada, c = s.duplas.costas;
+    reg("duplas: A = 2A", e.A, 2 * s.A); reg("duplas: A = 2A", c.A, 2 * s.A);
+    reg("duplas: I_z = 2I_z", e.Iz, 2 * s.Iz); reg("duplas: I_z = 2I_z", c.Iz, 2 * s.Iz);
+    reg("encaixada: I_y = 2I_y", e.Iy, 2 * s.Iy);
+  });
+  var TOL = { "i_y = √(I_y/A)": 0.01, "i_z = √(I_z/A)": 0.01, "W_z = I_z/(b3/2)": 0.01, "W_y = I_y/máx(y1; H − y1)": 0.025,
+    "G = 0,785 A": 0.015, "A = desenvolvimento × t": 0.02, "duplas: A = 2A": 0.002, "duplas: I_z = 2I_z": 0.002, "encaixada: I_y = 2I_y": 0.002 };
+  Object.keys(TOL).forEach(function (k) { dentro("Madremax: " + k + ", maior desvio", 1 + max[k], 1, TOL[k]); });
+})();
+
 console.log("\n" + (verificados - falhas) + "/" + verificados + " verificações dentro da tolerância");
 process.exit(falhas ? 1 : 0);

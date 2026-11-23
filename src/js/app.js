@@ -1,6 +1,6 @@
 /*
  * Interface: identificação de perfis por medidas e catálogo.
- * Depende de perfis.js, perfis-u.js, perfis-lt.js, perfis-tubulares.js, seccao.js e enformados.js.
+ * Depende de perfis.js, perfis-u.js, perfis-lt.js, perfis-tubulares.js, madremax.js, seccao.js e enformados.js.
  */
 (function () {
   var FAMILIAS = Object.keys(PERFIS);
@@ -142,6 +142,10 @@
       Enformados.seccoes(FORMAS[f].familia).forEach(function (s) {
         l.push({ tipo: "enf", forma: f, familia: FORMAS[f].familia, nome: s.nome, perfil: s, G: s.G, dims: { h: s.h, b: s.b, t: s.t, a: s.a || undefined }, esp: [s.t] });
       });
+      // Madremax (Constálica): também ómega; b é a largura total nas pontas das abas (b3 do catálogo).
+      if (f === "omega" && typeof MADREMAX !== "undefined") MADREMAX.seccoes.forEach(function (m) {
+        l.push({ tipo: "madremax", forma: f, familia: "Madremax", nome: m.nome, perfil: m, G: m.G, dims: { h: m.H, b: m.b3, t: m.t }, esp: [m.t] });
+      });
     });
     TODOS_LT.forEach(function (p) {
       if (forma !== p.familia && !todas) return;
@@ -227,7 +231,8 @@
       if (m[k.nome]) return;
       var vals = [];
       compat.forEach(function (x) { [].concat(x.r.restantes[k.nome]).forEach(function (v) { if (v && vals.indexOf(v) < 0) vals.push(v); }); });
-      if (vals.length < 2) return;
+      // Uma medida cujos valores cabem todos na tolerância de medição não distingue os candidatos.
+      if (vals.length < 2 || Math.max.apply(null, vals) - Math.min.apply(null, vals) <= tolerancia(Math.min.apply(null, vals), k.esp)) return;
       if (!melhor || (k.principal && !melhor.k.principal) || (k.principal === melhor.k.principal && vals.length > melhor.vals.length)) melhor = { k: k, vals: vals };
     });
     compat.forEach(function (x) {
@@ -267,7 +272,7 @@
   }
   var NOTAS_FORMA = {
     U: "UPN (banzos inclinados, t<sub>f</sub> medida a meio do banzo) e UPE (banzos paralelos), da EN 10365. A C enformada a frio, com reforços nas pontas dos banzos, é outra série.",
-    omega: "Meça a altura total h e a largura total b, nas pontas das abas inferiores.",
+    omega: "Meça a altura total h e a largura total b, nas pontas das abas inferiores. Séries: Superomega® (O Feliz) e Madremax® (Constálica; no catálogo, b é a cota b3).",
     C: "Meça a largura b do banzo e a altura a do reforço por fora. As madres C e Z da O Feliz têm as mesmas dimensões: é a forma que distingue as duas séries.",
     Liguais: "Meça a aba a por fora, do dorso à ponta, e a espessura t perto da ponta. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
     Ldesiguais: "As abas podem ser introduzidas por qualquer ordem. Gama da Masterferro (aço S275JR), com os raios da EN 10056-1.",
@@ -727,6 +732,55 @@
       "</section>";
   }
 
+  // ----- Madremax® (Constálica): só a secção bruta do catálogo -----
+  // Esquema da linha média com as cotas do catálogo: abas de ±b3/2 até ao pé da alma, simétrico da linha de furação
+  // (b2/2) em relação à ponta; topo com a largura b1. O catálogo não dá os raios nem a dobra em V das abas.
+  function desenhoMadremax(m) {
+    var B = m.b3, H = m.H, M = Math.max(B, H), fs = M * 0.05, tr = fs * 0.35, xp = m.b2 / 2 - (m.b3 - m.b2) / 2;
+    var y0 = H / 2 - m.t / 2, y1 = -H / 2 + m.t / 2, esp = Math.max(m.t, M * 0.012);
+    var pts = [[-B / 2, y0], [-xp, y0], [-m.b1 / 2, y1], [m.b1 / 2, y1], [xp, y0], [B / 2, y0]];
+    var d = pts.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(2) + " " + q[1].toFixed(2); }).join("");
+    var cb = H / 2 + M * 0.16, ch = -B / 2 - M * 0.16;
+    function traco(x, y) { return "M" + (x - tr) + " " + (y + tr) + "L" + (x + tr) + " " + (y - tr); }
+    var cotas = "M" + (-B / 2) + " " + (H / 2 + M * 0.03) + "V" + (cb + M * 0.03) + "M" + (B / 2) + " " + (H / 2 + M * 0.03) + "V" + (cb + M * 0.03) +
+      "M" + (-B / 2) + " " + cb + "H" + (B / 2) + "M" + (-m.b1 / 2 - M * 0.03) + " " + (-H / 2) + "H" + (ch - M * 0.03) + "M" + (-B / 2 - M * 0.03) + " " + (H / 2) + "H" + (ch - M * 0.03) +
+      "M" + ch + " " + (-H / 2) + "V" + (H / 2) + traco(-B / 2, cb) + traco(B / 2, cb) + traco(ch, -H / 2) + traco(ch, H / 2);
+    var furos = [-m.b2 / 2, m.b2 / 2].map(function (x) { return "M" + x + " " + (y0 - M * 0.05) + "V" + (y0 + M * 0.05); }).join("");
+    var vb = [-B / 2 - M * 0.27, -H / 2 - M * 0.08, B + M * 0.35, H + M * 0.36];
+    return '<svg viewBox="' + vb.map(function (v) { return v.toFixed(2); }).join(" ") + '" role="img" aria-label="Secção ' + m.nome + ', esquema à escala">' +
+      '<path class="sec-fino" stroke-width="' + esp.toFixed(2) + '" d="' + d + '"/><path class="sec-eixo" d="' + furos + '"/><path class="sec-cota" d="' + cotas + '"/>' +
+      '<text class="sec-txt" x="0" y="' + (cb + fs * 1.1).toFixed(2) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle">' + fmt(B, B % 1 ? 1 : 0) + "</text>" +
+      '<text class="sec-txt" font-size="' + fs.toFixed(2) + '" text-anchor="middle" transform="translate(' + (ch - fs * 0.45).toFixed(2) + ' 0) rotate(-90)">' + fmt(H, H % 1 ? 1 : 0) + "</text></svg>";
+  }
+
+  function blocoPropriedadesMadremax(m) {
+    var e = m.duplas.encaixada, c = m.duplas.costas;
+    return '<div class="grupos-props">' +
+      '<div class="grupo-props"><h3>Geometria</h3><dl class="lista-props">' +
+        linhaProp("H", m.H, "mm", 1) + linhaProp("b<sub>1</sub>", m.b1, "mm", 1) + linhaProp("b<sub>2</sub>", m.b2, "mm", 1) + linhaProp("b<sub>3</sub>", m.b3, "mm", 1) +
+        linhaProp("h<sub>1</sub>", m.h1, "mm", 1) + linhaProp("t", m.t, "mm", 1) + linhaProp("y<sub>1</sub>", m.y1, "mm", 1) +
+        linhaProp("A", m.A, "cm²") + linhaProp("G", m.G, "kg/m", 2) + linhaProp("desenv.", m.desenv, "mm", 0) + "</dl></div>" +
+      '<div class="grupo-props"><h3>Secção bruta y-y</h3><dl class="lista-props">' +
+        linhaProp("I<sub>y</sub>", m.Iy, "cm⁴") + linhaProp("W<sub>y,min</sub>", m.Wy, "cm³") + linhaProp("i<sub>y</sub>", m.iy, "cm") + "</dl></div>" +
+      '<div class="grupo-props"><h3>Secção bruta z-z</h3><dl class="lista-props">' +
+        linhaProp("I<sub>z</sub>", m.Iz, "cm⁴") + linhaProp("W<sub>z,min</sub>", m.Wz, "cm³") + linhaProp("i<sub>z</sub>", m.iz, "cm") + "</dl></div>" +
+      '<div class="grupo-props"><h3>Duas madres (catálogo)</h3><dl class="lista-props">' +
+        linhaProp("I<sub>y</sub> encaix.", e.Iy, "cm⁴") + linhaProp("W<sub>y</sub> encaix.", e.Wy, "cm³") +
+        linhaProp("H costas", c.H, "mm", 1) + linhaProp("I<sub>y</sub> costas", c.Iy, "cm⁴") + linhaProp("W<sub>y</sub> costas", c.Wy, "cm³") + "</dl></div>" +
+      "</div>";
+  }
+
+  function blocoEC3Madremax(m) {
+    return '<section class="cartao"><h2>Resistência da secção · ' + MADREMAX.aco + "</h2>" +
+      '<div class="ec3">' +
+        '<div class="ec3-item"><h3>Aço</h3><div class="valor-grande">f<sub>yb</sub> = 350 <small>MPa</small></div><p>S350GD + Z275 (EN 10346); t = ' + fmt(m.t, 1) +
+          " mm nominal, com o zinco · furação " + m.furo + " para parafusos " + m.parafuso + " 8.8, a cada 50 mm</p></div>" +
+        '<div class="ec3-item"><h3>Resistências</h3><div class="valor-grande">—</div><p>Não calculadas: o fabricante só dá a secção bruta. Nas paredes finas, a secção efetiva (EN 1993-1-3, 5.5, e EN 1993-1-5) é menor, por isso a bruta sobrestima N<sub>c,Rd</sub> e M<sub>c,Rd</sub>.</p></div>' +
+      "</div>" +
+      '<p class="nota">As Madremax não entram no separador Madres. Para as verificar, peça à Constálica as propriedades efetivas ou os valores de cálculo das madres (com as sobreposições encaixadas).</p>' +
+      "</section>";
+  }
+
   // ----- Resultado: candidatos e perfil escolhido -----
   function descricaoMedidas(forma, m) {
     return FORMAS[forma].campos.filter(function (k) { return m[k.nome]; }).map(function (k) {
@@ -738,6 +792,7 @@
     var p = c.perfil, d = c.dims;
     if (c.tipo === "I" || c.tipo === "U") return fmt(d.h, 0) + " × " + fmt(d.b, 0) + " · t<sub>w</sub> " + fmt(d.tw, 1) + " · t<sub>f</sub> " + fmt(d.tf, 1);
     if (c.tipo === "enf") return fmt(d.h, 0) + " × " + fmt(d.b, 0) + (d.a ? " · a " + fmt(d.a, 0) : "") + " · t " + fmt(d.t, 1) + " · " + fmt(c.G, 2) + " kg/m";
+    if (c.tipo === "madremax") return fmt(d.h, d.h % 1 ? 1 : 0) + " × " + fmt(d.b, d.b % 1 ? 1 : 0) + " · t " + fmt(d.t, 1) + " · " + fmt(c.G, 2) + " kg/m · Constálica, só bruta";
     if (c.tipo === "tubo") return fmt(c.G, 2) + " kg/m · " + serieTubo(p, true);
     return fmt(c.G, 2) + " kg/m" + (p.origem === "EN" ? "" : " · fora da " + PERFIS_LT[p.familia].norma);
   }
@@ -788,6 +843,10 @@
       descricao = Enformados.FAMILIAS[c.familia].descricao; figura = desenhoEnformado(c.familia, p);
       props = blocoPropriedadesEnformado(c.familia, p, aco); ec3 = blocoEC3Enformado(c.familia, p, aco);
       legenda = "Secção à escala (linha média), dimensões nominais em mm";
+    } else if (c.tipo === "madremax") {
+      descricao = "Madremax® (ómega) · Constálica · S350GD + Z275 · propriedades da secção bruta (catálogo)";
+      figura = desenhoMadremax(p); props = blocoPropriedadesMadremax(p); ec3 = blocoEC3Madremax(p);
+      legenda = "Esquema à escala das cotas do catálogo (linha média); forma das abas e dos cantos aproximada";
     } else if (c.tipo === "tubo") {
       var pt = Seccao.propriedadesTubo(p), at = acoTubo(estado.aco);
       descricao = PERFIS_TUBULARES[p.forma].descricao + " · EN 10219 · " + serieTubo(p, false);
@@ -834,6 +893,21 @@
   // ----- Catálogo -----
   // Tabela das madres O Feliz: valores do fabricante, sem cálculo (W efetivos em S350GD).
   var FAMILIAS_OFELIZ = ["Superomega", "C", "Z"];
+
+  // Madremax: valores do catálogo da Constálica (secção bruta).
+  function renderCatalogoMadremax() {
+    $("catalogo-desc").innerHTML = "Madremax® (ómega) · Constálica · S350GD + Z275 · propriedades da <b>secção bruta</b> do catálogo · não entram no dimensionamento das madres";
+    var colunas = [["Secção", ""], ["H", "mm"], ["b<sub>1</sub>", "mm"], ["b<sub>2</sub>", "mm"], ["b<sub>3</sub>", "mm"], ["t", "mm"], ["G", "kg/m"], ["A", "cm²"],
+      ["I<sub>y</sub>", "cm⁴"], ["W<sub>y,min</sub>", "cm³"], ["i<sub>y</sub>", "cm"], ["I<sub>z</sub>", "cm⁴"], ["W<sub>z,min</sub>", "cm³"], ["i<sub>z</sub>", "cm"],
+      ["I<sub>y</sub> costas", "cm⁴"], ["Parafuso", ""]];
+    var cab = "<thead><tr>" + colunas.map(function (c) { return '<th scope="col">' + c[0] + (c[1] ? '<span class="un">' + c[1] + "</span>" : "") + "</th>"; }).join("") + "</tr></thead>";
+    var corpo = MADREMAX.seccoes.map(function (m) {
+      var v = [fmt(m.H, 1), fmt(m.b1, 1), fmt(m.b2, 1), fmt(m.b3, 1), fmt(m.t, 1), fmt(m.G, 2), fmt(m.A, 2), fmt(m.Iy), fmt(m.Wy), fmt(m.iy, 2),
+        fmt(m.Iz), fmt(m.Wz), fmt(m.iz, 2), fmt(m.duplas.costas.Iy), m.parafuso];
+      return '<tr data-nome="' + m.nome + '" data-familia="Madremax" tabindex="0"><td>' + m.nome + "</td><td>" + v.join("</td><td>") + "</td></tr>";
+    }).join("");
+    $("tabela-catalogo").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+  }
   function renderCatalogoOFeliz(fam) {
     var so = fam === "Superomega";
     $("catalogo-desc").innerHTML = Enformados.FAMILIAS[fam].descricao + " · propriedades do fabricante, com a espessura de cálculo t<sub>eff</sub>" +
@@ -923,6 +997,7 @@
     if (FAMILIAS_U.indexOf(fam) >= 0) { renderCatalogoU(fam); return; }
     if (FAMILIAS_LT.indexOf(fam) >= 0) { renderCatalogoLT(fam); return; }
     if (FAMILIAS_TUBOS.indexOf(fam) >= 0) { renderCatalogoTubos(fam); return; }
+    if (fam === "Madremax") { renderCatalogoMadremax(); return; }
     var ofeliz = FAMILIAS_OFELIZ.indexOf(fam) >= 0;
     if (ofeliz) { renderCatalogoOFeliz(fam); return; }
     $("catalogo-desc").textContent = fam + " · " + PERFIS[fam].descricao + " · dimensões segundo a EN 10365:2017";
@@ -956,6 +1031,10 @@
       if (!q) return;
       forma = familia === "Superomega" ? "omega" : familia;
       valores = { h: v(q.h), b: v(q.b), t: v(q.t), a: q.a ? v(q.a) : undefined };
+    } else if (familia === "Madremax") {
+      q = MADREMAX.seccoes.filter(function (x) { return x.nome === nome; })[0];
+      if (!q) return;
+      forma = "omega"; valores = { h: v(q.H), b: v(q.b3), t: v(q.t) };
     } else if (FAMILIAS_LT.indexOf(familia) >= 0) {
       q = TODOS_LT.filter(function (x) { return x.nome === nome; })[0];
       if (!q) return;
@@ -1017,7 +1096,7 @@
     $("fichas-familias").innerHTML = FAMILIAS.map(function (f) {
       return '<label class="ficha"><input type="checkbox" value="' + f + '" checked>' + f + "</label>";
     }).join("");
-    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_U, FAMILIAS_OFELIZ, FAMILIAS_LT, FAMILIAS_TUBOS).map(function (f) {
+    $("fichas-catalogo").innerHTML = FAMILIAS.concat(FAMILIAS_U, FAMILIAS_OFELIZ, ["Madremax"], FAMILIAS_LT, FAMILIAS_TUBOS).map(function (f) {
       return '<label class="ficha"><input type="radio" name="familia-catalogo" value="' + f + '"' + (f === estado.familiaCatalogo ? " checked" : "") + ">" + (ROTULOS_CATALOGO[f] || f) + "</label>";
     }).join("");
     atualizarForma("I", estado.aco);

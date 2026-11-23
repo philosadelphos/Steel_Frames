@@ -74,7 +74,13 @@ Só está disponível a BS EN 1993-1-3:2006 (texto europeu, sem o Anexo Nacional
 
 ## 2. Madres enformadas a frio: aproximações e o que confirmar
 
-As madres Superomega, C e Z da O Feliz verificam-se pela EN 1993-1-3, 10.1 (`src/js/enformados.js`). As Madremax e Omegamax da Constálica saíram da app: os catálogos só davam a secção bruta.
+As madres Superomega, C e Z da O Feliz verificam-se pela EN 1993-1-3, 10.1 (`src/js/enformados.js`). As Madremax e Omegamax da Constálica não entram no dimensionamento: os catálogos só dão a secção bruta. As Madremax entram no Identificar e no Catálogo (ver abaixo).
+
+**Madremax® (Constálica), catálogo MKC002_0219** (`docs/catalogos/stVNwIicK-catalogo_madremax.pdf`, conferido em 23/11/2026): 9 secções em ómega com abas dobradas em V (50×1,5, 100×1,5, 150×1,5, 200×1,5, 200×2,0, 250×2,0, 250×2,5, 300×2,5 e 300×3,0), S350GD + Z275, cada uma em três disposições (simples, duas encaixadas e duas costas com costas). `src/js/madremax.js` é gerado por `ferramentas/dados_madremax.py`.
+- A designação não é a altura: o Madremax 300 tem H = 279 mm e b<sub>3</sub> = 311 mm. Na procura por medidas, b é a largura total nas pontas das abas (b<sub>3</sub>), como no Superomega.
+- Coerência interna do catálogo (`testes/verificar.js`): i = √(I/A) e W<sub>z</sub> = I<sub>z</sub>/(b<sub>3</sub>/2) a menos de 0,9 %; W<sub>y,min</sub> = I<sub>y</sub>/máx(y<sub>1</sub>; H − y<sub>1</sub>) a menos de 2,0 %; G = 0,785 A a menos de 1,4 % (t nominal com o zinco); A ≈ desenvolvimento × t a menos de 1,5 %. A encaixada tem exatamente o dobro de A, I<sub>y</sub> e I<sub>z</sub> (como se as duas madres trabalhassem juntas). Na costas com costas, I<sub>y</sub> não bate com 2(I<sub>y</sub> + A d²) para nenhuma posição simples do centro de gravidade (diferenças até 8 %): a geometria da junta não está no catálogo.
+- O catálogo não dá os raios nem a forma exata da dobra das abas: o desenho da app é um esquema com as cotas do catálogo.
+- **A pedir à Constálica:** propriedades efetivas (ou momentos resistentes) por secção, comportamento das sobreposições encaixadas (rigidez e resistência, EN 1993-1-3, 10.1.3.4) e o catálogo da Omegamax com propriedades efetivas.
 
 **Aproximações e hipóteses do lado da segurança, a confirmar ou melhorar:**
 - **Restrição do revestimento.** Por omissão K = 0, e o banzo livre só fica travado nos pórticos e nos tirantes.
