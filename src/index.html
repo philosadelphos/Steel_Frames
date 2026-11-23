@@ -38,7 +38,8 @@
         <select id="in-forma" name="forma">
           <option value="I" selected>I ou H laminado (IPE, HEA, HEB, HEM)</option>
           <option value="U">U laminado (UPN, UPE)</option>
-          <option value="omega">Ómega enformado a frio (Superomega® O Feliz, Madremax® Constálica)</option>
+          <option value="omega">Ómega enformado a frio (Superomega®, O Feliz)</option>
+          <option value="madremax">Ómega enformado a frio (Madremax®, Constálica)</option>
           <option value="C">C enformado a frio (O Feliz)</option>
           <option value="Z">Z enformado a frio (O Feliz)</option>
           <option value="Liguais">Cantoneira de abas iguais (L, EN 10056-1)</option>
@@ -86,6 +87,18 @@
           <text x="2" y="80" class="esquema-txt">h</text>
           <text x="104" y="22" class="esquema-txt esquema-txt-s">t</text>
           <line class="esquema-guia" x1="96" y1="28" x2="102" y2="20"/>
+        </svg>
+        <svg viewBox="0 0 160 150" role="img" data-forma="madremax" hidden>
+          <path class="esquema-fino" d="M12 116l14-4 12 4h14l14-82h28l14 82h14l12-4 14 4"/>
+          <g class="esquema-cota">
+            <line x1="12" y1="132" x2="148" y2="132"/><line x1="12" y1="128" x2="12" y2="136"/><line x1="148" y1="128" x2="148" y2="136"/>
+            <line x1="4" y1="34" x2="4" y2="118"/><line x1="1" y1="34" x2="7" y2="34"/><line x1="1" y1="118" x2="7" y2="118"/>
+          </g>
+          <text x="80" y="146" class="esquema-txt">b</text>
+          <text x="12" y="80" class="esquema-txt">h</text>
+          <text x="112" y="70" class="esquema-txt esquema-txt-s">t</text>
+          <line class="esquema-guia" x1="104" y1="70" x2="110" y2="66"/>
+          <text x="14" y="100" class="esquema-txt esquema-txt-s" style="font-size: 8px">aba em V</text>
         </svg>
         <svg viewBox="0 0 160 150" role="img" data-forma="C" hidden>
           <path class="esquema-fino" d="M116 44V22H54v106h62v-22"/>
